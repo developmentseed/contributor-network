@@ -25,3 +25,7 @@ rm -rf data  # We don't re-fetch data from Github if it already exists on the lo
 uv run python scripts/fetch_data.py
 uv run python scripts/build_csvs.py
 ```
+
+## License
+
+This work was copied-and-modified from <https://github.com/nbremer/ORCA> and is licensed under the same (MPL).
