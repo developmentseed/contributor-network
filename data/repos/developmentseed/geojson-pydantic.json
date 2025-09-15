@@ -1,0 +1,11 @@
+{
+  "repo": "developmentseed/geojson-pydantic",
+  "repo_stars": 265,
+  "repo_forks": 40,
+  "repo_createdAt": "2020-05-21T22:29:07Z",
+  "repo_updatedAt": "2025-09-15T16:00:18Z",
+  "repo_total_commits": 309,
+  "repo_url": "https://developmentseed.org/geojson-pydantic/",
+  "repo_description": "Pydantic data models for the GeoJSON spec",
+  "repo_languages": "Python"
+}

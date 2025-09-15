@@ -1,0 +1,11 @@
+{
+  "repo": "stac-utils/stac-fastapi-pgstac",
+  "repo_stars": 83,
+  "repo_forks": 40,
+  "repo_createdAt": "2022-07-28T01:48:07Z",
+  "repo_updatedAt": "2025-09-11T02:33:33Z",
+  "repo_total_commits": 344,
+  "repo_url": "https://stac-utils.github.io/stac-fastapi-pgstac/",
+  "repo_description": "PostgreSQL backend for stac-fastapi using pgstac (https://github.com/stac-utils/pgstac)",
+  "repo_languages": "Python,Shell,Makefile,Dockerfile"
+}

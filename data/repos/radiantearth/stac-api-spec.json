@@ -1,0 +1,11 @@
+{
+  "repo": "radiantearth/stac-api-spec",
+  "repo_stars": 248,
+  "repo_forks": 53,
+  "repo_createdAt": "2020-03-02T16:21:32Z",
+  "repo_updatedAt": "2025-08-25T21:19:29Z",
+  "repo_total_commits": 2483,
+  "repo_url": "http://stacspec.org",
+  "repo_description": "SpatioTemporal Asset Catalog API specification - an API to make geospatial assets openly searchable and crawlable",
+  "repo_languages": "JavaScript,HTML,Shell"
+}

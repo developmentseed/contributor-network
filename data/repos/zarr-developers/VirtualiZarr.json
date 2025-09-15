@@ -1,0 +1,11 @@
+{
+  "repo": "zarr-developers/VirtualiZarr",
+  "repo_stars": 224,
+  "repo_forks": 49,
+  "repo_createdAt": "2024-03-08T19:24:24Z",
+  "repo_updatedAt": "2025-09-12T18:16:06Z",
+  "repo_total_commits": 481,
+  "repo_url": "https://virtualizarr.readthedocs.io/en/stable/index.html",
+  "repo_description": "Cloud-Optimize your Scientific Data as Virtual Zarr stores, using xarray syntax.",
+  "repo_languages": "Python"
+}

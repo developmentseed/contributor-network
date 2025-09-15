@@ -1,0 +1,11 @@
+{
+  "repo": "zarr-developers/zarr-python",
+  "repo_stars": 1775,
+  "repo_forks": 357,
+  "repo_createdAt": "2015-12-15T14:49:40Z",
+  "repo_updatedAt": "2025-09-15T19:07:26Z",
+  "repo_total_commits": 2549,
+  "repo_url": "https://zarr.readthedocs.io",
+  "repo_description": "An implementation of chunked, compressed, N-dimensional arrays for Python.",
+  "repo_languages": "Python"
+}

@@ -1,0 +1,11 @@
+{
+  "repo": "opengeospatial/geoparquet",
+  "repo_stars": 967,
+  "repo_forks": 61,
+  "repo_createdAt": "2021-07-30T18:06:15Z",
+  "repo_updatedAt": "2025-09-07T21:00:19Z",
+  "repo_total_commits": 123,
+  "repo_url": "https://geoparquet.org",
+  "repo_description": "Specification for storing geospatial vector data (point, line, polygon) in Parquet",
+  "repo_languages": "Python"
+}

@@ -1,0 +1,11 @@
+{
+  "repo": "geoarrow/geoarrow-rs",
+  "repo_stars": 357,
+  "repo_forks": 33,
+  "repo_createdAt": "2023-06-30T22:18:22Z",
+  "repo_updatedAt": "2025-09-13T01:20:36Z",
+  "repo_total_commits": 859,
+  "repo_url": "http://geoarrow.org/geoarrow-rs/",
+  "repo_description": "GeoArrow in Rust, Python, and JavaScript (WebAssembly) with vectorized geometry operations",
+  "repo_languages": "Rust,Python,Jupyter Notebook,Shell,TypeScript,CSS"
+}

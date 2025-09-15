@@ -1,0 +1,11 @@
+[project]
+name = "devseed-contributor-network"
+version = "0.1.0"
+description = "A visualization of contributors to Development Seed projects"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["pydantic>=2.11.9", "pygithub>=2.8.1"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
