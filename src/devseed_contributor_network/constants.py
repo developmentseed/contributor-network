@@ -3,6 +3,8 @@ REPOSITORIES = [
     "developmentseed/lonboard",
     "developmentseed/obstore",
     "developmentseed/eoAPI",
+    "developmentseed/eoapi-k8s",
+    "developmentseed/eoapi-cdk",
     "developmentseed/geojson-pydantic",
     "developmentseed/tipg",
     "developmentseed/rio-viz",
@@ -26,6 +28,9 @@ REPOSITORIES = [
     "zarr-developers/VirtualiZarr",
     "zarr-developers/zarr-python",
     "pydata/xarray",
+    "sentinel-hub/titiler-openeo",
+    "Clay-foundation/model",
+    "jupyterhub/jupyterhub",
 ]
 
 AUTHORS = {
