@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: Deploy to Github Pages
 
 on:
   push:
@@ -26,6 +26,6 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: "."
       - id: deployment
         uses: actions/deploy-pages@v4
