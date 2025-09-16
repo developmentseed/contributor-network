@@ -12,7 +12,7 @@
 
         <!-- Styling -->
         <link rel="stylesheet" href="css/style.css">
-		
+
         <!-- Social media -->
         <meta property="og:title" content="The Development Seed Contributor Network">
         <meta property="og:url" content="https://developmentseed.org/contributor-network/">
@@ -49,7 +49,7 @@
                     <p>The visual below shows all of the current members of Development Seed and how they connect through repos.
                         We also include some friends and alumni.
                         </p>
-                    
+
                     <p>
                         This visualization is based off of the excellent <a href="https://nbremer.github.io/ORCA/top-contributor-network/">Top Contributor Network</a> from <a href="https://github.com/nbremer">Nadieh Bremer</a>, and is licensed the same (MPL).
                     </p>
@@ -132,7 +132,7 @@
                         let num_contributors = values[0].length + values[3].length
                         document.getElementById("repo-num-contributors").innerHTML = `~${formatDigit(num_contributors)} `
                     }// if
-                    
+
                     // How many contributors are there in the inner two rings
                     document.querySelectorAll(".top-contributor-num").forEach(d => d.innerHTML = `${formatDigit(values[0].length)} `)
 
