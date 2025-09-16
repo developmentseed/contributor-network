@@ -9,7 +9,6 @@ DATA = Path(__file__).parents[1] / "data"
 REPO_DIRECTORY = DATA / "repos"
 LINK_DIRECTORY = DATA / "links"
 REPOSITORIES = [
-    "developmentseed/developmentseed.github.com",
     "developmentseed/titiler",
     "developmentseed/lonboard",
     "developmentseed/obstore",
