@@ -9,3 +9,8 @@ dependencies = ["pydantic>=2.11.9", "pygithub>=2.8.1"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.13.0",
+]
