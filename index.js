@@ -1975,9 +1975,10 @@ const createORCAVisual = (container) => {
     let H = 93;
     if (d.type === "contributor") {
       if (d.data && d.data.orca_received) H = 134;
-      else H = 109;
+      else H = 80;
     } else if (d.type === "repo") {
-      if (d.data.languages.length > 3) H = 222;
+      if (d.id === central_repo.id) H = 80;
+      else if (d.data.languages.length > 3) H = 222;
       else if (d.data.languages.length > 0) H = 210;
       else H = 169;
 
@@ -2092,7 +2093,8 @@ const createORCAVisual = (container) => {
     setFont(context, font_size * SF, 400, "italic");
     context.fillStyle = COL;
     text = "";
-    if (d.type === "contributor") text = "Contributor";
+    if (d.id === central_repo.id) text = "Development Seed";
+    else if (d.type === "contributor") text = "Contributor";
     else if (d.type === "repo") text = "Repository";
     else if (d.type === "owner") text = "Owner";
     renderText(context, text, x * SF, y * SF, 2.5 * SF);
@@ -2100,7 +2102,11 @@ const createORCAVisual = (container) => {
     context.fillStyle = COLOR_TEXT;
     y += 24;
 
-    if (d.type === "contributor") {
+    if (d.id === central_repo.id) {
+      font_size = 15;
+      setFont(context, font_size * SF, 700, "normal");
+      renderText(context, "Development Seed", x * SF, y * SF, 1.25 * SF);
+    } else if (d.type === "contributor") {
       // The contributor's name
       font_size = 16;
       setFont(context, font_size * SF, 700, "normal");
