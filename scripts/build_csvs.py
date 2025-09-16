@@ -23,9 +23,9 @@ def main() -> None:
             links.append(link.model_dump())
 
     # Magic repo hack
-    top_contributors = set()
+    top_contributors = list()
     for author_name in AUTHORS.values():
-        top_contributors.add(author_name)
+        top_contributors.append(author_name)
         links.append(
             Link(
                 author_name=author_name,
