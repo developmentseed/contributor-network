@@ -50,7 +50,7 @@ const createORCAVisual = (container) => {
 
   const INNER_RADIUS_FACTOR = 0.7; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
   const MAX_CONTRIBUTOR_WIDTH = 55; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
-  const CONTRIBUTOR_PADDING = 60; // The padding between the contributor nodes around the circle (at SF = 1)
+  const CONTRIBUTOR_PADDING = 40; // The padding between the contributor nodes around the circle (at SF = 1)
 
   let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
   let ORCA_PRESENT = false; // Is the dataset of ORCA recipients present?
@@ -2106,57 +2106,6 @@ const createORCAVisual = (container) => {
       setFont(context, font_size * SF, 700, "normal");
       text = d.data ? d.data.contributor_name : d.author_name;
       renderText(context, text, x * SF, y * SF, 1.25 * SF);
-
-      // Number of commits to the central repo
-      y += 26;
-      font_size = 12.5;
-      setFont(context, font_size * SF, 400, "normal");
-      context.globalAlpha = 0.9;
-      let num_commits = d.data
-        ? d.data.link_central.commit_count
-        : d.commit_count;
-      let extra_s = num_commits === 1 ? "" : "s";
-      renderText(
-        context,
-        `${
-          num_commits < 10 ? num_commits : formatDigit(num_commits)
-        } commit${extra_s} to ${central_repo.label}`,
-        x * SF,
-        y * SF,
-        1.25 * SF
-      );
-
-      // First and last commit to main repo
-      font_size = 11.5;
-      context.globalAlpha = 0.7;
-      setFont(context, font_size * SF, 400, "normal");
-      y += font_size * line_height + 4;
-      // Check if the start and end date are in the same month of the same year
-      let commit_min = d.data
-        ? d.data.link_central.commit_sec_min
-        : d.commit_sec_min;
-      let commit_max = d.data
-        ? d.data.link_central.commit_sec_max
-        : d.commit_sec_max;
-      if (
-        commit_min.getMonth() === commit_max.getMonth() &&
-        commit_min.getFullYear() === commit_max.getFullYear()
-      ) {
-        text = `In ${formatDate(commit_min)}`;
-      } else {
-        text = `Between ${formatDate(commit_min)} & ${formatDate(commit_max)}`;
-      } // else
-      renderText(context, text, x * SF, y * SF, 1.25 * SF);
-
-      // Supported through ORCA
-      if (d.data && d.data.orca_received) {
-        y += 25;
-        font_size = 12;
-        context.globalAlpha = 0.7;
-        context.fillStyle = COLOR_PURPLE;
-        setFont(context, font_size * SF, 700, "normal");
-        renderText(context, "supported through ORCA", x * SF, y * SF, 1.5 * SF);
-      } // if
     } else if (d.type === "owner") {
       // The name
       font_size = 16;
