@@ -1,9 +1,9 @@
 {
   "repo": "stac-utils/pystac",
-  "repo_stars": 405,
+  "repo_stars": 406,
   "repo_forks": 123,
   "repo_createdAt": "2017-11-08T13:30:15Z",
-  "repo_updatedAt": "2025-09-11T19:30:03Z",
+  "repo_updatedAt": "2025-09-16T13:48:54Z",
   "repo_total_commits": 1966,
   "repo_url": "https://pystac.readthedocs.io",
   "repo_description": "Python library for working with any SpatioTemporal Asset Catalog (STAC)",

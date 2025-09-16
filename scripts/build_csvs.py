@@ -3,11 +3,11 @@ import datetime
 from csv import DictWriter
 from pathlib import Path
 
-from devseed_contributor_network.constants import AUTHORS
-from devseed_contributor_network.models import Link, Repository
+from veda_open_source_network.constants import AUTHORS
+from veda_open_source_network.models import Link, Repository
 
 DATA = Path(__file__).parents[1] / "data"
-MAGIC_REPO = "developmentseed/developmentseed.org"
+MAGIC_REPO = "NASA-IMPACT/veda-docs"
 
 
 def main() -> None:
@@ -40,10 +40,10 @@ def main() -> None:
             repo=MAGIC_REPO,
             repo_stars=0,
             repo_forks=0,
-            repo_url="https://developmentseed.org",
+            repo_url="https://docs.openveda.cloud/",
             repo_createdAt=datetime.datetime.now(),
             repo_updatedAt=datetime.datetime.now(),
-            repo_description="Winning with open data",
+            repo_description="Visualization, Exploration and Data Analysis",
             repo_total_commits=len(top_contributors),
             repo_languages="",
         ).model_dump()

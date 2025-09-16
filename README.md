@@ -1,14 +1,14 @@
-# Development Seed contributor network
+# VEDA open source contributor network
 
-The code behind <https://developmentseed.org/contributor-network>.
+The code behind <https://nasa-impact.github.io/veda-open-source-network>.
 
-![A splash of the page](./img/site-image.jpg)
 
-This visual is derived from the excellent <https://github.com/nbremer/ORCA/tree/main/top-contributor-network>.
+This visual is derived from the excellent <https://github.com/nbremer/ORCA/tree/main/top-contributor-network> and <https://github.com/developmentseed/contributor-network>.
 
 ## Rebuilding
 
-We use [workflow dispatch](https://github.com/developmentseed/contributor-network/actions/workflows/build.yml) to rebuild the source data.
+We use [workflow dispatch](https://github.com/NASA-IMPACT/veda-open-source-network/actions/workflows/build.yml) to rebuild the source data.
+We use [workflow dispatch]() to rebuild the source data.
 Right now this is manual, but eventually we'd like to set this up on a schedule: <https://github.com/developmentseed/contributor-network/issues/8>.
 
 ## Development
@@ -16,7 +16,7 @@ Right now this is manual, but eventually we'd like to set this up on a schedule:
 To view things locally:
 
 ```shell
-python -m http.server
+uv run python -m http.server
 ```
 
 This will open the page on <http://localhost:8000/>.
@@ -44,4 +44,4 @@ uv run python scripts/build_csvs.py
 
 ## License
 
-This work was copied-and-modified from <https://github.com/nbremer/ORCA> and is licensed under the same (MPL).
+This work was copied-and-modified from <https://github.com/developmentseed/contributor-network>, which was copied-and-modified from <https://github.com/nbremer/ORCA> and is licensed under the same (MPL).

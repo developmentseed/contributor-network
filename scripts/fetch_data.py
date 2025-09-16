@@ -3,8 +3,8 @@ from pathlib import Path
 
 from github import Auth, Github
 
-from devseed_contributor_network.constants import AUTHORS, REPOSITORIES
-from devseed_contributor_network.models import Link, Repository
+from veda_open_source_network.constants import AUTHORS, REPOSITORIES
+from veda_open_source_network.models import Link, Repository
 
 DATA = Path(__file__).parents[1] / "data"
 REPO_DIRECTORY = DATA / "repos"
@@ -12,7 +12,7 @@ LINK_DIRECTORY = DATA / "links"
 
 
 def main() -> None:
-    if github_token := os.environ.get("GITHUB_TOKEN"):
+    if github_token := os.environ.get("GH_ODD_PAT"):
         auth = Auth.Token(github_token)
     else:
         auth = Auth.NetrcAuth()
@@ -37,7 +37,7 @@ def main() -> None:
             repo_updatedAt=repo.updated_at,
             repo_total_commits=repo_total_commits,
             repo_url=repo_url,
-            repo_description=repo.description,
+            repo_description=repo.description or "",
             repo_languages=",".join(repo.get_languages().keys()),
         )
         path.parent.mkdir(exist_ok=True, parents=True)

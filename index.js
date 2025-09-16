@@ -23,7 +23,7 @@ const createORCAVisual = (container) => {
   let sqrt = Math.sqrt;
 
   // Default repo
-  let REPO_CENTRAL = "developmentseed/developmentseed.org";
+  let REPO_CENTRAL = "NASA-IMPACT/veda-docs";
 
   // Datasets
   let contributors, remainingContributors, orcaRecipients;
@@ -43,14 +43,14 @@ const createORCAVisual = (container) => {
   let CLICKED_NODE = null;
 
   // Visual Settings - Based on SF = 1
-  const CENTRAL_RADIUS = 50; // The radius of the central repository node
+  const CENTRAL_RADIUS = 1; // The radius of the central repository node
   let RADIUS_CONTRIBUTOR; // The eventual radius along which the contributor nodes are placed
   let RADIUS_CONTRIBUTOR_NON_ORCA; // The radius along which the contributor nodes are placed that have not received ORCA
   let ORCA_RING_WIDTH;
 
   const INNER_RADIUS_FACTOR = 0.7; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
   const MAX_CONTRIBUTOR_WIDTH = 55; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
-  const CONTRIBUTOR_PADDING = 40; // The padding between the contributor nodes around the circle (at SF = 1)
+  const CONTRIBUTOR_PADDING = 100; // The padding between the contributor nodes around the circle (at SF = 1)
 
   let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
   let ORCA_PRESENT = false; // Is the dataset of ORCA recipients present?
@@ -2093,7 +2093,7 @@ const createORCAVisual = (container) => {
     setFont(context, font_size * SF, 400, "italic");
     context.fillStyle = COL;
     text = "";
-    if (d.id === central_repo.id) text = "Development Seed";
+    if (d.id === central_repo.id) text = "VEDA";
     else if (d.type === "contributor") text = "Contributor";
     else if (d.type === "repo") text = "Repository";
     else if (d.type === "owner") text = "Owner";
@@ -2105,7 +2105,7 @@ const createORCAVisual = (container) => {
     if (d.id === central_repo.id) {
       font_size = 15;
       setFont(context, font_size * SF, 700, "normal");
-      renderText(context, "Development Seed", x * SF, y * SF, 1.25 * SF);
+      renderText(context, "VEDA", x * SF, y * SF, 1.25 * SF);
     } else if (d.type === "contributor") {
       // The contributor's name
       font_size = 16;

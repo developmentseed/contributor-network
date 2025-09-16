@@ -2,9 +2,9 @@
 	<head>
         <meta charset="utf-8">
 	    <meta name="viewport" content="width=device-width, shrink-to-fit=0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	    <title>The Development Seed Contributor Network</title>
+	    <title>The VEDA Open Source Contributor Network</title>
 	    <meta name="author" content="Pete Gadomski">
-	    <meta name="description" content="An interactive visualization of contributors to Development Seed code and their connections to other repositories">
+	    <meta name="description" content="An interactive visualization of contributors to VEDA code and their connections to other open source repositories">
         <meta name="theme-color" content="#cf3f02">
 
         <!-- Favicon -->
@@ -14,11 +14,11 @@
         <link rel="stylesheet" href="css/style.css">
 		
         <!-- Social media -->
-        <meta property="og:title" content="The Development Seed Contributor Network">
-        <meta property="og:url" content="https://developmentseed.org/contributor-network/">
+        <meta property="og:title" content="The VEDA Open Source Contributor Network">
+        <meta property="og:url" content="https://nasa-impact.github.io/veda-open-source-network">
         <meta property="og:type" content="article">
         <meta property="og:locale" content="en_US">
-        <meta property="og:image" content="https://develomentseed.org/contributor-network/img/site-image.jpg">
+        <meta property="og:image" content="https://nasa-impact.github.io/veda-open-source-network/img/site-image.jpg">
         <meta property="og:image:type" content="image/jpeg">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="800">
@@ -41,17 +41,17 @@
         <div id="chart-wrapper">
             <div id="chart-introduction">
                 <div id="chart-title">
-                    <h1>The Contributor Network of</h1>
-                    <h1><span id="title-repo-name" class="central-repo">Development Seed</span></h1>
+                    <h1>The Open Source Network of</h1>
+                    <h1><span id="title-repo-name" class="central-repo">NASA VEDA</span></h1>
                     <p id="last-commit-date"></p>
                 </div>
                  <div id="chart-intro-text">
-                    <p>The visual below shows all of the current members of Development Seed and how they connect through repos.
+                    <p>The visual below shows all of the current members of NASA VEDA and how they connect through open source repos.
                         We also include some friends and alumni.
                         </p>
                     
                     <p>
-                        This visualization is based off of the excellent <a href="https://nbremer.github.io/ORCA/top-contributor-network/">Top Contributor Network</a> from <a href="https://github.com/nbremer">Nadieh Bremer</a>, and is licensed the same (MPL).
+                        This visualization is based off of the excellent <a href="https://nbremer.github.io/ORCA/top-contributor-network/">Top Contributor Network</a> from <a href="https://github.com/nbremer">Nadieh Bremer</a>, and <a href="https://github.com/gadomski">Pete Gadomski</a>'s  <a href="https://github.com/developmentseed/contributor-network">adaptation for Development Seed</a> is licensed the same (MPL).
                     </p>
                 </div>
             </div>
@@ -65,8 +65,8 @@
 
         <script>
             let params = new URLSearchParams(window.location.search)
-            const REPOSITORY = "developmentseed"
-            let REPOSITORY_FULL = "developmentseed/developmentseed.org"
+            const REPOSITORY = "NASA-IMPACT"
+            let REPOSITORY_FULL = "NASA-IMPACT/veda-docs"
             let REPOSITORY_NAME = REPOSITORY_FULL.substring(REPOSITORY_FULL.indexOf("/") + 1)
 
             /////////////////////////////////////////////////////////
