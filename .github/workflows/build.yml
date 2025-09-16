@@ -24,4 +24,9 @@ jobs:
           git add .
           git commit -m "feat: update source data and csvs"
           git push -u origin
-          gh pr create --fill
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create PR
+        run: gh pr create --fill
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
