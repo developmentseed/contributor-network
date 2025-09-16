@@ -1,0 +1,11 @@
+{
+  "repo": "developmentseed/eoapi-k8s",
+  "repo_stars": 24,
+  "repo_forks": 12,
+  "repo_createdAt": "2023-06-07T13:38:32Z",
+  "repo_updatedAt": "2025-09-11T13:12:08Z",
+  "repo_total_commits": 214,
+  "repo_url": "https://eoapi.dev/",
+  "repo_description": "eoAPI IaC and k8 deployments",
+  "repo_languages": "Shell,Smarty,PLpgSQL,Makefile"
+}

@@ -1,249 +1,239 @@
 author_name,repo,commit_count,commit_sec_min,commit_sec_max
-Henry Rodman,developmentseed/rio-stac,2,1683132742,1683133093
-Daniel Wiesmann,developmentseed/rio-stac,1,1756306256,1756306256
-Vincent Sarago,developmentseed/rio-stac,155,1588959271,1757405734
-Vitor George,developmentseed/lonboard,11,1697555970,1750192863
-Chris Holden,developmentseed/lonboard,1,1738778383,1738778383
-Emma Paz,developmentseed/lonboard,4,1704982856,1708978921
-Aimee Barciauskas,developmentseed/lonboard,5,1695751913,1700690513
-Kyle Barron,developmentseed/lonboard,336,1693518811,1757792012
-Wille Marcel,developmentseed/lonboard,2,1714083457,1730901566
-Vincent Sarago,developmentseed/lonboard,1,1697573619,1697573619
-Vincent Sarago,developmentseed/rio-viz,129,1562339460,1742485839
-Jeff Albrecht,developmentseed/morecantile,7,1589066053,1589775178
-Kyle Barron,developmentseed/morecantile,1,1607485123,1607485123
-Daniel Wiesmann,developmentseed/morecantile,1,1683559414,1683559414
-Vincent Sarago,developmentseed/morecantile,405,1579813979,1757065316
-Olaf Veerman,developmentseed/osm-seed,2,1529608142,1539094662
+Kyle Barron,opengeospatial/geoparquet,13,1650344789,1717227830
+Chris Holmes,opengeospatial/geoparquet,38,1627926627,1752522610
+Matthias Mohr,opengeospatial/geoparquet,10,1670261363,1724597606
+Emmanuel Mathot,sentinel-hub/titiler-openeo,191,1730291637,1750970308
+Vincent Sarago,sentinel-hub/titiler-openeo,68,1733137677,1736432184
+xıʃǝɟ,sentinel-hub/titiler-openeo,5,1738846309,1745954802
 Sanjay Bhangar,developmentseed/osm-seed,130,1525431369,1708093916
+Olaf Veerman,developmentseed/osm-seed,2,1529608142,1539094662
 Sajjad Anwar,developmentseed/osm-seed,53,1530022102,1645176311
-Jeff Albrecht,developmentseed/geojson-pydantic,3,1628915326,1645383397
-Daniel Wiesmann,developmentseed/geojson-pydantic,2,1646256005,1657902792
-Vincent Sarago,developmentseed/geojson-pydantic,195,1603813451,1746478788
-Lane Goodman,developmentseed/eoAPI,11,1696340627,1696622162
-David Bitner,developmentseed/eoAPI,3,1630003041,1678908603
-Anthony Lukach,developmentseed/eoAPI,3,1710532434,1746205978
-Henry Rodman,developmentseed/eoAPI,5,1684244308,1744897271
-Leo Thomas,developmentseed/eoAPI,1,1641999247,1641999247
-Aimee Barciauskas,developmentseed/eoAPI,3,1695928705,1695952787
-Sean Harkins,developmentseed/eoAPI,4,1643854281,1654707700
-Jonas,developmentseed/eoAPI,5,1696884505,1697216364
-Zac Deziel,developmentseed/eoAPI,32,1686696101,1703179085
-Wille Marcel,developmentseed/eoAPI,1,1726488679,1726488679
-Vincent Sarago,developmentseed/eoAPI,234,1629904250,1740153817
-Pete Gadomski,developmentseed/stac-auth-proxy,1,1753389655,1753389655
-Anthony Lukach,developmentseed/stac-auth-proxy,209,1732818735,1757362008
+Kyle Barron,developmentseed/morecantile,1,1607485123,1607485123
+Jeff Albrecht,developmentseed/morecantile,7,1589066053,1589775178
+Vincent Sarago,developmentseed/morecantile,405,1579813979,1757065316
+Daniel Wiesmann,developmentseed/morecantile,1,1683559414,1683559414
+David Bitner,developmentseed/titiler,1,1594682332,1594682332
+Kyle Barron,developmentseed/titiler,20,1598965080,1713476135
+Sean Harkins,developmentseed/titiler,1,1646333885,1646333885
+Aimee Barciauskas,developmentseed/titiler,9,1618696757,1750135868
+Emmanuel Mathot,developmentseed/titiler,7,1610679501,1678367960
+Jonas,developmentseed/titiler,1,1744103621,1744103621
+Jeff Albrecht,developmentseed/titiler,4,1595980986,1608449143
+Henry Rodman,developmentseed/titiler,9,1727097138,1752489530
+Kiri,developmentseed/titiler,2,1732290788,1732291109
+Pete Gadomski,developmentseed/titiler,1,1709715032,1709715032
+Max Jones,developmentseed/titiler,3,1730214364,1738149470
+Wille Marcel,developmentseed/titiler,2,1640100830,1754493008
+Vincent Sarago,developmentseed/titiler,634,1575568964,1757936084
+Ciaran Sweet,developmentseed/titiler,1,1731576828,1731576828
 Sanjay Bhangar,developmentseed/stac-auth-proxy,1,1744962679,1744962679
+Anthony Lukach,developmentseed/stac-auth-proxy,209,1732818735,1757362008
+Pete Gadomski,developmentseed/stac-auth-proxy,1,1753389655,1753389655
 xıʃǝɟ,developmentseed/stac-auth-proxy,3,1732809717,1732816876
-Emmanuel Mathot,developmentseed/developmentseed.github.com,36,1736109256,1752595372
-Vitor George,developmentseed/developmentseed.github.com,6,1536072986,1712055573
-Soumya Ranjan Mohanty,developmentseed/developmentseed.github.com,7,1639719530,1731332402
-Omnia,developmentseed/developmentseed.github.com,406,1597181045,1746614839
-Olaf Veerman,developmentseed/developmentseed.github.com,231,1420760884,1747132235
-Ciaran Sweet,developmentseed/developmentseed.github.com,2,1721125790,1721201594
-Isayah Vidito,developmentseed/developmentseed.github.com,1,1695946076,1695946076
-Lane Goodman,developmentseed/developmentseed.github.com,87,1571759486,1743550368
-Marc Farra,developmentseed/developmentseed.github.com,38,1414424948,1635867164
-Pete Gadomski,developmentseed/developmentseed.github.com,15,1746807894,1756987469
-Emma Paz,developmentseed/developmentseed.github.com,6,1708995970,1709761909
-Danny Bauman,developmentseed/developmentseed.github.com,75,1634328537,1756324253
-Anthony Lukach,developmentseed/developmentseed.github.com,11,1608498395,1741285938
-Henry Rodman,developmentseed/developmentseed.github.com,1,1719916640,1719916640
-Aimee Barciauskas,developmentseed/developmentseed.github.com,27,1516225040,1640112709
-Saadiq Mohiuddin,developmentseed/developmentseed.github.com,1,1705448772,1705448772
-Sanjay Bhangar,developmentseed/developmentseed.github.com,11,1647355062,1647375738
-Sajjad Anwar,developmentseed/developmentseed.github.com,96,1515638352,1737049387
-Kyle Barron,developmentseed/developmentseed.github.com,2,1704304378,1704304827
-Daniel Wiesmann,developmentseed/developmentseed.github.com,23,1685092549,1742469043
-Daniel da Silva,developmentseed/developmentseed.github.com,806,1429193102,1757605407
-Kiri,developmentseed/developmentseed.github.com,1146,1655828938,1757539870
-Jonas,developmentseed/developmentseed.github.com,22,1698395097,1750317722
-Zac Deziel,developmentseed/developmentseed.github.com,13,1679348912,1755280986
-Ricardo Duplos,developmentseed/developmentseed.github.com,774,1421249154,1645014318
-Wille Marcel,developmentseed/developmentseed.github.com,19,1628244414,1718381577
-Vincent Sarago,developmentseed/developmentseed.github.com,10,1612216433,1698220291
-Will Rynearson,developmentseed/developmentseed.github.com,59,1312583957,1724074054
-Wei Ji,developmentseed/developmentseed.github.com,44,1695165572,1752015476
-Alex I. Mandel,developmentseed/developmentseed.github.com,71,1316117802,1608315716
-Angela Camacho,developmentseed/developmentseed.github.com,12,1715961162,1744659456
-Alice Rühl,developmentseed/developmentseed.github.com,10,1596569786,1612897762
-Anthony Boyd,developmentseed/developmentseed.github.com,110,1695409060,1749063492
-Fausto Pérez,developmentseed/developmentseed.github.com,1,1710264012,1710264012
-Matthew Hanson,developmentseed/developmentseed.github.com,44,1453963569,1532441793
-Ian Schuler,developmentseed/developmentseed.github.com,387,1389305942,1664313845
-Pete Gadomski,developmentseed/obstore,1,1746018926,1746018926
+David Bitner,developmentseed/cql2-rs,54,1721053190,1743160407
+Kyle Barron,developmentseed/cql2-rs,4,1721753493,1721755471
+Anthony Lukach,developmentseed/cql2-rs,5,1740075456,1743108592
+Pete Gadomski,developmentseed/cql2-rs,71,1721837058,1757443460
+Zac Deziel,developmentseed/cql2-rs,1,1741802915,1741802915
+Vincent Sarago,developmentseed/rio-viz,129,1562339460,1742485839
 Kyle Barron,developmentseed/obstore,290,1729194394,1757027600
+Pete Gadomski,developmentseed/obstore,1,1746018926,1746018926
+Wei Ji,developmentseed/obstore,1,1740156308,1740156308
 Wille Marcel,developmentseed/obstore,1,1730470183,1730470183
 Vincent Sarago,developmentseed/obstore,1,1738082190,1738082190
 Chuck Daniels,developmentseed/obstore,3,1747500858,1755878660
-Wei Ji,developmentseed/obstore,1,1740156308,1740156308
+Henry Rodman,developmentseed/rio-stac,2,1683132742,1683133093
+Vincent Sarago,developmentseed/rio-stac,155,1588959271,1757405734
+Daniel Wiesmann,developmentseed/rio-stac,1,1756306256,1756306256
+David Bitner,developmentseed/eoAPI,3,1630003041,1678908603
+Sean Harkins,developmentseed/eoAPI,4,1643854281,1654707700
+Aimee Barciauskas,developmentseed/eoAPI,3,1695928705,1695952787
+Jonas,developmentseed/eoAPI,5,1696884505,1697216364
+Lane Goodman,developmentseed/eoAPI,11,1696340627,1696622162
+Henry Rodman,developmentseed/eoAPI,5,1684244308,1744897271
+Anthony Lukach,developmentseed/eoAPI,3,1710532434,1746205978
+Leo Thomas,developmentseed/eoAPI,1,1641999247,1641999247
+Wille Marcel,developmentseed/eoAPI,1,1726488679,1726488679
+Vincent Sarago,developmentseed/eoAPI,234,1629904250,1740153817
+Zac Deziel,developmentseed/eoAPI,32,1686696101,1703179085
 David Bitner,developmentseed/tipg,94,1651079287,1702393462
 Henry Rodman,developmentseed/tipg,4,1700621160,1704974391
-Zac Deziel,developmentseed/tipg,2,1694197989,1694198593
 Vincent Sarago,developmentseed/tipg,552,1651066571,1756280387
-Emmanuel Mathot,developmentseed/titiler,7,1610679501,1678367960
-Jeff Albrecht,developmentseed/titiler,4,1595980986,1608449143
-Ciaran Sweet,developmentseed/titiler,1,1731576828,1731576828
-Pete Gadomski,developmentseed/titiler,1,1709715032,1709715032
-David Bitner,developmentseed/titiler,1,1594682332,1594682332
-Max Jones,developmentseed/titiler,3,1730214364,1738149470
-Henry Rodman,developmentseed/titiler,9,1727097138,1752489530
-Aimee Barciauskas,developmentseed/titiler,9,1618696757,1750135868
-Sean Harkins,developmentseed/titiler,1,1646333885,1646333885
-Kyle Barron,developmentseed/titiler,20,1598965080,1713476135
-Kiri,developmentseed/titiler,2,1732290788,1732291109
-Jonas,developmentseed/titiler,1,1744103621,1744103621
-Wille Marcel,developmentseed/titiler,2,1640100830,1754493008
-Vincent Sarago,developmentseed/titiler,634,1575568964,1757936084
-Pete Gadomski,developmentseed/cql2-rs,71,1721837058,1757443460
-David Bitner,developmentseed/cql2-rs,54,1721053190,1743160407
-Anthony Lukach,developmentseed/cql2-rs,5,1740075456,1743108592
-Kyle Barron,developmentseed/cql2-rs,4,1721753493,1721755471
-Zac Deziel,developmentseed/cql2-rs,1,1741802915,1741802915
+Zac Deziel,developmentseed/tipg,2,1694197989,1694198593
+Kyle Barron,developmentseed/lonboard,336,1693518811,1757792012
+Aimee Barciauskas,developmentseed/lonboard,5,1695751913,1700690513
+Chris Holden,developmentseed/lonboard,1,1738778383,1738778383
+Vitor George,developmentseed/lonboard,11,1697555970,1750192863
+Emma Paz,developmentseed/lonboard,4,1704982856,1708978921
+Wille Marcel,developmentseed/lonboard,2,1714083457,1730901566
+Vincent Sarago,developmentseed/lonboard,1,1697573619,1697573619
+Sean Harkins,developmentseed/eoapi-cdk,10,1677773846,1689201507
+Aimee Barciauskas,developmentseed/eoapi-cdk,1,1686584297,1686584297
+Isayah Vidito,developmentseed/eoapi-cdk,1,1694180964,1694180964
+Henry Rodman,developmentseed/eoapi-cdk,35,1724117471,1758018766
+Jamison French,developmentseed/eoapi-cdk,2,1678411676,1692608589
+Anthony Lukach,developmentseed/eoapi-cdk,50,1664917900,1755879689
+Pete Gadomski,developmentseed/eoapi-cdk,4,1753793391,1755269741
+Vincent Sarago,developmentseed/eoapi-cdk,7,1691130948,1738688012
+Alex I. Mandel,developmentseed/eoapi-cdk,1,1684532345,1684532345
+Jeff Albrecht,developmentseed/geojson-pydantic,3,1628915326,1645383397
+Vincent Sarago,developmentseed/geojson-pydantic,195,1603813451,1746478788
+Daniel Wiesmann,developmentseed/geojson-pydantic,2,1646256005,1657902792
+Sanjay Bhangar,developmentseed/eoapi-k8s,1,1745921051,1745921051
+Emmanuel Mathot,developmentseed/eoapi-k8s,21,1744211651,1750061365
+Jonas,developmentseed/eoapi-k8s,7,1728314655,1736527513
+Isayah Vidito,developmentseed/eoapi-k8s,14,1718821284,1743535953
+Tarashish Mishra,developmentseed/eoapi-k8s,7,1690216150,1744183728
+Vincent Sarago,developmentseed/eoapi-k8s,3,1705582688,1728309029
+xıʃǝɟ,developmentseed/eoapi-k8s,36,1730387754,1757596323
+Ciaran Sweet,developmentseed/eoapi-k8s,10,1727267183,1757582609
+Kyle Barron,radiantearth/stac-spec,2,1611703082,1615916421
+Matthew Hanson,radiantearth/stac-spec,483,1521747090,1695841172
+Chris Holmes,radiantearth/stac-spec,931,1494615567,1647355248
+Emmanuel Mathot,radiantearth/stac-spec,98,1599634937,1725957782
+Alexandra Kirk,radiantearth/stac-spec,25,1566429571,1580258495
+Pete Gadomski,radiantearth/stac-spec,6,1627935309,1723392273
+Matthias Mohr,radiantearth/stac-spec,865,1530625520,1726047304
+David Bitner,radiantearth/stac-api-spec,2,1642108777,1642109157
+Kyle Barron,radiantearth/stac-api-spec,1,1661873756,1661873756
+Matthew Hanson,radiantearth/stac-api-spec,448,1521747090,1607558403
+Chris Holmes,radiantearth/stac-api-spec,643,1494615567,1623187625
+Alexandra Kirk,radiantearth/stac-api-spec,25,1566429571,1580258495
+Matthias Mohr,radiantearth/stac-api-spec,674,1530625520,1676627397
+Kyle Barron,geoarrow/geoarrow-rs,805,1688163503,1757726432
+Pete Gadomski,geoarrow/geoarrow-rs,16,1716371124,1748370159
+Wei Ji,geoarrow/geoarrow-rs,1,1707150354,1707150354
+Kyle Barron,geoarrow/geoarrow,12,1695684680,1748010349
+Kyle Barron,geoarrow/deck.gl-layers,82,1691436871,1752789388
+Sean Harkins,zarr-developers/VirtualiZarr,10,1731977996,1756912873
+Aimee Barciauskas,zarr-developers/VirtualiZarr,10,1711745143,1741381979
+Julia Signell,zarr-developers/VirtualiZarr,8,1715356253,1739305075
+Max Jones,zarr-developers/VirtualiZarr,80,1718044084,1756928045
+Chuck Daniels,zarr-developers/VirtualiZarr,13,1737669610,1744231225
+Kyle Barron,zarr-developers/zarr-python,2,1742833832,1745236023
+Julia Signell,zarr-developers/zarr-python,1,1751903076,1751903076
+Davis Bennett,zarr-developers/zarr-python,111,1606170143,1757782683
+Max Jones,zarr-developers/zarr-python,22,1707319296,1751922064
+Aimee Barciauskas,Clay-foundation/model,1,1748248632,1748248632
+Soumya Ranjan Mohanty,Clay-foundation/model,11,1702613646,1733766251
+Lilly Thomas,Clay-foundation/model,8,1700007319,1721861671
+Wei Ji,Clay-foundation/model,36,1699480841,1729621478
+Daniel Wiesmann,Clay-foundation/model,36,1700149587,1733494971
+Chuck Daniels,Clay-foundation/model,1,1708722873,1708722873
+David Bitner,stac-utils/stac-fastapi-pgstac,16,1614708814,1753284283
+Kyle Barron,stac-utils/stac-fastapi-pgstac,1,1611974060,1611974060
+Jeff Albrecht,stac-utils/stac-fastapi-pgstac,43,1592367245,1677535995
+Henry Rodman,stac-utils/stac-fastapi-pgstac,5,1727879036,1747147172
+Anthony Lukach,stac-utils/stac-fastapi-pgstac,7,1644958397,1753214133
+Pete Gadomski,stac-utils/stac-fastapi-pgstac,39,1668699025,1754659312
+Vincent Sarago,stac-utils/stac-fastapi-pgstac,66,1612750031,1754657969
+Daniel Wiesmann,stac-utils/stac-fastapi-pgstac,2,1641522863,1657726810
+Matthias Mohr,stac-utils/stac-fastapi-pgstac,1,1722523738,1722523738
+David Bitner,stac-utils/pgstac,111,1617043026,1754342201
+Kyle Barron,stac-utils/pgstac,2,1714395441,1714402605
+Emmanuel Mathot,stac-utils/pgstac,2,1743084623,1746544592
+Henry Rodman,stac-utils/pgstac,12,1717518594,1752780331
+Anthony Lukach,stac-utils/pgstac,1,1658154589,1658154589
+Pete Gadomski,stac-utils/pgstac,4,1675715256,1740152237
+Vincent Sarago,stac-utils/pgstac,16,1629211830,1728931564
+Zac Deziel,stac-utils/pgstac,3,1695240580,1715606689
+xıʃǝɟ,stac-utils/pgstac,1,1757444908,1757444908
+David Bitner,stac-utils/stac-fastapi,15,1614708814,1668698135
+Kyle Barron,stac-utils/stac-fastapi,1,1611974060,1611974060
+Jeff Albrecht,stac-utils/stac-fastapi,105,1592367245,1714119127
+Anthony Lukach,stac-utils/stac-fastapi,6,1644958397,1683225167
+Pete Gadomski,stac-utils/stac-fastapi,29,1668699025,1694007382
+Vincent Sarago,stac-utils/stac-fastapi,110,1597193820,1750367880
+Daniel Wiesmann,stac-utils/stac-fastapi,2,1641522863,1657726810
+Matthias Mohr,stac-utils/stac-fastapi,3,1659235417,1712847211
+Kyle Barron,stac-utils/pystac,7,1610151341,1613761072
+Matthew Hanson,stac-utils/pystac,29,1615498658,1617036064
+Emmanuel Mathot,stac-utils/pystac,19,1606728206,1623073161
+Julia Signell,stac-utils/pystac,94,1673540508,1757617542
+Pete Gadomski,stac-utils/pystac,199,1615497591,1757618871
+Tarashish Mishra,stac-utils/pystac,1,1651275347,1651275347
+Vincent Sarago,stac-utils/pystac,2,1628972729,1689184958
+Alex I. Mandel,stac-utils/pystac,1,1686229285,1686229285
+Chuck Daniels,stac-utils/pystac,3,1695762411,1695991821
+Matthias Mohr,stac-utils/pystac,5,1654625637,1690920119
+Kyle Barron,stac-utils/rustac,1,1745265722,1745265722
+Pete Gadomski,stac-utils/rustac,934,1635861187,1757355942
+Matthew Hanson,stac-utils/pystac-client,339,1617420548,1650341067
+Julia Signell,stac-utils/pystac-client,18,1681915703,1753897016
+Henry Rodman,stac-utils/pystac-client,1,1728998645,1728998645
+Pete Gadomski,stac-utils/pystac-client,164,1618344622,1753978301
+Wei Ji,stac-utils/pystac-client,1,1663414900,1663414900
+Chuck Daniels,stac-utils/pystac-client,2,1695241897,1695762480
 Emmanuel Mathot,pydata/xarray,1,1757486049,1757486049
+Jonas,pydata/xarray,2,1482167517,1517536906
+Julia Signell,pydata/xarray,19,1470952465,1757957411
 Chris Holden,pydata/xarray,1,1508878389,1508878389
 Davis Bennett,pydata/xarray,2,1734538780,1748573517
 Max Jones,pydata/xarray,2,1701152983,1734384112
-Julia Signell,pydata/xarray,19,1470952465,1757957411
-Jonas,pydata/xarray,2,1482167517,1517536906
-Chuck Daniels,pydata/xarray,1,1739927499,1739927499
 Wei Ji,pydata/xarray,2,1600753230,1669911502
-Chris Holmes,opengeospatial/geoparquet,38,1627926627,1752522610
-Kyle Barron,opengeospatial/geoparquet,13,1650344789,1717227830
-Matthias Mohr,opengeospatial/geoparquet,10,1670261363,1724597606
-Chris Holmes,radiantearth/stac-api-spec,643,1494615567,1623187625
-David Bitner,radiantearth/stac-api-spec,2,1642108777,1642109157
-Kyle Barron,radiantearth/stac-api-spec,1,1661873756,1661873756
-Alexandra Kirk,radiantearth/stac-api-spec,25,1566429571,1580258495
-Matthew Hanson,radiantearth/stac-api-spec,448,1521747090,1607558403
-Matthias Mohr,radiantearth/stac-api-spec,674,1530625520,1676627397
-Emmanuel Mathot,radiantearth/stac-spec,98,1599634937,1725957782
-Chris Holmes,radiantearth/stac-spec,931,1494615567,1647355248
-Pete Gadomski,radiantearth/stac-spec,6,1627935309,1723392273
-Kyle Barron,radiantearth/stac-spec,2,1611703082,1615916421
-Alexandra Kirk,radiantearth/stac-spec,25,1566429571,1580258495
-Matthew Hanson,radiantearth/stac-spec,483,1521747090,1695841172
-Matthias Mohr,radiantearth/stac-spec,865,1530625520,1726047304
-Kyle Barron,geoarrow/deck.gl-layers,82,1691436871,1752789388
-Kyle Barron,geoarrow/geoarrow,12,1695684680,1748010349
-Pete Gadomski,geoarrow/geoarrow-rs,16,1716371124,1748370159
-Kyle Barron,geoarrow/geoarrow-rs,805,1688163503,1757726432
-Wei Ji,geoarrow/geoarrow-rs,1,1707150354,1707150354
-Jeff Albrecht,stac-utils/stac-fastapi,105,1592367245,1714119127
-Pete Gadomski,stac-utils/stac-fastapi,29,1668699025,1694007382
-David Bitner,stac-utils/stac-fastapi,15,1614708814,1668698135
-Anthony Lukach,stac-utils/stac-fastapi,6,1644958397,1683225167
-Kyle Barron,stac-utils/stac-fastapi,1,1611974060,1611974060
-Daniel Wiesmann,stac-utils/stac-fastapi,2,1641522863,1657726810
-Vincent Sarago,stac-utils/stac-fastapi,110,1597193820,1750367880
-Matthias Mohr,stac-utils/stac-fastapi,3,1659235417,1712847211
-Emmanuel Mathot,stac-utils/pystac,19,1606728206,1623073161
-Pete Gadomski,stac-utils/pystac,199,1615497591,1757618871
-Julia Signell,stac-utils/pystac,94,1673540508,1757617542
-Tarashish Mishra,stac-utils/pystac,1,1651275347,1651275347
-Kyle Barron,stac-utils/pystac,7,1610151341,1613761072
-Vincent Sarago,stac-utils/pystac,2,1628972729,1689184958
-Chuck Daniels,stac-utils/pystac,3,1695762411,1695991821
-Alex I. Mandel,stac-utils/pystac,1,1686229285,1686229285
-Matthew Hanson,stac-utils/pystac,29,1615498658,1617036064
-Matthias Mohr,stac-utils/pystac,5,1654625637,1690920119
-Pete Gadomski,stac-utils/rustac,934,1635861187,1757355942
-Kyle Barron,stac-utils/rustac,1,1745265722,1745265722
-Jeff Albrecht,stac-utils/stac-fastapi-pgstac,43,1592367245,1677535995
-Pete Gadomski,stac-utils/stac-fastapi-pgstac,39,1668699025,1754659312
-David Bitner,stac-utils/stac-fastapi-pgstac,16,1614708814,1753284283
-Anthony Lukach,stac-utils/stac-fastapi-pgstac,7,1644958397,1753214133
-Henry Rodman,stac-utils/stac-fastapi-pgstac,5,1727879036,1747147172
-Kyle Barron,stac-utils/stac-fastapi-pgstac,1,1611974060,1611974060
-Daniel Wiesmann,stac-utils/stac-fastapi-pgstac,2,1641522863,1657726810
-Vincent Sarago,stac-utils/stac-fastapi-pgstac,66,1612750031,1754657969
-Matthias Mohr,stac-utils/stac-fastapi-pgstac,1,1722523738,1722523738
-Pete Gadomski,stac-utils/pystac-client,164,1618344622,1753978301
-Julia Signell,stac-utils/pystac-client,18,1681915703,1753897016
-Henry Rodman,stac-utils/pystac-client,1,1728998645,1728998645
-Chuck Daniels,stac-utils/pystac-client,2,1695241897,1695762480
-Wei Ji,stac-utils/pystac-client,1,1663414900,1663414900
-Matthew Hanson,stac-utils/pystac-client,339,1617420548,1650341067
-Emmanuel Mathot,stac-utils/pgstac,2,1743084623,1746544592
-Pete Gadomski,stac-utils/pgstac,4,1675715256,1740152237
-David Bitner,stac-utils/pgstac,111,1617043026,1754342201
-Anthony Lukach,stac-utils/pgstac,1,1658154589,1658154589
-Henry Rodman,stac-utils/pgstac,12,1717518594,1752780331
-Kyle Barron,stac-utils/pgstac,2,1714395441,1714402605
-xıʃǝɟ,stac-utils/pgstac,1,1757444908,1757444908
-Zac Deziel,stac-utils/pgstac,3,1695240580,1715606689
-Vincent Sarago,stac-utils/pgstac,16,1629211830,1728931564
-Davis Bennett,zarr-developers/zarr-python,111,1606170143,1757782683
-Max Jones,zarr-developers/zarr-python,22,1707319296,1751922064
-Julia Signell,zarr-developers/zarr-python,1,1751903076,1751903076
-Kyle Barron,zarr-developers/zarr-python,2,1742833832,1745236023
-Max Jones,zarr-developers/VirtualiZarr,80,1718044084,1756928045
-Julia Signell,zarr-developers/VirtualiZarr,8,1715356253,1739305075
-Aimee Barciauskas,zarr-developers/VirtualiZarr,10,1711745143,1741381979
-Sean Harkins,zarr-developers/VirtualiZarr,10,1731977996,1756912873
-Chuck Daniels,zarr-developers/VirtualiZarr,13,1737669610,1744231225
-Julia Signell,developmentseed/developmentseed.org,1,1758023422,1758023422
-Jeff Albrecht,developmentseed/developmentseed.org,1,1758023422,1758023422
-Chris Holmes,developmentseed/developmentseed.org,1,1758023422,1758023422
-Matthias Mohr,developmentseed/developmentseed.org,1,1758023422,1758023422
-Matthew Hanson,developmentseed/developmentseed.org,1,1758023422,1758023422
-Davis Bennett,developmentseed/developmentseed.org,1,1758023422,1758023422
-Angela Camacho,developmentseed/developmentseed.org,1,1758023422,1758023422
-Alice Rühl,developmentseed/developmentseed.org,1,1758023422,1758023422
-Lane Goodman,developmentseed/developmentseed.org,1,1758023422,1758023422
-Aimee Barciauskas,developmentseed/developmentseed.org,1,1758023422,1758023422
-Anthony Boyd,developmentseed/developmentseed.org,1,1758023422,1758023422
-aliziel,developmentseed/developmentseed.org,1,1758023422,1758023422
-Anthony Lukach,developmentseed/developmentseed.org,1,1758023422,1758023422
-Alexandra Kirk,developmentseed/developmentseed.org,1,1758023422,1758023422
-aripaulg,developmentseed/developmentseed.org,1,1758023422,1758023422
-Sanjay Bhangar,developmentseed/developmentseed.org,1,1758023422,1758023422
-Beatriz Peres,developmentseed/developmentseed.org,1,1758023422,1758023422
-David Bitner,developmentseed/developmentseed.org,1,1758023422,1758023422
-Jennifer Tran,developmentseed/developmentseed.org,1,1758023422,1758023422
-Brianna Pagán,developmentseed/developmentseed.org,1,1758023422,1758023422
-camillecroft,developmentseed/developmentseed.org,1,1758023422,1758023422
-Chris Holden,developmentseed/developmentseed.org,1,1758023422,1758023422
-Chuck Daniels,developmentseed/developmentseed.org,1,1758023422,1758023422
-Ciaran Sweet,developmentseed/developmentseed.org,1,1758023422,1758023422
-Daniel da Silva,developmentseed/developmentseed.org,1,1758023422,1758023422
-Danny Bauman,developmentseed/developmentseed.org,1,1758023422,1758023422
-Gjore Milevski,developmentseed/developmentseed.org,1,1758023422,1758023422
-Emma Paz,developmentseed/developmentseed.org,1,1758023422,1758023422
-Emmanuel Mathot,developmentseed/developmentseed.org,1,1758023422,1758023422
-Fausto Pérez,developmentseed/developmentseed.org,1,1758023422,1758023422
-Pete Gadomski,developmentseed/developmentseed.org,1,1758023422,1758023422
-Sajjad Anwar,developmentseed/developmentseed.org,1,1758023422,1758023422
-Hanbyul Jo,developmentseed/developmentseed.org,1,1758023422,1758023422
-Henry Rodman,developmentseed/developmentseed.org,1,1758023422,1758023422
-Ian Schuler,developmentseed/developmentseed.org,1,1758023422,1758023422
-Indraneel Purohit,developmentseed/developmentseed.org,1,1758023422,1758023422
-Isayah Vidito,developmentseed/developmentseed.org,1,1758023422,1758023422
-Jonas,developmentseed/developmentseed.org,1,1758023422,1758023422
-Jamison French,developmentseed/developmentseed.org,1,1758023422,1758023422
-Marc Farra,developmentseed/developmentseed.org,1,1758023422,1758023422
-Kiri,developmentseed/developmentseed.org,1,1758023422,1758023422
-Kevin Bullock,developmentseed/developmentseed.org,1,1758023422,1758023422
-Kim,developmentseed/developmentseed.org,1,1758023422,1758023422
-Kyle Barron,developmentseed/developmentseed.org,1,1758023422,1758023422
-Leo Thomas,developmentseed/developmentseed.org,1,1758023422,1758023422
-Lilly Thomas,developmentseed/developmentseed.org,1,1758023422,1758023422
-Max Jones,developmentseed/developmentseed.org,1,1758023422,1758023422
-Olaf Veerman,developmentseed/developmentseed.org,1,1758023422,1758023422
-Omnia,developmentseed/developmentseed.org,1,1758023422,1758023422
-xıʃǝɟ,developmentseed/developmentseed.org,1,1758023422,1758023422
-Ricardo Duplos,developmentseed/developmentseed.org,1,1758023422,1758023422
-sandrahoang686,developmentseed/developmentseed.org,1,1758023422,1758023422
-Sean Harkins,developmentseed/developmentseed.org,1,1758023422,1758023422
-SharonLu,developmentseed/developmentseed.org,1,1758023422,1758023422
-Saadiq Mohiuddin,developmentseed/developmentseed.org,1,1758023422,1758023422
-Soumya Ranjan Mohanty,developmentseed/developmentseed.org,1,1758023422,1758023422
-Tarashish Mishra,developmentseed/developmentseed.org,1,1758023422,1758023422
-Vitor George,developmentseed/developmentseed.org,1,1758023422,1758023422
-Vincent Sarago,developmentseed/developmentseed.org,1,1758023422,1758023422
-Wei Ji,developmentseed/developmentseed.org,1,1758023422,1758023422
-Alex I. Mandel,developmentseed/developmentseed.org,1,1758023422,1758023422
-Wille Marcel,developmentseed/developmentseed.org,1,1758023422,1758023422
-Will Rynearson,developmentseed/developmentseed.org,1,1758023422,1758023422
-Daniel Wiesmann,developmentseed/developmentseed.org,1,1758023422,1758023422
-Zac Deziel,developmentseed/developmentseed.org,1,1758023422,1758023422
+Chuck Daniels,pydata/xarray,1,1739927499,1739927499
+Julia Signell,developmentseed/developmentseed.org,1,1758025353,1758025353
+Jeff Albrecht,developmentseed/developmentseed.org,1,1758025353,1758025353
+Chris Holmes,developmentseed/developmentseed.org,1,1758025353,1758025353
+Matthias Mohr,developmentseed/developmentseed.org,1,1758025353,1758025353
+Matthew Hanson,developmentseed/developmentseed.org,1,1758025353,1758025353
+Davis Bennett,developmentseed/developmentseed.org,1,1758025353,1758025353
+Angela Camacho,developmentseed/developmentseed.org,1,1758025353,1758025353
+Alice Rühl,developmentseed/developmentseed.org,1,1758025353,1758025353
+Lane Goodman,developmentseed/developmentseed.org,1,1758025353,1758025353
+Aimee Barciauskas,developmentseed/developmentseed.org,1,1758025353,1758025353
+Anthony Boyd,developmentseed/developmentseed.org,1,1758025353,1758025353
+aliziel,developmentseed/developmentseed.org,1,1758025353,1758025353
+Anthony Lukach,developmentseed/developmentseed.org,1,1758025353,1758025353
+Alexandra Kirk,developmentseed/developmentseed.org,1,1758025353,1758025353
+aripaulg,developmentseed/developmentseed.org,1,1758025353,1758025353
+Sanjay Bhangar,developmentseed/developmentseed.org,1,1758025353,1758025353
+Beatriz Peres,developmentseed/developmentseed.org,1,1758025353,1758025353
+David Bitner,developmentseed/developmentseed.org,1,1758025353,1758025353
+Jennifer Tran,developmentseed/developmentseed.org,1,1758025353,1758025353
+Brianna Pagán,developmentseed/developmentseed.org,1,1758025353,1758025353
+camillecroft,developmentseed/developmentseed.org,1,1758025353,1758025353
+Chris Holden,developmentseed/developmentseed.org,1,1758025353,1758025353
+Chuck Daniels,developmentseed/developmentseed.org,1,1758025353,1758025353
+Ciaran Sweet,developmentseed/developmentseed.org,1,1758025353,1758025353
+Daniel da Silva,developmentseed/developmentseed.org,1,1758025353,1758025353
+Danny Bauman,developmentseed/developmentseed.org,1,1758025353,1758025353
+Gjore Milevski,developmentseed/developmentseed.org,1,1758025353,1758025353
+Emma Paz,developmentseed/developmentseed.org,1,1758025353,1758025353
+Emmanuel Mathot,developmentseed/developmentseed.org,1,1758025353,1758025353
+Fausto Pérez,developmentseed/developmentseed.org,1,1758025353,1758025353
+Pete Gadomski,developmentseed/developmentseed.org,1,1758025353,1758025353
+Sajjad Anwar,developmentseed/developmentseed.org,1,1758025353,1758025353
+Hanbyul Jo,developmentseed/developmentseed.org,1,1758025353,1758025353
+Henry Rodman,developmentseed/developmentseed.org,1,1758025353,1758025353
+Ian Schuler,developmentseed/developmentseed.org,1,1758025353,1758025353
+Indraneel Purohit,developmentseed/developmentseed.org,1,1758025353,1758025353
+Isayah Vidito,developmentseed/developmentseed.org,1,1758025353,1758025353
+Jonas,developmentseed/developmentseed.org,1,1758025353,1758025353
+Jamison French,developmentseed/developmentseed.org,1,1758025353,1758025353
+Marc Farra,developmentseed/developmentseed.org,1,1758025353,1758025353
+Kiri,developmentseed/developmentseed.org,1,1758025353,1758025353
+Kevin Bullock,developmentseed/developmentseed.org,1,1758025353,1758025353
+Kim,developmentseed/developmentseed.org,1,1758025353,1758025353
+Kyle Barron,developmentseed/developmentseed.org,1,1758025353,1758025353
+Leo Thomas,developmentseed/developmentseed.org,1,1758025353,1758025353
+Lilly Thomas,developmentseed/developmentseed.org,1,1758025353,1758025353
+Max Jones,developmentseed/developmentseed.org,1,1758025353,1758025353
+Olaf Veerman,developmentseed/developmentseed.org,1,1758025353,1758025353
+Omnia,developmentseed/developmentseed.org,1,1758025353,1758025353
+xıʃǝɟ,developmentseed/developmentseed.org,1,1758025353,1758025353
+Ricardo Duplos,developmentseed/developmentseed.org,1,1758025353,1758025353
+sandrahoang686,developmentseed/developmentseed.org,1,1758025353,1758025353
+Sean Harkins,developmentseed/developmentseed.org,1,1758025353,1758025353
+SharonLu,developmentseed/developmentseed.org,1,1758025353,1758025353
+Saadiq Mohiuddin,developmentseed/developmentseed.org,1,1758025353,1758025353
+Soumya Ranjan Mohanty,developmentseed/developmentseed.org,1,1758025353,1758025353
+Tarashish Mishra,developmentseed/developmentseed.org,1,1758025353,1758025353
+Vitor George,developmentseed/developmentseed.org,1,1758025353,1758025353
+Vincent Sarago,developmentseed/developmentseed.org,1,1758025353,1758025353
+Wei Ji,developmentseed/developmentseed.org,1,1758025353,1758025353
+Alex I. Mandel,developmentseed/developmentseed.org,1,1758025353,1758025353
+Wille Marcel,developmentseed/developmentseed.org,1,1758025353,1758025353
+Will Rynearson,developmentseed/developmentseed.org,1,1758025353,1758025353
+Daniel Wiesmann,developmentseed/developmentseed.org,1,1758025353,1758025353
+Zac Deziel,developmentseed/developmentseed.org,1,1758025353,1758025353

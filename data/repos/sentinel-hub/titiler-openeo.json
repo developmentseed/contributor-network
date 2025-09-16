@@ -1,0 +1,11 @@
+{
+  "repo": "sentinel-hub/titiler-openeo",
+  "repo_stars": 23,
+  "repo_forks": 2,
+  "repo_createdAt": "2024-10-30T12:33:56Z",
+  "repo_updatedAt": "2025-09-12T16:38:35Z",
+  "repo_total_commits": 266,
+  "repo_url": "https://sentinel-hub.github.io/titiler-openeo/",
+  "repo_description": "openEO by TiTiler",
+  "repo_languages": "Python,Dockerfile,Mustache"
+}

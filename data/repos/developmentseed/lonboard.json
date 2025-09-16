@@ -1,9 +1,9 @@
 {
   "repo": "developmentseed/lonboard",
-  "repo_stars": 819,
+  "repo_stars": 820,
   "repo_forks": 39,
   "repo_createdAt": "2023-08-31T21:48:10Z",
-  "repo_updatedAt": "2025-09-15T20:26:38Z",
+  "repo_updatedAt": "2025-09-16T08:32:02Z",
   "repo_total_commits": 466,
   "repo_url": "https://developmentseed.org/lonboard",
   "repo_description": "A Python library for fast, interactive geospatial vector data visualization in Jupyter.",
