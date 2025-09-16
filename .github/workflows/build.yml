@@ -23,7 +23,7 @@ jobs:
           uv run scripts/fetch_data.py
           uv run scripts/build_csvs.py
           git add .
-          git commit -m "feat: update data"
+          git commit -m "chore: update data"
           git push -u origin build-data
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
