@@ -4,6 +4,7 @@ REPOSITORIES = [
     "developmentseed/obstore",
     "developmentseed/eoAPI",
     "developmentseed/eoapi-k8s",
+    "developmentseed/eoapi-cdk",
     "developmentseed/geojson-pydantic",
     "developmentseed/tipg",
     "developmentseed/rio-viz",
