@@ -27,4 +27,4 @@ developmentseed/rio-stac,88,17,2020-05-08 17:34:30+00:00,2025-09-09 08:16:04+00:
 developmentseed/obstore,544,24,2024-10-17 19:46:34+00:00,2025-09-15 21:09:38+00:00,312,https://developmentseed.org/obstore,"The simplest, highest-throughput Python interface to S3, GCS & Azure Storage, powered by Rust.","Python,Rust"
 developmentseed/cql2-rs,16,2,2024-07-15 14:18:59+00:00,2025-09-09 18:44:25+00:00,135,http://developmentseed.org/cql2-rs/,Rust library and Python bindings for parsing the OGC CQL2 filter language,"Rust,Python,Shell"
 developmentseed/osm-seed,160,37,2018-05-04 10:49:36+00:00,2025-09-15 20:58:19+00:00,708,https://devseed.com/osm-seed-chart/,A collection of Dockerfiles to run a containerized version of OpenStreetMap,"Shell,PLpgSQL,Dockerfile,Python,C,HTML,JavaScript,Mustache,Makefile,Ruby"
-developmentseed/developmentseed.org,0,0,2025-09-15 16:48:30.249942,2025-09-15 16:48:30.249943,50,https://developmentseed.org,Winning with open data,
+developmentseed/developmentseed.org,0,0,2025-09-16 05:50:22.576444,2025-09-16 05:50:22.576444,65,https://developmentseed.org,Winning with open data,

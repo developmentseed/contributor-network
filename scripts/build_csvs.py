@@ -3,6 +3,7 @@ import datetime
 from csv import DictWriter
 from pathlib import Path
 
+from devseed_contributor_network.constants import AUTHORS
 from devseed_contributor_network.models import Link, Repository
 
 DATA = Path(__file__).parents[1] / "data"
@@ -16,21 +17,24 @@ def main() -> None:
             repository = Repository.model_validate_json(f.read())
             repositories.append(repository.model_dump())
     links = []
-    top_contributors = set()
     for path in (DATA / "links").glob("**/*.json"):
         with open(path) as f:
             link = Link.model_validate_json(f.read())
-            top_contributors.add(link.author_name)
             links.append(link.model_dump())
-            links.append(
-                Link(
-                    author_name=link.author_name,
-                    repo=MAGIC_REPO,
-                    commit_count=1,
-                    commit_sec_min=int(datetime.datetime.now().timestamp()),
-                    commit_sec_max=int(datetime.datetime.now().timestamp()),
-                ).model_dump()
-            )
+
+    # Magic repo hack
+    top_contributors = set()
+    for author_name in AUTHORS.values():
+        top_contributors.add(author_name)
+        links.append(
+            Link(
+                author_name=author_name,
+                repo=MAGIC_REPO,
+                commit_count=1,
+                commit_sec_min=int(datetime.datetime.now().timestamp()),
+                commit_sec_max=int(datetime.datetime.now().timestamp()),
+            ).model_dump()
+        )
     repositories.append(
         Repository(
             repo=MAGIC_REPO,
