@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from github import Auth, Github
@@ -110,7 +111,11 @@ AUTHORS = {
 
 
 def main() -> None:
-    github = Github(auth=Auth.NetrcAuth())
+    if github_token := os.environ.get("GITHUB_TOKEN"):
+        auth = Auth.Token(github_token)
+    else:
+        auth = Auth.NetrcAuth()
+    github = Github(auth=auth)
 
     # Fetch repo data
     for repository in REPOSITORIES:
