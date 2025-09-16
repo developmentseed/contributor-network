@@ -6,7 +6,6 @@ stac-utils/pystac,405,123,2017-11-08 13:30:15+00:00,2025-09-11 19:30:03+00:00,19
 stac-utils/stac-fastapi,293,116,2020-06-17 03:31:20+00:00,2025-09-16 07:18:23+00:00,461,https://stac-utils.github.io/stac-fastapi/,STAC API implementation with FastAPI. ,"Python,Shell,Dockerfile,Makefile"
 stac-utils/pystac-client,192,56,2021-03-03 03:33:04+00:00,2025-09-13 06:01:42+00:00,953,https://pystac-client.readthedocs.io,Python client for searching STAC APIs,"Python,Shell"
 stac-utils/rustac,118,18,2021-03-29 17:08:13+00:00,2025-09-09 18:58:12+00:00,983,https://stac-utils.github.io/rustac/,The power of Rust for the STAC ecosystem,"Rust,Shell,Python,JavaScript,HTML"
-jupyterhub/jupyterhub,8120,2091,2014-06-12 23:22:10+00:00,2025-09-15 13:53:17+00:00,7888,https://jupyterhub.readthedocs.io,Multi-user server for Jupyter notebooks,"Python,JavaScript,HTML,SCSS,CSS,Shell,Mako"
 Clay-foundation/model,490,80,2023-09-29 12:08:10+00:00,2025-09-16 04:59:14+00:00,129,https://clay-foundation.github.io/model/,The Clay Foundation Model - An open source AI model and interface for Earth,"Python,Jupyter Notebook,Shell"
 zarr-developers/VirtualiZarr,224,49,2024-03-08 19:24:24+00:00,2025-09-12 18:16:06+00:00,481,https://virtualizarr.readthedocs.io/en/stable/index.html,"Cloud-Optimize your Scientific Data as Virtual Zarr stores, using xarray syntax.",Python
 zarr-developers/zarr-python,1776,357,2015-12-15 14:49:40+00:00,2025-09-15 22:50:17+00:00,2549,https://zarr.readthedocs.io,"An implementation of chunked, compressed, N-dimensional arrays for Python.",Python
@@ -31,4 +30,4 @@ developmentseed/rio-stac,88,17,2020-05-08 17:34:30+00:00,2025-09-09 08:16:04+00:
 developmentseed/morecantile,136,28,2020-01-23 21:12:58+00:00,2025-09-09 20:24:16+00:00,475,https://developmentseed.org/morecantile/,Construct and use OGC TileMatrixSets (TMS),Python
 sentinel-hub/titiler-openeo,23,2,2024-10-30 12:33:56+00:00,2025-09-12 16:38:35+00:00,266,https://sentinel-hub.github.io/titiler-openeo/,openEO by TiTiler,"Python,Dockerfile,Mustache"
 opengeospatial/geoparquet,969,61,2021-07-30 18:06:15+00:00,2025-09-16 10:39:27+00:00,123,https://geoparquet.org,"Specification for storing geospatial vector data (point, line, polygon) in Parquet",Python
-developmentseed/developmentseed.org,0,0,2025-09-16 12:22:33.030626,2025-09-16 12:22:33.030626,65,https://developmentseed.org,Winning with open data,
+developmentseed/developmentseed.org,0,0,2025-09-16 12:46:13.461785,2025-09-16 12:46:13.461785,65,https://developmentseed.org,Winning with open data,
