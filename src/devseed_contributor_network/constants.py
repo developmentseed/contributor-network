@@ -28,6 +28,8 @@ REPOSITORIES = [
     "zarr-developers/zarr-python",
     "pydata/xarray",
     "sentinel-hub/titiler-openeo",
+    "Clay-foundation/model",
+    "jupyterhub/jupyterhub",
 ]
 
 AUTHORS = {
