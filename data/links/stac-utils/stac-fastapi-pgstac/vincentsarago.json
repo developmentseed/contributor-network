@@ -1,7 +1,1 @@
-{
-  "author_name": "Vincent Sarago",
-  "repo": "stac-utils/stac-fastapi-pgstac",
-  "commit_count": 66,
-  "commit_sec_min": 1612750031,
-  "commit_sec_max": 1754657969
-}
+{"author_name":"Vincent Sarago","repo":"stac-utils/stac-fastapi-pgstac","commit_count":66,"commit_sec_min":1612750031,"commit_sec_max":1754657969}

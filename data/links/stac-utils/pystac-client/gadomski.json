@@ -1,7 +1,1 @@
-{
-  "author_name": "Pete Gadomski",
-  "repo": "stac-utils/pystac-client",
-  "commit_count": 164,
-  "commit_sec_min": 1618344622,
-  "commit_sec_max": 1753978301
-}
+{"author_name":"Pete Gadomski","repo":"stac-utils/pystac-client","commit_count":164,"commit_sec_min":1618344622,"commit_sec_max":1753978301}

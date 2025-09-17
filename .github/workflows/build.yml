@@ -19,9 +19,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git checkout -b build-data
-          rm -rf data
-          uv run scripts/fetch_data.py
-          uv run scripts/build_csvs.py
+          uv run contributor-network data data
+          uv run contributor-network csvs data
           git add .
           git commit -m "chore: update data"
           git push -u origin build-data

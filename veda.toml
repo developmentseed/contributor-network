@@ -1,0 +1,66 @@
+title = "The VEDA Contributor Network"
+author = "Max Jones"
+description = "An interactive visualization of contributors to VEDA code and their connections to other open source repositories"
+central_repository = "VEDA"
+contributor_padding = 100
+repositories = [
+"apache/arrow-rs",
+ "boettiger-lab/earthdatalogin",
+ "conda-forge/r-lasr-feedstock",
+ "cloudnativegeo/cloud-optimized-geospatial-formats-guide",
+ "datafusion-contrib/arrow-zarr",
+ "earth-mover/icechunk",
+ "flatgeobuf/flatgeobuf",
+ "geoarrow/deck.gl-layers",
+ "geoarrow/geoarrow-rs",
+ "geopandas/geopandas",
+ "georust/geo-svg",
+ "holoviz/hvplot",
+ "jupyterhub/repo2docker",
+ "pangeo-data/pangeo-docker-images",
+ "pangeo-data/pangeo.io",
+ "nasa/python_cmr",
+ "nasa-openscapes/earthdata-cloud-cookbook",
+ "nsidc/earthaccess",
+ "nsidc/cloud-optimized-icesat2",
+ "numbagg/numbagg",
+ "pydata/xarray",
+ "radiantearth/stac-spec",
+ "stac-extensions/zarr",
+ "stac-utils/stac-fastapi-pgstac",
+ "stac-utils/rustac-py",
+ "stac-utils/pgstac",
+ "stac-utils/pystac",
+ "stac-utils/pystac-client",
+ "stac-utils/xpystac",
+ "virtual-zarr/hrrr-parser",
+ "virtual-zarr/virtual-tiff",
+ "virtual-zarr/obspec-utils",
+ "zarr-developers/zarr-python",
+ "zarr-developers/geozarr-spec",
+ "zarr-developers/VirtualiZarr",
+ "2i2c-org/jupyterhub-fancy-profiles",
+]
+
+[contributors]
+# VEDA ODD Team
+maxrjones = "Max Jones"
+d-v-b = "Davis Bennett"
+kylebarron = "Kyle Barron"
+abarciauskas-bgse = "Aimee Barciauskas"
+chuckwondo = "Chunk Daniels"
+sharkinsspatial = "Sean Harkins"
+hrodmn = "Henry Rodman"
+jbusecke = "Julius Busecke"
+negin513 = "Negin Sobhani"
+
+# Science support
+wildintellect = "Alex Mandel"
+jsignell = "Julia Signell"
+smk0033 = "Sheyenne Kirkland"
+zacdezgeo = "Zac Deziel"
+moradology = "Nathan Zimmermann"
+
+# JupyterHub
+batpad = "Sanjay Bhangar"
+sunu = "Tarashish Mishra"

@@ -16,3 +16,7 @@ jobs:
       - uses: astral-sh/ruff-action@v3
       - name: Format
         run: ruff format --check --diff
+      - name: Type check
+        run: uv run mypy
+      - name: Test
+        run: uv run pytest
