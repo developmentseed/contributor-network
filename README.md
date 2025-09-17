@@ -27,6 +27,7 @@ To check the Python files, get [uv](https://docs.astral.sh/uv/getting-started/in
 uv sync
 uv run ruff check --fix
 uv run ruff format
+uv run pytest
 ```
 
 To add new repos or contributors, see [constants.py](src/devseed_contributor_network/constants.py)
@@ -37,9 +38,9 @@ To build the data locally, set up [.netrc authentication for Github](https://pyg
 Then:
 
 ```shell
-rm -rf data  # We don't re-fetch data from Github if it already exists on the local filesystem
-uv run python scripts/fetch_data.py
-uv run python scripts/build_csvs.py
+uv run contributor-network data data
+uv run contributor-network csvs data
+uv run contributor-network build data dist
 ```
 
 ## License

@@ -1,0 +1,107 @@
+title = "The Development Seed Contributor Network"
+author = "Pete Gadomski"
+description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
+central_repository = "Development Seed"
+repositories = [
+    "developmentseed/titiler",
+    "developmentseed/lonboard",
+    "developmentseed/obstore",
+    "developmentseed/eoAPI",
+    "developmentseed/eoapi-k8s",
+    "developmentseed/eoapi-cdk",
+    "developmentseed/geojson-pydantic",
+    "developmentseed/tipg",
+    "developmentseed/rio-viz",
+    "developmentseed/rio-stac",
+    "developmentseed/osm-seed",
+    "developmentseed/morecantile",
+    "developmentseed/cql2-rs",
+    "developmentseed/stac-auth-proxy",
+    "stac-utils/pystac",
+    "stac-utils/stac-fastapi",
+    "stac-utils/stac-fastapi-pgstac",
+    "stac-utils/pgstac",
+    "stac-utils/pystac-client",
+    "stac-utils/rustac",
+    "opengeospatial/geoparquet",
+    "radiantearth/stac-spec",
+    "radiantearth/stac-api-spec",
+    "geoarrow/geoarrow-rs",
+    "geoarrow/deck.gl-layers",
+    "geoarrow/geoarrow",
+    "zarr-developers/VirtualiZarr",
+    "zarr-developers/zarr-python",
+    "pydata/xarray",
+    "sentinel-hub/titiler-openeo",
+    "Clay-foundation/model",
+]
+
+[contributors]
+# Friends and alumni
+jsignell = "Julia Signell"
+geospatial-jeff = "Jeff Albrecht"
+cholmes = "Chris Holmes"
+m-mohr = "Matthias Mohr"
+matthewhanson = "Matthew Hanson"
+d-v-b = "Davis Bennett"
+
+# Development Seed
+AMSCamacho = "Angela Camacho"
+AliceR = "Alice Rühl"
+LanesGood = "Lane Goodman"
+abarciauskas-bgse = "Aimee Barciauskas"
+aboydnw = "Anthony Boyd"
+aliziel = "aliziel"
+alukach = "Anthony Lukach"
+anayeaye = "Alexandra Kirk"
+aripaulg = "aripaulg"
+batpad = "Sanjay Bhangar"
+beatrizbsperes = "Beatriz Peres"
+bitner = "David Bitner"
+botanical = "Jennifer Tran"
+briannapagan = "Brianna Pagán"
+camillecroft = "camillecroft"
+ceholden = "Chris Holden"
+chuckwondo = "Chuck Daniels"
+ciaransweet = "Ciaran Sweet"
+danielfdsilva = "Daniel da Silva"
+dannybauman = "Danny Bauman"
+dzole0311 = "Gjore Milevski"
+emmalu = "Emma Paz"
+emmanuelmathot = "Emmanuel Mathot"
+faustoperez = "Fausto Pérez"
+gadomski = "Pete Gadomski"
+geohacker = "Sajjad Anwar"
+hanbyul-here = "Hanbyul Jo"
+hrodmn = "Henry Rodman"
+ianschuler = "Ian Schuler"
+indraneel = "Indraneel Purohit"
+ividito = "Isayah Vidito"
+j08lue = "Jonas"
+jjfrench = "Jamison French"
+kamicut = "Marc Farra"
+kcarini = "Kiri"
+kevinbullock = "Kevin Bullock"
+kimmurph = "Kim"
+kylebarron = "Kyle Barron"
+leothomas = "Leo Thomas"
+lillythomas = "Lilly Thomas"
+maxrjones = "Max Jones"
+olafveerman = "Olaf Veerman"
+omniajoe = "Omnia"
+pantierra = "xıʃǝɟ"
+ricardoduplos = "Ricardo Duplos"
+sandrahoang686 = "sandrahoang686"
+sharkinsspatial = "Sean Harkins"
+sharonwanlu = "SharonLu"
+smohiudd = "Saadiq Mohiuddin"
+srmsoumya = "Soumya Ranjan Mohanty"
+sunu = "Tarashish Mishra"
+vgeorge = "Vitor George"
+vincentsarago = "Vincent Sarago"
+weiji14 = "Wei Ji"
+wildintellect = "Alex I. Mandel"
+willemarcel = "Wille Marcel"
+wrynearson = "Will Rynearson"
+yellowcap = "Daniel Wiesmann"
+zacdezgeo = "Zac Deziel"

@@ -7,7 +7,11 @@
 /////////////////////////// Nadieh Bremer ///////////////////////////
 ///////////////////////// VisualCinnamon.com ////////////////////////
 /////////////////////////////////////////////////////////////////////
-const createORCAVisual = (container) => {
+const createORCAVisual = (
+  container,
+  initial_repo_central,
+  contributor_padding,
+) => {
   /////////////////////////////////////////////////////////////////
   ///////////////////// CONSTANTS & VARIABLES /////////////////////
   /////////////////////////////////////////////////////////////////
@@ -23,7 +27,7 @@ const createORCAVisual = (container) => {
   let sqrt = Math.sqrt;
 
   // Default repo
-  let REPO_CENTRAL = "developmentseed/developmentseed.org";
+  let REPO_CENTRAL = initial_repo_central;
 
   // Datasets
   let contributors, remainingContributors, orcaRecipients;
@@ -50,7 +54,7 @@ const createORCAVisual = (container) => {
 
   const INNER_RADIUS_FACTOR = 0.7; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
   const MAX_CONTRIBUTOR_WIDTH = 55; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
-  const CONTRIBUTOR_PADDING = 40; // The padding between the contributor nodes around the circle (at SF = 1)
+  const CONTRIBUTOR_PADDING = contributor_padding; // The padding between the contributor nodes around the circle (at SF = 1)
 
   let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
   let ORCA_PRESENT = false; // Is the dataset of ORCA recipients present?
@@ -329,7 +333,7 @@ const createORCAVisual = (container) => {
     delaunay = d3.Delaunay.from(nodes_delaunay.map((d) => [d.x, d.y]));
     if (REMAINING_PRESENT)
       delaunay_remaining = d3.Delaunay.from(
-        remainingContributors.map((d) => [d.x, d.y])
+        remainingContributors.map((d) => [d.x, d.y]),
       );
     // // Test to see if the delaunay works
     // testDelaunay(delaunay, context_hover)
@@ -366,7 +370,7 @@ const createORCAVisual = (container) => {
       [d.contributor_lines, d.contributor_max_width] = getLines(
         context,
         d.contributor_name,
-        MAX_CONTRIBUTOR_WIDTH
+        MAX_CONTRIBUTOR_WIDTH,
       );
 
       delete d.contributor_name_top;
@@ -484,14 +488,14 @@ const createORCAVisual = (container) => {
       d.links_original = links.filter((l) => l.source === d.contributor_name);
       // To which repositories did this contributor contribute
       d.repos = d.links_original.map((l) =>
-        repos.find((r) => r.repo === l.repo)
+        repos.find((r) => r.repo === l.repo),
       );
     }); // forEach
     repos.forEach((d) => {
       d.links_original = links.filter((l) => l.target === d.repo);
       // Who contributed to this repository
       d.contributors = d.links_original.map((l) =>
-        contributors.find((r) => r.contributor_name === l.contributor_name)
+        contributors.find((r) => r.contributor_name === l.contributor_name),
       );
     }); // forEach
 
@@ -504,7 +508,7 @@ const createORCAVisual = (container) => {
           contributors.find(
             (c) =>
               c.contributor_name === l.contributor_name &&
-              c.orca_received === true
+              c.orca_received === true,
           )
         ) {
           d.orca_impacted = true;
@@ -515,7 +519,7 @@ const createORCAVisual = (container) => {
     /////////////////////////////////////////////////////////////
     // Which is the central repo, the one that connects everyone (the one with the highest degree)
     central_repo = nodes.find(
-      (d) => d.type === "repo" && d.id === REPO_CENTRAL
+      (d) => d.type === "repo" && d.id === REPO_CENTRAL,
     );
 
     /////////////////////////// OWNERS //////////////////////////
@@ -528,8 +532,8 @@ const createORCAVisual = (container) => {
             (n) =>
               n.id !== d.id &&
               n.type === "repo" &&
-              n.data.owner === d.data.owner
-          ).length > 1
+              n.data.owner === d.data.owner,
+          ).length > 1,
       )
       .map((d) => d.data);
 
@@ -623,7 +627,7 @@ const createORCAVisual = (container) => {
     // new_links_contributor_owner = Array.from(new Set(new_links_contributor_owner.map(d => JSON.stringify(d)))).map(d => JSON.parse(d))
     new_links_contributor_owner = d3.group(
       new_links_contributor_owner,
-      (d) => d.source + "~" + d.target
+      (d) => d.source + "~" + d.target,
     );
     new_links_contributor_owner = Array.from(
       new_links_contributor_owner,
@@ -637,13 +641,13 @@ const createORCAVisual = (container) => {
           commit_sec_min: d3.min(value, (d) => d.commit_sec_min),
           commit_sec_max: d3.max(value, (d) => d.commit_sec_max),
         };
-      }
+      },
     ); // map
 
     // new_links_owner_repo = Array.from(new Set(new_links_owner_repo.map(d => JSON.stringify(d)))).map(d => JSON.parse(d))
     new_links_owner_repo = d3.group(
       new_links_owner_repo,
-      (d) => d.source + "~" + d.target
+      (d) => d.source + "~" + d.target,
     );
     new_links_owner_repo = Array.from(new_links_owner_repo, ([key, value]) => {
       let [source, target] = key.split("~");
@@ -667,15 +671,15 @@ const createORCAVisual = (container) => {
       owner: central_repo.data.owner,
       commit_count: d3.sum(
         links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_count
+        (d) => d.commit_count,
       ),
       commit_sec_min: d3.min(
         links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_sec_min
+        (d) => d.commit_sec_min,
       ),
       commit_sec_max: d3.max(
         links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_sec_max
+        (d) => d.commit_sec_max,
       ),
     });
 
@@ -702,8 +706,8 @@ const createORCAVisual = (container) => {
     scale_contributor_radius.domain(
       d3.extent(
         links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_count
-      )
+        (d) => d.commit_count,
+      ),
     );
     scale_link_width.domain([1, 10, d3.max(links, (d) => d.commit_count)]);
     scale_remaining_contributor_radius.domain([
@@ -719,7 +723,7 @@ const createORCAVisual = (container) => {
 
       // Find the degree of each node
       d.degree = links.filter(
-        (l) => l.source === d.id || l.target === d.id
+        (l) => l.source === d.id || l.target === d.id,
       ).length;
       // d.in_degree = links.filter(l => l.target === d.id).length
       // d.out_degree = links.filter(l => l.source === d.id).length
@@ -735,7 +739,7 @@ const createORCAVisual = (container) => {
       // If this node is an "contributor", find the number of commits they have on the central repo node
       if (d.type === "contributor") {
         let link_to_central = links.find(
-          (l) => l.source === d.id && l.target === central_repo.id
+          (l) => l.source === d.id && l.target === central_repo.id,
         );
         d.data.link_central = link_to_central;
         // d.data.commit_count_central = link_to_central.commit_count
@@ -810,8 +814,8 @@ const createORCAVisual = (container) => {
         let nodes_connected = nodes.filter(
           (n) =>
             links.find(
-              (l) => l.source === d.id && l.target === n.id && n.degree === 1
-            ) || n.id === d.id
+              (l) => l.source === d.id && l.target === n.id && n.degree === 1,
+            ) || n.id === d.id,
         );
 
         // If there are no nodes connected to this one, skip it
@@ -819,13 +823,13 @@ const createORCAVisual = (container) => {
 
         // Save the list of repositories that are connected to this node
         d.connected_node_cloud = nodes_connected.filter(
-          (n) => n.type === "repo"
+          (n) => n.type === "repo",
         );
 
         // Get the links between this node and nodes_connected
         let links_connected = links.filter(
           (l) =>
-            l.source === d.id && nodes_connected.find((n) => n.id === l.target)
+            l.source === d.id && nodes_connected.find((n) => n.id === l.target),
         );
 
         // Let the nodes start on the location of the contributor node
@@ -846,7 +850,7 @@ const createORCAVisual = (container) => {
             d3
               .forceLink()
               .id((d) => d.id)
-              .strength(0)
+              .strength(0),
           )
           .force(
             "collide",
@@ -861,7 +865,7 @@ const createORCAVisual = (container) => {
                 } else r = n.r + max(2, n.r * 0.2);
                 return r;
               })
-              .strength(0)
+              .strength(0),
           )
           // .force("charge",
           //     d3.forceManyBody()
@@ -890,11 +894,11 @@ const createORCAVisual = (container) => {
 
         // Determine the farthest distance of the nodes (including its radius) to the owner node
         d.max_radius = d3.max(nodes_connected, (n) =>
-          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2)
+          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2),
         );
         // Determine which node is the largest distance to the central node
         let max_radius_node = nodes_connected.find(
-          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius
+          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
         );
         // Get the overall radius to take into account for the next simulation and labeling
         d.max_radius = max(d.max_radius + max_radius_node.r, d.r);
@@ -936,28 +940,28 @@ const createORCAVisual = (container) => {
         let nodes_to_contributor = nodes.filter(
           (n) =>
             links.find(
-              (l) => l.source === d.id && l.target === n.id && n.degree === 1
+              (l) => l.source === d.id && l.target === n.id && n.degree === 1,
             ) ||
             links.find(
               (l) =>
                 l.source === d.id &&
                 l.target === n.id &&
                 n.type === "owner" &&
-                n.data.single_contributor === true
+                n.data.single_contributor === true,
             ) ||
-            n.id === d.id
+            n.id === d.id,
         );
 
         // Save the list of repositories that are connected to this contributor (with a degree of one)
         d.connected_single_repo = nodes_to_contributor.filter(
-          (n) => n.type === "repo" || n.type === "owner"
+          (n) => n.type === "repo" || n.type === "owner",
         );
 
         // Get the links between this node and nodes_to_contributor
         let links_contributor = links.filter(
           (l) =>
             l.source === d.id &&
-            nodes_to_contributor.find((n) => n.id === l.target)
+            nodes_to_contributor.find((n) => n.id === l.target),
         );
 
         // Let the nodes start on the location of the contributor node
@@ -978,7 +982,7 @@ const createORCAVisual = (container) => {
             d3
               .forceLink()
               .id((d) => d.id)
-              .strength(0)
+              .strength(0),
           )
           .force(
             "collide",
@@ -995,7 +999,7 @@ const createORCAVisual = (container) => {
                 } else r = n.r + max(2, n.r * 0.2);
                 return r;
               })
-              .strength(0)
+              .strength(0),
           )
           // .force("charge",
           //     d3.forceManyBody()
@@ -1024,11 +1028,11 @@ const createORCAVisual = (container) => {
 
         // Determine the farthest distance of the nodes (including its radius) to the contributor node
         d.max_radius = d3.max(nodes_to_contributor, (n) =>
-          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2)
+          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2),
         );
         // Determine which node is the largest distance to the contributor node
         let max_radius_node = nodes_to_contributor.find(
-          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius
+          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
         );
         // Get the overall radius to take into account for the next simulation and labeling
         d.max_radius = max(d.max_radius + max_radius_node.r, d.r);
@@ -1136,7 +1140,7 @@ const createORCAVisual = (container) => {
         d3
           .forceLink()
           .id((d) => d.id)
-          .distance((d) => scale_link_distance(d.target.degree) * 5)
+          .distance((d) => scale_link_distance(d.target.degree) * 5),
       )
       // .force("collide",
       //     d3.forceCollide()
@@ -1153,11 +1157,11 @@ const createORCAVisual = (container) => {
         d3
           .bboxCollide((d) => d.bbox)
           .strength(0)
-          .iterations(1)
+          .iterations(1),
       )
       .force(
         "charge",
-        d3.forceManyBody()
+        d3.forceManyBody(),
         // .strength(d => scale_node_charge(d.id))
         // .distanceMax(WIDTH / 3)
       );
@@ -1172,7 +1176,9 @@ const createORCAVisual = (container) => {
         d.type === "contributor" ||
         (d.type === "owner" && d.data.single_contributor == false) ||
         d.id === REPO_CENTRAL ||
-        (d.type === "repo" && d.data.multi_repo_owner === false && d.degree > 1)
+        (d.type === "repo" &&
+          d.data.multi_repo_owner === false &&
+          d.degree > 1),
     );
     nodes_central.forEach((d) => {
       d.node_central = true;
@@ -1234,7 +1240,7 @@ const createORCAVisual = (container) => {
     let links_central = links.filter(
       (d) =>
         nodes_central.find((n) => n.id === d.source) &&
-        nodes_central.find((n) => n.id === d.target)
+        nodes_central.find((n) => n.id === d.target),
     );
 
     // Perform the simulation
@@ -1325,7 +1331,7 @@ const createORCAVisual = (container) => {
         d3
           .forceCollide()
           .radius((d) => d.r + Math.random() * 20 + 10)
-          .strength(1)
+          .strength(1),
       )
       // .force("charge",
       //     d3.forceManyBody()
@@ -1361,7 +1367,7 @@ const createORCAVisual = (container) => {
     function simulationPlacementConstraints(nodes) {
       let OUTER_AREA = max(
         DEFAULT_SIZE / 2,
-        RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2
+        RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2,
       );
       let O = 30;
       // Make sure the nodes remain within the canvas
@@ -1414,7 +1420,7 @@ const createORCAVisual = (container) => {
       (RADIUS_CONTRIBUTOR_NON_ORCA - LW / 2 + O) * SF,
       0,
       TAU,
-      true
+      true,
     );
     context.globalAlpha = ORCA_PRESENT ? 0.03 : 0.05;
     context.fill();
@@ -1433,7 +1439,7 @@ const createORCAVisual = (container) => {
         TAU * 0.9,
         (RADIUS_CONTRIBUTOR - (LW / 2 - O - 2)) * SF,
         "up",
-        1.5 * SF
+        1.5 * SF,
       );
 
       context.textBaseline = "top";
@@ -1443,7 +1449,7 @@ const createORCAVisual = (container) => {
         TAU * 0.9,
         (RADIUS_CONTRIBUTOR_NON_ORCA + (LW / 2 - O - 2)) * SF,
         "up",
-        1.5 * SF
+        1.5 * SF,
       );
     } // if
     context.globalAlpha = 1;
@@ -1607,7 +1613,7 @@ const createORCAVisual = (container) => {
     ) {
       // Find the link between this contributor and the repository in the links_original
       let link_original = HOVERED_NODE.data.links_original.find(
-        (p) => p.repo === l.target.id
+        (p) => p.repo === l.target.id,
       );
       // Base the line width on this commit count
       if (link_original)
@@ -1632,11 +1638,11 @@ const createORCAVisual = (container) => {
     let center = line.center;
     let ang1 = Math.atan2(
       line.source.y * SF - center.y * SF,
-      line.source.x * SF - center.x * SF
+      line.source.x * SF - center.x * SF,
     );
     let ang2 = Math.atan2(
       line.target.y * SF - center.y * SF,
-      line.target.x * SF - center.x * SF
+      line.target.x * SF - center.x * SF,
     );
     context.arc(
       center.x * SF,
@@ -1644,7 +1650,7 @@ const createORCAVisual = (container) => {
       line.r * SF,
       ang1,
       ang2,
-      line.sign
+      line.sign,
     );
   } //function drawCircleArc
 
@@ -1657,7 +1663,7 @@ const createORCAVisual = (container) => {
     let centers = findCenters(
       l.r,
       { x: l.source.x, y: l.source.y },
-      { x: l.target.x, y: l.target.y }
+      { x: l.target.x, y: l.target.y },
     );
     l.sign = sign;
     l.center = l.sign ? centers.c2 : centers.c1;
@@ -1726,12 +1732,12 @@ const createORCAVisual = (container) => {
           l.source.x * SF,
           l.source.y * SF,
           l.target.x * SF,
-          l.target.y * SF
+          l.target.y * SF,
         );
 
         // Distance between source and target
         let dist = sqrt(
-          sq(l.target.x - l.source.x) + sq(l.target.y - l.source.y)
+          sq(l.target.x - l.source.x) + sq(l.target.y - l.source.y),
         );
         // What percentage is the source's radius of the total distance
         let perc = l.source.r / dist;
@@ -1793,7 +1799,7 @@ const createORCAVisual = (container) => {
     // Get all the connected links (if not done before)
     if (d.neighbor_links === undefined) {
       d.neighbor_links = links.filter(
-        (l) => l.source.id === d.id || l.target.id === d.id
+        (l) => l.source.id === d.id || l.target.id === d.id,
       );
     } // if
 
@@ -1803,8 +1809,8 @@ const createORCAVisual = (container) => {
         links.find(
           (l) =>
             (l.source.id === d.id && l.target.id === n.id) ||
-            (l.target.id === d.id && l.source.id === n.id)
-        )
+            (l.target.id === d.id && l.source.id === n.id),
+        ),
       );
 
       // If any of these neighbors are "owner" nodes, find what the original repo was from that owner that the contributor was connected to
@@ -1825,14 +1831,14 @@ const createORCAVisual = (container) => {
                   node = nodes.find((r) => r.id === l.repo);
                   // Also find the link between the repo and owner and add this to the neighbor_links
                   link = links.find(
-                    (l) => l.source.id === n.id && l.target.id === node.id
+                    (l) => l.source.id === n.id && l.target.id === node.id,
                   );
                 } else if (d.type === "repo") {
                   // Find the contributor node
                   node = nodes.find((r) => r.id === l.contributor_name);
                   // Also find the link between the contributor and owner and add this to the neighbor_links
                   link = links.find(
-                    (l) => l.source.id === node.id && l.target.id === n.id
+                    (l) => l.source.id === node.id && l.target.id === n.id,
                   );
                 } // else if
 
@@ -1850,7 +1856,7 @@ const createORCAVisual = (container) => {
             !(
               l.target.id === central_repo.id &&
               l.source.id === central_repo.data.owner
-            )
+            ),
         );
       } // if
     } // if
@@ -2093,7 +2099,7 @@ const createORCAVisual = (container) => {
     setFont(context, font_size * SF, 400, "italic");
     context.fillStyle = COL;
     text = "";
-    if (d.id === central_repo.id) text = "Development Seed";
+    if (d.id === central_repo.id) text = REPO_CENTRAL;
     else if (d.type === "contributor") text = "Contributor";
     else if (d.type === "repo") text = "Repository";
     else if (d.type === "owner") text = "Owner";
@@ -2105,7 +2111,7 @@ const createORCAVisual = (container) => {
     if (d.id === central_repo.id) {
       font_size = 15;
       setFont(context, font_size * SF, 700, "normal");
-      renderText(context, "Development Seed", x * SF, y * SF, 1.25 * SF);
+      renderText(context, REPO_CENTRAL, x * SF, y * SF, 1.25 * SF);
     } else if (d.type === "contributor") {
       // The contributor's name
       font_size = 16;
@@ -2144,7 +2150,7 @@ const createORCAVisual = (container) => {
         d.data.name,
         x * SF,
         (y + line_height * font_size) * SF,
-        1.25 * SF
+        1.25 * SF,
       );
 
       // The creation date
@@ -2157,7 +2163,7 @@ const createORCAVisual = (container) => {
         `Created in ${formatDate(d.data.createdAt)}`,
         x * SF,
         y * SF,
-        1.25 * SF
+        1.25 * SF,
       );
       // The most recent updated date
       y += font_size * line_height;
@@ -2166,7 +2172,7 @@ const createORCAVisual = (container) => {
         `Last updated in ${formatDate(d.data.updatedAt)}`,
         x * SF,
         y * SF,
-        1.25 * SF
+        1.25 * SF,
       );
 
       // The number of stars & forks
@@ -2183,7 +2189,7 @@ const createORCAVisual = (container) => {
         } forks`,
         x * SF,
         y * SF,
-        1.25 * SF
+        1.25 * SF,
       );
       context.globalAlpha = 1;
 
@@ -2233,7 +2239,7 @@ const createORCAVisual = (container) => {
       if (CLICK_ACTIVE && CLICKED_NODE.type === "contributor") {
         // Get the first and last commit of the contributor to this repo
         let link = CLICKED_NODE.data.links_original.find(
-          (l) => l.repo === d.id
+          (l) => l.repo === d.id,
         );
         let num_commits = link.commit_count;
 
@@ -2254,7 +2260,7 @@ const createORCAVisual = (container) => {
           CLICKED_NODE.data.contributor_name,
           x * SF,
           y * SF,
-          1.25 * SF
+          1.25 * SF,
         );
 
         y += 18;
@@ -2272,7 +2278,7 @@ const createORCAVisual = (container) => {
           text = `In ${formatDate(link.commit_sec_max)}`;
         else
           text = `Between ${formatDate(link.commit_sec_min)} / ${formatDate(
-            link.commit_sec_max
+            link.commit_sec_max,
           )}`;
         renderText(context, text, x * SF, y * SF, 1.25 * SF);
       } // if
@@ -2308,12 +2314,12 @@ const createORCAVisual = (container) => {
       context.save();
       context.translate(d.x * SF, d.y * SF);
       context.rotate(
-        d.contributor_angle + (d.contributor_angle > PI / 2 ? PI : 0)
+        d.contributor_angle + (d.contributor_angle > PI / 2 ? PI : 0),
       );
       // Move the max_radius farther away
       context.translate(
         (d.contributor_angle > PI / 2 ? -1 : 1) * (d.max_radius + 14) * SF,
-        0
+        0,
       );
       // context.textAlign = "center"
       context.textAlign = d.contributor_angle > PI / 2 ? "right" : "left";
@@ -2359,13 +2365,14 @@ const createORCAVisual = (container) => {
         context.arc(d.x * SF, d.y * SF, d.r * SF, 0, 2 * PI);
         context.clip();
       } // if
-      renderText(
-        context,
-        `${d.data.owner}/`,
-        d.x * SF,
-        (d.y - 0.6 * 12) * SF,
-        1.25 * SF
-      );
+      if (d.data.owner)
+        renderText(
+          context,
+          `${d.data.owner}/`,
+          d.x * SF,
+          (d.y - 0.6 * 12) * SF,
+          1.25 * SF,
+        );
       renderText(context, d.label, d.x * SF, (d.y + 0.9 * 12) * SF, 1.25 * SF);
       if (!DO_CENTRAL_OUTSIDE) context.restore();
     } else if (d.type === "repo") {
@@ -2378,7 +2385,7 @@ const createORCAVisual = (container) => {
         d.x * SF,
         (d.y - d.r - 3 - 1.1 * 12) * SF,
         1.25 * SF,
-        true
+        true,
       );
       renderText(
         context,
@@ -2386,7 +2393,7 @@ const createORCAVisual = (container) => {
         d.x * SF,
         (d.y - d.r - 3) * SF,
         1.25 * SF,
-        true
+        true,
       );
     } else {
       // owner
@@ -2399,7 +2406,7 @@ const createORCAVisual = (container) => {
         d.x * SF,
         (d.y - d.r - 3) * SF,
         1.25 * SF,
-        true
+        true,
       );
     }
   } // function drawNodeLabel
@@ -2579,7 +2586,7 @@ const createORCAVisual = (container) => {
           d.x * SF + d.bbox[0][0] * SF,
           d.y * SF + d.bbox[0][1] * SF,
           (d.bbox[1][0] - d.bbox[0][0]) * SF,
-          (d.bbox[1][1] - d.bbox[0][1]) * SF
+          (d.bbox[1][1] - d.bbox[0][1]) * SF,
         );
       }); // forEach
   } // function drawBbox
