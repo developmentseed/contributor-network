@@ -38,7 +38,7 @@ def data(directory: Path, config_path: str | None, github_token: str | None):
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
     if github_token:
-        auth = Auth.Token(github_token)
+        auth: Auth.Auth = Auth.Token(github_token)
     else:
         auth = Auth.NetrcAuth()
 
