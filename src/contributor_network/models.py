@@ -29,7 +29,7 @@ class Link(BaseModel):
 
     def update_from_github(self, repo: Repo, contributor: NamedUser) -> None:
         commits = repo.get_commits(author=contributor.login)
-        last_commit = commits.reversed[0]
+        last_commit = commits[0]
         self.commit_count = contributor.contributions
         self.commit_sec_max = int(last_commit.commit.author.date.timestamp())
 
