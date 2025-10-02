@@ -14,6 +14,7 @@ repositories = [
     "developmentseed/rio-viz",
     "developmentseed/rio-stac",
     "developmentseed/osm-seed",
+    "developmentseed/osm-teams",
     "developmentseed/morecantile",
     "developmentseed/cql2-rs",
     "developmentseed/stac-auth-proxy",
@@ -34,6 +35,10 @@ repositories = [
     "pydata/xarray",
     "sentinel-hub/titiler-openeo",
     "Clay-foundation/model",
+    "OSMCha/osmcha-django",
+    "OSMCha/osmcha-frontend",
+    "hotosm/tasking-manager",
+    "hotosm/OpenAerialMap",
 ]
 
 [contributors]
