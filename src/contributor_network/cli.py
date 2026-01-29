@@ -32,8 +32,17 @@ def main():
 @directory
 @config
 @click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
-@click.option("--all-contributors", is_flag=True, help="Include alumni and friends (not just DevSeed employees)")
-def data(directory: Path, config_path: str | None, github_token: str | None, all_contributors: bool):
+@click.option(
+    "--all-contributors",
+    is_flag=True,
+    help="Include alumni and friends (not just DevSeed employees)",
+)
+def data(
+    directory: Path,
+    config_path: str | None,
+    github_token: str | None,
+    all_contributors: bool,
+):
     """Build the contributor network data."""
 
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
@@ -46,8 +55,10 @@ def data(directory: Path, config_path: str | None, github_token: str | None, all
     client = Client(auth, directory)
 
     # Use all contributors or just DevSeed employees
-    contributors = config.all_contributors if all_contributors else config.devseed_contributors
-    print(f"Building data for {len(contributors)} contributors (DevSeed only: {not all_contributors})")
+    contributors = (
+        config.all_contributors if all_contributors else config.devseed_contributors
+    )
+    print(f"Building data for {len(contributors)} contributors")
 
     for repository in config.repositories:
         print(f"Updating repository: {repository}")
@@ -60,14 +71,20 @@ def data(directory: Path, config_path: str | None, github_token: str | None, all
 @main.command()
 @directory
 @config
-@click.option("--all-contributors", is_flag=True, help="Include alumni and friends (not just DevSeed employees)")
+@click.option(
+    "--all-contributors",
+    is_flag=True,
+    help="Include alumni and friends (not just DevSeed employees)",
+)
 def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> None:
     """Write the CSVs."""
 
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-    contributors = config.all_contributors if all_contributors else config.devseed_contributors
+    contributors = (
+        config.all_contributors if all_contributors else config.devseed_contributors
+    )
     authors = list(contributors.values())
-    print(f"Writing CSVs for {len(authors)} contributors (DevSeed only: {not all_contributors})")
+    print(f"Writing CSVs for {len(authors)} contributors")
 
     (directory / "top_contributors.csv").write_text(
         "\n".join(["author_name"] + authors)
@@ -150,9 +167,13 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
 @main.command()
 @config
 @click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
-@click.option("--min-contributors", default=2, help="Minimum DevSeed contributors to show a repo")
+@click.option(
+    "--min-contributors", default=2, help="Minimum DevSeed contributors to show a repo"
+)
 @click.option("--limit", default=50, help="Maximum number of repos to display")
-def discover(config_path: str | None, github_token: str | None, min_contributors: int, limit: int) -> None:
+def discover(
+    config_path: str | None, github_token: str | None, min_contributors: int, limit: int
+) -> None:
     """Discover repositories that DevSeed employees contribute to.
 
     This command queries GitHub to find repositories that DevSeed employees
@@ -184,12 +205,15 @@ def discover(config_path: str | None, github_token: str | None, min_contributors
         try:
             user = github.get_user(username)
 
-            # Get repos the user has contributed to via events (more accurate than get_repos)
+            # Get repos via events (more accurate than get_repos)
             repos_found = 0
             for event in user.get_events():
                 if event.type in ("PushEvent", "PullRequestEvent", "IssuesEvent"):
                     repo_name = event.repo.full_name
-                    if repo_name not in known_repos and username not in discovered_repos[repo_name]:
+                    if (
+                        repo_name not in known_repos
+                        and username not in discovered_repos[repo_name]
+                    ):
                         discovered_repos[repo_name].append(username)
                         repos_found += 1
                 # Limit events per user to avoid rate limiting
@@ -201,13 +225,13 @@ def discover(config_path: str | None, github_token: str | None, min_contributors
 
     # Sort by number of DevSeed contributors (descending)
     sorted_repos = sorted(
-        discovered_repos.items(),
-        key=lambda x: len(x[1]),
-        reverse=True
+        discovered_repos.items(), key=lambda x: len(x[1]), reverse=True
     )
 
     # Filter by minimum contributors
-    filtered_repos = [(repo, users) for repo, users in sorted_repos if len(users) >= min_contributors]
+    filtered_repos = [
+        (repo, users) for repo, users in sorted_repos if len(users) >= min_contributors
+    ]
 
     print()
     print("=" * 60)
@@ -216,8 +240,8 @@ def discover(config_path: str | None, github_token: str | None, min_contributors
     print()
 
     if not filtered_repos:
-        print(f"No repositories found with at least {min_contributors} DevSeed contributors.")
-        print("Try lowering --min-contributors or check if the GitHub token has sufficient permissions.")
+        print(f"No repos found with {min_contributors}+ DevSeed contributors.")
+        print("Try lowering --min-contributors or check GitHub token permissions.")
         return
 
     for repo, usernames in filtered_repos[:limit]:
@@ -226,7 +250,7 @@ def discover(config_path: str | None, github_token: str | None, min_contributors
         print()
 
     print("-" * 60)
-    print(f"Total: {len(filtered_repos)} repos with {min_contributors}+ DevSeed contributors")
+    print(f"Total: {len(filtered_repos)} repos with {min_contributors}+ contributors")
     print()
     print("To add a repo, append it to the 'repositories' list in config.toml:")
     print('    "owner/repo-name",')
@@ -259,7 +283,9 @@ def list_contributors(config_path: str | None, github_token: str | None) -> None
         print()
         print("Alumni/Friends (currently enabled):")
         print("-" * 40)
-        for username, name in sorted(cfg.alumni_contributors.items(), key=lambda x: x[1]):
+        for username, name in sorted(
+            cfg.alumni_contributors.items(), key=lambda x: x[1]
+        ):
             print(f"  {name} (@{username})")
         print()
         print(f"Total Alumni: {len(cfg.alumni_contributors)}")

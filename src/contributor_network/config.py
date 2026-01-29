@@ -4,6 +4,7 @@ The config supports categorizing contributors into groups (e.g., "devseed" for c
 employees, "alumni" for past contributors). This allows filtering the visualization
 to show only active team members while preserving historical data.
 """
+
 from __future__ import annotations
 
 import tomllib
@@ -14,7 +15,7 @@ from pydantic import BaseModel
 
 class Config(BaseModel):
     """Configuration for the contributor network visualization.
-    
+
     Attributes:
         title: Page title for the visualization
         author: Author attribution
@@ -25,12 +26,15 @@ class Config(BaseModel):
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
     """
+
     title: str
     author: str
     description: str
     central_repository: str
     repositories: list[str]
-    contributors: dict[str, dict[str, str]]  # Nested: {"devseed": {...}, "alumni": {...}}
+    contributors: dict[
+        str, dict[str, str]
+    ]  # Nested: {"devseed": {...}, "alumni": {...}}
     contributor_padding: int = 40
 
     @property
