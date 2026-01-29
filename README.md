@@ -1,27 +1,115 @@
-# Development Seed contributor network
+# Development Seed Contributor Network
 
 The code behind <https://developmentseed.org/contributor-network>.
 
 ![A splash of the page](./img/site-image.jpg)
 
-This visual is derived from the excellent <https://github.com/nbremer/ORCA/tree/main/top-contributor-network>.
+This visual is derived from the excellent [ORCA top-contributor-network](https://github.com/nbremer/ORCA/tree/main/top-contributor-network) by Nadieh Bremer.
 
-## Rebuilding
+## Quick Start
 
-We use [workflow dispatch](https://github.com/developmentseed/contributor-network/actions/workflows/build.yml) to rebuild the source data.
-Right now this is manual, but eventually we'd like to set this up on a schedule: <https://github.com/developmentseed/contributor-network/issues/8>.
+### Prerequisites
+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) for Python package management
+- A GitHub personal access token with `public_repo` scope
+
+### View Locally
+
+```shell
+cd dist
+python -m http.server 8000
+```
+
+Then open <http://localhost:8000/>.
+
+## CLI Commands
+
+All commands are run via `uv run contributor-network <command>`.
+
+### `list-contributors`
+
+List all configured contributors by category:
+
+```shell
+uv run contributor-network list-contributors
+```
+
+### `discover`
+
+Find new repositories that DevSeed employees contribute to:
+
+```shell
+export GITHUB_TOKEN="your_token_here"
+uv run contributor-network discover --min-contributors 2 --limit 50
+```
+
+This queries GitHub to find repos where multiple DevSeed employees have contributed, which are not yet in the configuration.
+
+### `data`
+
+Fetch contribution data from GitHub for all configured repositories:
+
+```shell
+export GITHUB_TOKEN="your_token_here"
+uv run contributor-network data data
+```
+
+Options:
+- `--all-contributors`: Include alumni/friends (not just current DevSeed employees)
+
+### `csvs`
+
+Generate CSV files from the fetched JSON data:
+
+```shell
+uv run contributor-network csvs data
+```
+
+### `build`
+
+Build the static site to the `dist/` folder:
+
+```shell
+uv run contributor-network build data dist
+```
+
+## Full Workflow
+
+To update the visualization with new data:
+
+```shell
+# 1. Set your GitHub token
+export GITHUB_TOKEN="your_token_here"
+
+# 2. (Optional) Discover new repos to add
+uv run contributor-network discover --min-contributors 2
+
+# 3. Edit config.toml to add/remove repos or contributors
+
+# 4. Fetch data from GitHub
+uv run contributor-network data data
+
+# 5. Generate CSVs
+uv run contributor-network csvs data
+
+# 6. Build the site
+uv run contributor-network build data dist
+
+# 7. Preview locally
+cd dist && python -m http.server 8000
+```
+
+## Configuration
+
+Edit `config.toml` to configure:
+
+- **repositories**: List of GitHub repos to track (format: `"owner/repo"`)
+- **contributors.devseed**: Current DevSeed employees (format: `github_username = "Display Name"`)
+- **contributors.alumni**: Friends and alumni (commented out by default)
 
 ## Development
 
-To view things locally:
-
-```shell
-python -m http.server
-```
-
-This will open the page on <http://localhost:8000/>.
-
-To check the Python files, get [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
+### Code Quality
 
 ```shell
 uv sync
@@ -30,18 +118,16 @@ uv run ruff format
 uv run pytest
 ```
 
-To add new repos or contributors, see [constants.py](src/devseed_contributor_network/constants.py)
+### Automated Rebuilds
 
-### Rebuilding locally
+We use [workflow dispatch](https://github.com/developmentseed/contributor-network/actions/workflows/build.yml) to rebuild the source data manually.
 
-To build the data locally, set up [.netrc authentication for Github](https://pygithub.readthedocs.io/en/stable/examples/Authentication.html#netrc-authentication).
-Then:
+## Branding
 
-```shell
-uv run contributor-network data data
-uv run contributor-network csvs data
-uv run contributor-network build data dist
-```
+This visualization uses the Development Seed brand colors:
+- **Grenadier** (#CF3F02): Primary orange accent
+- **Aquamarine** (#2E86AB): Secondary blue
+- **Base** (#443F3F): Text color
 
 ## License
 

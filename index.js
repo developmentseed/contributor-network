@@ -1,7 +1,15 @@
 // This file was copied-and-modified from
 // https://github.com/nbremer/ORCA/blob/77745774d9d189818ab1ba27e07979897434abf9/top-contributor-network/createORCAVisual.js,
 // and is licensed under the same (MPL).
-
+//
+// Development Seed Modifications:
+// - Updated color scheme to DevSeed brand (Grenadier orange, Aquamarine blue)
+// - Removed the central "team" pseudo-node from rendering (but kept for layout)
+// - Added null safety checks for hover/click interactions
+// - Added boundary checking to prevent hover outside visualization area
+// - Added mouseleave handler to properly clean up hover state
+// - Filtered out artificial links to/from the central pseudo-node
+//
 /////////////////////////////////////////////////////////////////////
 /////////////// Visualization designed & developed by ///////////////
 /////////////////////////// Nadieh Bremer ///////////////////////////
@@ -1503,12 +1511,6 @@ const createORCAVisual = (
   } // function drawNode
 
   function drawNodeArc(context, SF, d) {
-    // Skip arc drawing for the central pseudo-node concept since it's been removed
-    // The original showed time involvement with a central repo, but we no longer have one
-    // if (d.type === "contributor" && !CLICK_ACTIVE) {
-    //   timeRangeArc(context, SF, d, central_repo, d.data.link_central);
-    // }
-
     // Draw an arc around the repository node that shows how long the contributor has been active in that repo for all its existence, based on the first and last commit time
     if (
       HOVER_ACTIVE &&
