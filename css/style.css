@@ -3,18 +3,19 @@
 /*************************************/
 
 html {
-    --color-repo-main: #a682e8;
-    --color-repo: #64d6d3;
-    --color-owner: #f2a900;
-    --color-contributor: #ea9df5;
-    --color-text: #4d4950;
+    /* DevSeed Brand Colors */
+    --color-repo-main: #CF3F02;      /* Grenadier (signature orange) */
+    --color-repo: #2E86AB;           /* Aquamarine (secondary blue) */
+    --color-owner: #CF3F02;          /* Grenadier */
+    --color-contributor: #3A9BBF;    /* Lighter aquamarine for contributors */
+    --color-text: #443F3F;           /* Base dark gray */
     --color-background: #f7f7f7;
-    --color-gradient: linear-gradient(to right, var(--color-contributor), var(--color-repo-main), var(--color-repo)) 1;
+    --color-gradient: linear-gradient(to right, var(--color-repo), var(--color-repo-main)) 1;
 }
 
 body {
     margin: 0;
-    font-family: 'Atkinson Hyperlegible', sans-serif;
+    font-family: 'Roboto', 'Antarctica', sans-serif;
 }
 
 .central-repo {
@@ -92,14 +93,14 @@ p {
 
 .code {
     font-family: 'Fira Code', monospace;
-    background-color: #64d6d375;
+    background-color: #2E86AB30;    /* Aquamarine at ~20% opacity */
     font-size: 0.9em;
     padding: 0.2em 0.4em;
 }
 
 a {
     border-bottom: 3px solid var(--color-repo);
-    border-image: linear-gradient(to right, var(--color-repo), var(--color-contributor)) 1;
+    border-image: linear-gradient(to right, var(--color-repo), var(--color-repo-main)) 1;
     /* padding: 0.1em 0.3em; */
     font-weight: 700;
     cursor: pointer;
@@ -173,8 +174,7 @@ a {
 
 #explanation-link {
     border-bottom: 2px solid var(--color-repo-main);
-    border-image: linear-gradient(to right, var(--color-owner), var(--color-contributor), var(--color-repo)) 1;
-    /* border-image: var(--color-gradient); */
+    border-image: linear-gradient(to right, var(--color-repo-main), var(--color-repo)) 1;
     font-size: 0.9em;
     font-style: italic;
     color: var(--color-text);
@@ -267,7 +267,7 @@ li#item-remaining::before {
     font-size: 0.9em;
 
     border: 3px solid var(--color-repo);
-    border-image: linear-gradient(to right, var(--color-owner), var(--color-contributor), var(--color-repo)) 1;
+    border-image: linear-gradient(to right, var(--color-repo-main), var(--color-repo)) 1;
     padding: 0.8em 1.2em;
     margin-top: 0.5em;
     margin-bottom: 1.5em;
@@ -350,7 +350,7 @@ li#item-remaining::before {
 
 #dataviz-credit a {
     border-bottom: 3px solid var(--color-repo-main);
-    border-image: linear-gradient(to right, var(--color-contributor), var(--color-repo)) 1;
+    border-image: linear-gradient(to right, var(--color-repo), var(--color-repo-main)) 1;
     /* padding: 0.1em 0.3em; */
     font-weight: 700;
     cursor: pointer;

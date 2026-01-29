@@ -1,7 +1,7 @@
 title = "The Development Seed Contributor Network"
 author = "Pete Gadomski"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
-central_repository = "Development Seed"
+central_repository = "DevSeed Team"
 repositories = [
     "developmentseed/titiler",
     "developmentseed/lonboard",
@@ -39,34 +39,66 @@ repositories = [
     "OSMCha/osmcha-frontend",
     "hotosm/tasking-manager",
     "hotosm/OpenAerialMap",
+    "developmentseed/openeo-studio",
+    "NASA-IMPACT/veda-backend",
+    "developmentseed/moz-proenergia-backend",
+    "wri/project-zeno-next",
+    "developmentseed/titiler-cmr",
+    "NASA-IMPACT/veda-ui",
+    "developmentseed/async-tiff",
+    "NASA-IMPACT/veda-deploy",
+    "wri/project-zeno-deploy",
+    "eopf-toolkit/eopf-101",
+    "NASA-IMPACT/veda-keycloak",
+    "NASA-IMPACT/veda-data-airflow",
+    "EOPF-Explorer/titiler-eopf",
+    "developmentseed/openeo-udp",
+    "developmentseed/stac-map",
+    "source-cooperative/source.coop",
+    "beatrizbsperes/eopf-101",
+    "NASA-IMPACT/csda-client",
+    "NASA-IMPACT/veda-config",
+    "developmentseed/eo-predictor",
+    "EOPF-Explorer/landing-page",
+    "EOPF-Explorer/narratives",
+    "developmentseed/deck.gl-raster",
+    "MAAP-Project/maap-eoapi",
+    "MAAP-Project/maap-documentation",
+    "EOEPCA/demo",
+    "EOEPCA/resource-discovery",
+    "virtual-zarr/obspec-utils",
+    "developmentseed/geotiff-test-data",
+    "GenericMappingTools/pygmt",
+    "developmentseed/pixelverse",
 ]
 
-[contributors]
-# Friends and alumni
-jsignell = "Julia Signell"
-geospatial-jeff = "Jeff Albrecht"
-cholmes = "Chris Holmes"
-m-mohr = "Matthias Mohr"
-matthewhanson = "Matthew Hanson"
-d-v-b = "Davis Bennett"
+# Friends and alumni - commented out but preserved for future use
+# Uncomment the [contributors.alumni] section to include these contributors
+# [contributors.alumni]
+# jsignell = "Julia Signell"
+# geospatial-jeff = "Jeff Albrecht"
+# cholmes = "Chris Holmes"
+# m-mohr = "Matthias Mohr"
+# matthewhanson = "Matthew Hanson"
+# d-v-b = "Davis Bennett"
 
-# Development Seed
+# Development Seed employees
+[contributors.devseed]
 AMSCamacho = "Angela Camacho"
 AliceR = "Alice Rühl"
 LanesGood = "Lane Goodman"
 abarciauskas-bgse = "Aimee Barciauskas"
 aboydnw = "Anthony Boyd"
-aliziel = "Ali Z."
+aliziel = "Ali Z"
 alukach = "Anthony Lukach"
 anayeaye = "Alexandra Kirk"
-aripaulg = "Ari Greenberg"
 batpad = "Sanjay Bhangar"
 beatrizbsperes = "Beatriz Peres"
 benbovy = "Benoît Bovy"
 bitner = "David Bitner"
 botanical = "Jennifer Tran"
-briannapagan = "Brianna Pagán"
-camillecroft = "camillecroft"
+briannacorremonte = "Brianna Corremonte"
+camillecroft = "Camille Croft"
 ceholden = "Chris Holden"
 chuckwondo = "Chuck Daniels"
 ciaransweet = "Ciaran Sweet"
@@ -98,7 +130,7 @@ olafveerman = "Olaf Veerman"
 omniajoe = "Omnia Joehar"
 pantierra = "xıʃǝɟ"
 ricardoduplos = "Ricardo Duplos"
-sandrahoang686 = "sandrahoang686"
+sandrahoang686 = "Sandra Hoang"
 sharkinsspatial = "Sean Harkins"
 sharonwanlu = "SharonLu"
 smohiudd = "Saadiq Mohiuddin"

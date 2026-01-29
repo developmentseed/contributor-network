@@ -1,7 +1,15 @@
 // This file was copied-and-modified from
 // https://github.com/nbremer/ORCA/blob/77745774d9d189818ab1ba27e07979897434abf9/top-contributor-network/createORCAVisual.js,
 // and is licensed under the same (MPL).
-
+//
+// Development Seed Modifications:
+// - Updated color scheme to DevSeed brand (Grenadier orange, Aquamarine blue)
+// - Removed the central "team" pseudo-node from rendering (but kept for layout)
+// - Added null safety checks for hover/click interactions
+// - Added boundary checking to prevent hover outside visualization area
+// - Added mouseleave handler to properly clean up hover state
+// - Filtered out artificial links to/from the central pseudo-node
+//
 /////////////////////////////////////////////////////////////////////
 /////////////// Visualization designed & developed by ///////////////
 /////////////////////////// Nadieh Bremer ///////////////////////////
@@ -47,7 +55,7 @@ const createORCAVisual = (
   let CLICKED_NODE = null;
 
   // Visual Settings - Based on SF = 1
-  const CENTRAL_RADIUS = 50; // The radius of the central repository node
+  const CENTRAL_RADIUS = 35; // The radius of the central repository node (reduced for less prominence)
   let RADIUS_CONTRIBUTOR; // The eventual radius along which the contributor nodes are placed
   let RADIUS_CONTRIBUTOR_NON_ORCA; // The radius along which the contributor nodes are placed that have not received ORCA
   let ORCA_RING_WIDTH;
@@ -62,18 +70,19 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   ///////////////////////////// Colors ////////////////////////////
   /////////////////////////////////////////////////////////////////
+  // DevSeed Brand Colors
 
   const COLOR_BACKGROUND = "#f7f7f7";
 
-  const COLOR_PURPLE = "#783ce6";
+  const COLOR_PURPLE = "#CF3F02";          // Was purple, now Grenadier for accent rings
 
-  const COLOR_REPO_MAIN = "#a682e8";
-  const COLOR_REPO = "#64d6d3"; // "#b2faf8"
-  const COLOR_OWNER = "#f2a900";
-  const COLOR_CONTRIBUTOR = "#ea9df5";
+  const COLOR_REPO_MAIN = "#CF3F02";       // Grenadier (signature orange)
+  const COLOR_REPO = "#2E86AB";            // Aquamarine (secondary blue)
+  const COLOR_OWNER = "#CF3F02";           // Grenadier
+  const COLOR_CONTRIBUTOR = "#3A9BBF";     // Lighter aquamarine
 
   const COLOR_LINK = "#e8e8e8";
-  const COLOR_TEXT = "#4d4950";
+  const COLOR_TEXT = "#443F3F";            // Base dark gray
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////// Create Canvas /////////////////////////
@@ -271,21 +280,33 @@ const createORCAVisual = (
     drawBigRings(context, SF);
 
     /////////////////////////////////////////////////////////////
-    // Draw all the links as lines
-    links.forEach((l) => drawLink(context, SF, l));
+    // Draw all the links as lines (skip links to/from the central pseudo-node)
+    links.forEach((l) => {
+      // Skip drawing links that connect directly to the central "team" node
+      // These are artificial links that don't represent real contributions
+      const targetId = l.target.id || l.target;
+      const sourceId = l.source.id || l.source;
+      if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return;
+      drawLink(context, SF, l);
+    });
 
     /////////////////////////////////////////////////////////////
-    // Draw the central repo label in the background (in case it is bigger than it's circle)
-    drawNodeLabel(context, central_repo, true);
+    // Draw all the nodes as circles (skip the central pseudo-node)
+    nodes.forEach((d) => {
+      if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
+      drawNodeArc(context, SF, d);
+    });
+    nodes.forEach((d) => {
+      if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
+      drawNode(context, SF, d);
+    });
 
     /////////////////////////////////////////////////////////////
-    // Draw all the nodes as circles
-    nodes.forEach((d) => drawNodeArc(context, SF, d));
-    nodes.forEach((d) => drawNode(context, SF, d));
-
-    /////////////////////////////////////////////////////////////
-    // Draw the labels
-    nodes_central.forEach((d) => drawNodeLabel(context, d));
+    // Draw the labels (skip central pseudo-node)
+    nodes_central.forEach((d) => {
+      if (d.id === REPO_CENTRAL) return;
+      drawNodeLabel(context, d);
+    });
 
     // Test to see how the bbox of the nodes look
     // drawBbox(context, nodes)
@@ -493,10 +514,10 @@ const createORCAVisual = (
     }); // forEach
     repos.forEach((d) => {
       d.links_original = links.filter((l) => l.target === d.repo);
-      // Who contributed to this repository
-      d.contributors = d.links_original.map((l) =>
-        contributors.find((r) => r.contributor_name === l.contributor_name),
-      );
+      // Who contributed to this repository (filter out undefined for contributors not in the visualization)
+      d.contributors = d.links_original
+        .map((l) => contributors.find((r) => r.contributor_name === l.contributor_name))
+        .filter((c) => c !== undefined);
     }); // forEach
 
     /////////////////////////////////////////////////////////////
@@ -1462,14 +1483,16 @@ const createORCAVisual = (
   function drawNode(context, SF, d) {
     // Is this a node that is a repo that is not impacted by ORCA?
     let REPO_NOT_ORCA = d.type === "repo" && !d.data.orca_impacted;
-    // If this is the central node, it should always look fully opaque (like an ORCA node)
-    if (d.id === REPO_CENTRAL) REPO_NOT_ORCA = false;
+    // The central "team" node should be subtle/muted since it's not a real repo
+    const IS_CENTRAL = d.id === REPO_CENTRAL;
+    if (IS_CENTRAL) REPO_NOT_ORCA = false;
 
     // Draw a circle for the node
     context.shadowBlur = HOVER_ACTIVE ? 0 : max(2, d.r * 0.2) * SF;
     context.shadowColor = "#f7f7f7";
 
-    context.globalAlpha = REPO_NOT_ORCA ? 0.4 : 1;
+    // Central node gets reduced opacity to be less prominent
+    context.globalAlpha = IS_CENTRAL ? 0.5 : (REPO_NOT_ORCA ? 0.4 : 1);
     context.fillStyle = d.color;
     drawCircle(context, d.x, d.y, SF, d.r);
     context.globalAlpha = 1;
@@ -1488,11 +1511,6 @@ const createORCAVisual = (
   } // function drawNode
 
   function drawNodeArc(context, SF, d) {
-    // Draw a tiny arc inside the contributor node to show how long they've been involved in the central repo's existence, based on their first and last commit
-    if (d.type === "contributor" && !CLICK_ACTIVE) {
-      timeRangeArc(context, SF, d, central_repo, d.data.link_central);
-    } // if
-
     // Draw an arc around the repository node that shows how long the contributor has been active in that repo for all its existence, based on the first and last commit time
     if (
       HOVER_ACTIVE &&
@@ -1500,7 +1518,8 @@ const createORCAVisual = (
       d.type === "repo"
     ) {
       let link = HOVERED_NODE.data.links_original.find((p) => p.repo === d.id);
-      timeRangeArc(context, SF, d, d, link, COLOR_CONTRIBUTOR);
+      // Only draw arc if link exists
+      if (link) timeRangeArc(context, SF, d, d, link, COLOR_CONTRIBUTOR);
     } // if
   } // function drawNodeArc
 
@@ -1607,7 +1626,10 @@ const createORCAVisual = (
     // If a hover is active, and the hovered node is a contributor, and this is a link between an owner and repository, make the line width depend on the commit_count of the original link between the contributor and the repository
     if (
       HOVER_ACTIVE &&
+      HOVERED_NODE &&
       HOVERED_NODE.type === "contributor" &&
+      HOVERED_NODE.data &&
+      HOVERED_NODE.data.links_original &&
       l.source.type === "owner" &&
       l.target.type === "repo"
     ) {
@@ -1754,38 +1776,53 @@ const createORCAVisual = (
   // Setup the hover on the top canvas, get the mouse position and call the drawing functions
   function setupHover() {
     d3.select("#canvas-hover").on("mousemove", function (event) {
-      // Get the position of the mouse on the canvas
-      let [mx, my] = d3.pointer(event, this);
-      let [d, FOUND] = findNode(mx, my);
+      try {
+        // Get the position of the mouse on the canvas
+        let [mx, my] = d3.pointer(event, this);
+        let [d, FOUND] = findNode(mx, my);
 
-      // Draw the hover state on the top canvas
-      if (FOUND) {
-        HOVER_ACTIVE = true;
-        HOVERED_NODE = d;
+        // Draw the hover state on the top canvas
+        // Skip hover on the central pseudo-node (it's not a real entity)
+        if (FOUND && d && d.id !== REPO_CENTRAL) {
+          HOVER_ACTIVE = true;
+          HOVERED_NODE = d;
 
-        // Fade out the main canvas, using CSS
-        if (!d.remaining_contributor)
-          canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
+          // Fade out the main canvas, using CSS
+          if (!d.remaining_contributor)
+            canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
 
-        // Draw the hovered node and its neighbors and links
-        drawHoverState(context_hover, d);
-      } else {
+          // Draw the hovered node and its neighbors and links
+          drawHoverState(context_hover, d);
+        } else {
+          context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+          HOVER_ACTIVE = false;
+          HOVERED_NODE = null;
+
+          if (!CLICK_ACTIVE) {
+            // Fade the main canvas back in
+            canvas.style.opacity = "1";
+          } // if
+        } // else
+      } catch (err) {
+        // Log error but don't break the handler
+        console.warn("Hover error:", err);
         context_hover.clearRect(0, 0, WIDTH, HEIGHT);
         HOVER_ACTIVE = false;
         HOVERED_NODE = null;
-
-        if (!CLICK_ACTIVE) {
-          // Fade the main canvas back in
-          canvas.style.opacity = "1";
-        } // if
-      } // else
+        if (!CLICK_ACTIVE) canvas.style.opacity = "1";
+      }
     }); // on mousemove
 
-    // canvas.ontouchmove =
-    // canvas.onmousemove = event => {
-    //         event.preventDefault();
-    //         console.log(event.layerX)
-    //     };
+    // Clean up hover state when mouse leaves the canvas
+    d3.select("#canvas-hover").on("mouseleave", function () {
+      context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+      HOVER_ACTIVE = false;
+      HOVERED_NODE = null;
+
+      if (!CLICK_ACTIVE) {
+        canvas.style.opacity = "1";
+      }
+    }); // on mouseleave
   } // function setupHover
 
   // Draw the hovered node and its links and neighbors and a tooltip
@@ -1799,19 +1836,32 @@ const createORCAVisual = (
     // Get all the connected links (if not done before)
     if (d.neighbor_links === undefined) {
       d.neighbor_links = links.filter(
-        (l) => l.source.id === d.id || l.target.id === d.id,
+        (l) => {
+          // Skip links to/from the central pseudo-node (not real contributions)
+          const targetId = l.target.id || l.target;
+          const sourceId = l.source.id || l.source;
+          if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
+          return l.source.id === d.id || l.target.id === d.id;
+        }
       );
     } // if
 
     // Get all the connected nodes (if not done before)
     if (d.neighbors === undefined) {
-      d.neighbors = nodes.filter((n) =>
-        links.find(
-          (l) =>
-            (l.source.id === d.id && l.target.id === n.id) ||
-            (l.target.id === d.id && l.source.id === n.id),
-        ),
-      );
+      d.neighbors = nodes.filter((n) => {
+        // Skip the central pseudo-node
+        if (n.id === REPO_CENTRAL) return false;
+        return links.find(
+          (l) => {
+            // Skip links to/from the central pseudo-node
+            const targetId = l.target.id || l.target;
+            const sourceId = l.source.id || l.source;
+            if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
+            return (l.source.id === d.id && l.target.id === n.id) ||
+                   (l.target.id === d.id && l.source.id === n.id);
+          }
+        );
+      });
 
       // If any of these neighbors are "owner" nodes, find what the original repo was from that owner that the contributor was connected to
       // OR
@@ -1821,7 +1871,7 @@ const createORCAVisual = (
         (d.type === "repo" && d !== central_repo)
       ) {
         d.neighbors.forEach((n) => {
-          if (n.type === "owner") {
+          if (n && n.type === "owner" && d.data && d.data.links_original) {
             // Go through all of the original links and see if this owner is in there
             d.data.links_original.forEach((l) => {
               if (l.owner === n.id) {
@@ -1829,6 +1879,8 @@ const createORCAVisual = (
                 if (d.type === "contributor") {
                   // Find the repo node
                   node = nodes.find((r) => r.id === l.repo);
+                  // Skip if node doesn't exist (repo not in visualization)
+                  if (!node) return;
                   // Also find the link between the repo and owner and add this to the neighbor_links
                   link = links.find(
                     (l) => l.source.id === n.id && l.target.id === node.id,
@@ -1836,15 +1888,19 @@ const createORCAVisual = (
                 } else if (d.type === "repo") {
                   // Find the contributor node
                   node = nodes.find((r) => r.id === l.contributor_name);
+                  // Skip if node doesn't exist (contributor not in visualization)
+                  if (!node) return;
                   // Also find the link between the contributor and owner and add this to the neighbor_links
                   link = links.find(
                     (l) => l.source.id === node.id && l.target.id === n.id,
                   );
                 } // else if
 
-                // Add it to the neighbors
-                d.neighbors.push(node);
-                if (link) d.neighbor_links.push(link);
+                // Add it to the neighbors (only if node exists)
+                if (node) {
+                  d.neighbors.push(node);
+                  if (link) d.neighbor_links.push(link);
+                }
               } // if
             }); // forEach
           } // if
@@ -1862,18 +1918,22 @@ const createORCAVisual = (
     } // if
 
     /////////////////////////////////////////////////
-    // Draw all the links to this node
-    d.neighbor_links.forEach((l) => {
-      drawLink(context, SF, l);
-    }); // forEach
+    // Draw all the links to this node (with null safety)
+    if (d.neighbor_links) {
+      d.neighbor_links.forEach((l) => {
+        if (l && l.source && l.target) drawLink(context, SF, l);
+      }); // forEach
+    }
 
-    // Draw all the connected nodes
-    d.neighbors.forEach((n) => drawNodeArc(context, SF, n));
-    d.neighbors.forEach((n) => drawNode(context, SF, n));
-    // Draw all the labels of the "central" connected nodes
-    d.neighbors.forEach((n) => {
-      if (n.node_central) drawNodeLabel(context, n);
-    }); // forEach
+    // Draw all the connected nodes (with null safety)
+    if (d.neighbors) {
+      d.neighbors.forEach((n) => { if (n) drawNodeArc(context, SF, n); });
+      d.neighbors.forEach((n) => { if (n) drawNode(context, SF, n); });
+      // Draw all the labels of the "central" connected nodes
+      d.neighbors.forEach((n) => {
+        if (n && n.node_central) drawNodeLabel(context, n);
+      }); // forEach
+    }
 
     /////////////////////////////////////////////////
     // Draw the hovered node
@@ -1905,7 +1965,8 @@ const createORCAVisual = (
       // Clear the "clicked" canvas
       context_click.clearRect(0, 0, WIDTH, HEIGHT);
 
-      if (FOUND) {
+      // Skip click on the central pseudo-node (it's not a real entity)
+      if (FOUND && d && d.id !== REPO_CENTRAL) {
         CLICK_ACTIVE = true;
         CLICKED_NODE = d;
 
@@ -1945,9 +2006,21 @@ const createORCAVisual = (
     mx = (mx * PIXEL_RATIO - WIDTH / 2) / SF;
     my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
 
+    // Check if mouse is within the visualization bounds (with some margin)
+    const MAX_RADIUS = RADIUS_CONTRIBUTOR_NON_ORCA + ORCA_RING_WIDTH + 200;
+    const distFromCenter = sqrt(mx * mx + my * my);
+    if (distFromCenter > MAX_RADIUS) {
+      return [null, false];
+    }
+
     //Get the closest hovered node
     let point = delaunay.find(mx, my);
     let d = nodes_delaunay[point];
+    
+    // Safety check - if no node found, return early
+    if (!d) {
+      return [null, false];
+    }
 
     // Get the distance from the mouse to the node
     let dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
@@ -2241,6 +2314,8 @@ const createORCAVisual = (
         let link = CLICKED_NODE.data.links_original.find(
           (l) => l.repo === d.id,
         );
+        // Skip if link doesn't exist (contributor not connected to this repo)
+        if (!link) return;
         let num_commits = link.commit_count;
 
         y += 28;
@@ -2341,11 +2416,9 @@ const createORCAVisual = (
           let W = context.measureText(l).width * 1.25 + 8 * SF;
           let x_rect = x - 6 * SF;
           if (d.contributor_angle > PI / 2) x_rect = x + 4 * SF - W;
-          context.fillStyle = "#f1caf6";
-          // context.fillStyle = "#cfbeee"
+          context.fillStyle = "#CF3F0230";  // Grenadier at ~20% opacity
           context.fillRect(x_rect, -10 * SF + y, W, 20 * SF);
           context.globalAlpha = 1;
-          // context.fillStyle = COLOR_BACKGROUND
           context.fillStyle = COLOR_TEXT;
         } // if
 
