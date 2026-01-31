@@ -27,6 +27,21 @@
         <script src="./d3-delaunay.js"></script>
         <script src="./d3-bboxCollide.min.js"></script>
         <script src="./index.js"></script>
+
+        <!-- ES6 Module exports for programmatic access (blog pages, testing, etc.) -->
+        <script type="module">
+            // Import the new modular filter and theme utilities
+            // These can be used for blog page composition and testing
+            import { applyFilters, createFilterManager, COLORS, THEME } from './src/js/index.js';
+
+            // Expose to window for console debugging and external scripts
+            window.ContributorNetwork = {
+                applyFilters,
+                createFilterManager,
+                COLORS,
+                THEME
+            };
+        </script>
 	</head>
 	<body>
         <div id="chart-wrapper">

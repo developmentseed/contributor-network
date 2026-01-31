@@ -117,6 +117,10 @@ const createORCAVisual = (
   ///////////////////////////// Colors ////////////////////////////
   /////////////////////////////////////////////////////////////////
   // DevSeed Brand Colors
+  // NOTE: Authoritative source is now src/js/config/theme.js
+  // These constants are duplicated here for backward compatibility.
+  // When migrating to ES6 modules, import from theme.js instead.
+  // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
 
   const COLOR_BACKGROUND = "#f7f7f7";
 
@@ -557,6 +561,10 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
 
   //////////////// Apply filters to the data ////////////////
+  // NOTE: Pure filter logic has been extracted to src/js/data/filter.js
+  // This function handles integration with the visualization's mutable state.
+  // For new features (e.g., blog charts), import { applyFilters } from './src/js/data/filter.js'
+  // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
   function applyFilters() {
     // Guard against uninitialized data
     if (!originalRepos || !originalLinks || !originalContributors) {
