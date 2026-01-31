@@ -31,7 +31,7 @@ describe('isValidNode', () => {
 
   it('should return false for nodes without id', () => {
     const node = { type: 'contributor', x: 100, y: 200 };
-    expect(isValidNode(node)).toBe(false);
+    expect(isValidNode(node)).toBeFalsy();
   });
 
   it('should return false for nodes with invalid type', () => {
@@ -45,8 +45,8 @@ describe('isValidNode', () => {
   });
 
   it('should return false for null or undefined', () => {
-    expect(isValidNode(null)).toBe(false);
-    expect(isValidNode(undefined)).toBe(false);
+    expect(isValidNode(null)).toBeFalsy();
+    expect(isValidNode(undefined)).toBeFalsy();
   });
 });
 
@@ -61,7 +61,7 @@ describe('isValidLink', () => {
 
   it('should return false for links with invalid source', () => {
     const link = { source: null, target: validTarget };
-    expect(isValidLink(link)).toBe(false);
+    expect(isValidLink(link)).toBeFalsy();
   });
 
   it('should return false for links with invalid target', () => {
@@ -91,9 +91,9 @@ describe('isPositioned', () => {
   });
 
   it('should return false for unpositioned nodes', () => {
-    expect(isPositioned({ x: NaN, y: 0 })).toBe(false);
-    expect(isPositioned({ y: 0 })).toBe(false);
-    expect(isPositioned(null)).toBe(false);
+    expect(isPositioned({ x: NaN, y: 0 })).toBeFalsy();
+    expect(isPositioned({ y: 0 })).toBeFalsy();
+    expect(isPositioned(null)).toBeFalsy();
   });
 });
 

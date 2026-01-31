@@ -284,8 +284,10 @@ const createORCAVisual = (
   styleBackgroundCanvas(canvas);
   styleBackgroundCanvas(canvas_click);
 
-  canvas_hover.style.position = "relative";
-  canvas_hover.style.z_index = "1";
+  canvas_hover.style.position = "absolute";
+  canvas_hover.style.top = "0";
+  canvas_hover.style.left = "0";
+  canvas_hover.style.zIndex = "2";
 
   function styleCanvas(canvas) {
     canvas.style.display = "block";
@@ -296,8 +298,8 @@ const createORCAVisual = (
     canvas.style.position = "absolute";
     canvas.style.top = "0";
     canvas.style.left = "0";
-    canvas.style.pointer_events = "none";
-    canvas.style.z_index = "0";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "0";
     canvas.style.transition = "opacity 200ms ease-in";
   } // function styleBackgroundCanvas
 

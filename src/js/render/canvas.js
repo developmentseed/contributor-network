@@ -56,7 +56,7 @@ export function styleBackgroundCanvas(canvas) {
   canvas.style.top = '0';
   canvas.style.left = '0';
   canvas.style.pointerEvents = 'none';
-  canvas.style.zIndex = '0';
+  canvas.style.zIndex = '1';
   canvas.style.transition = 'opacity 200ms ease-in';
 }
 
@@ -67,8 +67,10 @@ export function styleBackgroundCanvas(canvas) {
  * @param {HTMLCanvasElement} canvas - The canvas element
  */
 export function styleHoverCanvas(canvas) {
-  canvas.style.position = 'relative';
-  canvas.style.zIndex = '1';
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.zIndex = '2';
 }
 
 /**
