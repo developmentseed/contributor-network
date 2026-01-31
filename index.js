@@ -19,6 +19,8 @@ const createORCAVisual = (
   container,
   initial_repo_central,
   contributor_padding,
+  masterContributorsList,
+  displayNameMap,
 ) => {
   /////////////////////////////////////////////////////////////////
   ///////////////////// CONSTANTS & VARIABLES /////////////////////
@@ -36,6 +38,50 @@ const createORCAVisual = (
 
   // Default repo
   let REPO_CENTRAL = initial_repo_central;
+
+  /////////////////////////////////////////////////////////////////
+  // Filter State Management
+  /////////////////////////////////////////////////////////////////
+  // Tracks which filters are currently active
+  // Structure: { organizations: [org1, org2, ...] }
+  // Usage: chart.setFilter("developmentseed", true)
+  // Note: Multiple organizations can be active at once (multi-select)
+  // Future: Could expand to support additional filters (skills, activity level, etc.)
+  let activeFilters = {
+    organizations: [], // e.g., ["developmentseed", "stac-utils"]
+  };
+
+  // Master contributor list (passed from template)
+  // Used for: validating contributors exist, future username-based filtering
+  // - masterContributors: { username: { ...contributor data } }
+  // - displayNameToUsername: { "Display Name": "github_username" }
+  let masterContributors = masterContributorsList;
+  let displayNameToUsername = displayNameMap;
+
+  /**
+   * Check if a contributor display name is in the master list
+   * Useful for filtering to only "official" DeVSeed employees or verifying data integrity
+   * @param {string} displayName - The display name to check
+   * @returns {boolean} - True if valid or validation impossible, false if invalid
+   */
+  function isValidContributor(displayName) {
+    // If maps are missing (e.g. during initial loads or legacy mode), default to true
+    if (!displayNameToUsername || !masterContributors) return true;
+
+    // Check if name maps to a username, and that username exists in master list
+    const username = displayNameToUsername[displayName];
+    return username && masterContributors[username];
+  }
+
+  // Preserve original data to allow filtering
+  let originalContributors;
+  let originalRepos;
+  let originalLinks;
+
+  // Track visible data after filtering
+  let visibleRepos;
+  let visibleLinks;
+  let visibleContributors;
 
   // Datasets
   let contributors, remainingContributors, orcaRecipients;
@@ -83,6 +129,124 @@ const createORCAVisual = (
 
   const COLOR_LINK = "#e8e8e8";
   const COLOR_TEXT = "#443F3F";            // Base dark gray
+
+  /////////////////////////////////////////////////////////////////
+  //////////////////////// Validation Helpers /////////////////////
+  /////////////////////////////////////////////////////////////////
+  // Constants and helpers for validating node/link data integrity
+  // Added to prevent rendering crashes during filtering operations
+
+  const VALID_NODE_TYPES = new Set(['contributor', 'repo', 'owner']);
+
+  /**
+   * Check if a node has valid positioning data
+   * @param {Object} node - The node to validate
+   * @returns {boolean} - True if node is valid and positioned
+   */
+  function isValidNode(node) {
+    return (
+      node &&
+      node.id &&
+      VALID_NODE_TYPES.has(node.type) &&
+      typeof node.x === 'number' &&
+      typeof node.y === 'number' &&
+      isFinite(node.x) &&
+      isFinite(node.y)
+    );
+  }
+
+  /**
+   * Check if a link has valid source and target nodes
+   * @param {Object} link - The link to validate
+   * @returns {boolean} - True if link is valid
+   */
+  function isValidLink(link) {
+    return (
+      link &&
+      link.source &&
+      link.target &&
+      isValidNode(link.source) &&
+      isValidNode(link.target)
+    );
+  }
+
+  /**
+   * Conditional debug logging based on localStorage flag
+   * Usage: debugLog("message", { data })
+   */
+  function debugLog(message, data = {}) {
+    if (localStorage.getItem('debug-orca') === 'true') {
+      const timestamp = new Date().toISOString().substr(11, 8);
+      console.log(`[${timestamp}] ${message}`, data);
+    }
+  }
+
+  function debugWarn(message, data = {}) {
+    if (localStorage.getItem('debug-orca') === 'true') {
+      const timestamp = new Date().toISOString().substr(11, 8);
+      console.warn(`[${timestamp}] ⚠️ ${message}`, data);
+    }
+  }
+
+  /**
+   * Get the ID from a link's source or target, whether it's a string or node object.
+   * D3's forceLink converts string refs to object refs during simulation,
+   * so we need to handle both cases when comparing link endpoints.
+   * @param {string|Object} ref - The source or target reference
+   * @returns {string} - The node ID
+   */
+  function getLinkNodeId(ref) {
+    return (typeof ref === 'object' && ref !== null) ? ref.id : ref;
+  }
+
+  /**
+   * Resolves string references in links to actual node objects.
+   * After force simulations, some links may still have source/target as string IDs
+   * instead of node object references. This function converts them.
+   */
+  function resolveLinkReferences() {
+    const nodeMap = new Map(nodes.map(n => [n.id, n]));
+    let unresolvedCount = 0;
+
+    links.forEach(link => {
+      if (typeof link.source === 'string') {
+        const resolvedSource = nodeMap.get(link.source);
+        if (resolvedSource) {
+          link.source = resolvedSource;
+        } else {
+          unresolvedCount++;
+          debugWarn(`Could not resolve source node: "${link.source}"`);
+          link.source = null; // Mark as invalid
+        }
+      }
+      if (typeof link.target === 'string') {
+        const resolvedTarget = nodeMap.get(link.target);
+        if (resolvedTarget) {
+          link.target = resolvedTarget;
+        } else {
+          unresolvedCount++;
+          debugWarn(`Could not resolve target node: "${link.target}"`);
+          link.target = null; // Mark as invalid
+        }
+      }
+    });
+
+    // Remove any links where source or target couldn't be resolved or are empty
+    const beforeCount = links.length;
+    links = links.filter(link => {
+      // Must have both source and target
+      if (!link.source || !link.target) return false;
+      // Both must be objects (not strings or empty objects)
+      if (typeof link.source !== 'object' || typeof link.target !== 'object') return false;
+      // Both must have an id property
+      if (!link.source.id || !link.target.id) return false;
+      return true;
+    });
+
+    if (localStorage.getItem('debug-orca') === 'true' && beforeCount !== links.length) {
+      console.debug(`Removed ${beforeCount - links.length} unresolved links`);
+    }
+  }
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////// Create Canvas /////////////////////////
@@ -175,9 +339,15 @@ const createORCAVisual = (
     /////////////////////////////////////////////////////////////
     ////////////////////// Data Preparation /////////////////////
     /////////////////////////////////////////////////////////////
-    contributors = values[0];
-    repos = values[1];
-    links = values[2];
+    // Preserve original data for filtering
+    originalContributors = JSON.parse(JSON.stringify(values[0]));
+    originalRepos = JSON.parse(JSON.stringify(values[1]));
+    originalLinks = JSON.parse(JSON.stringify(values[2]));
+
+    // Initialize filters to show all
+    applyFilters();
+
+    // contributors, repos, links are now set by applyFilters
     if (values[3]) {
       // Check if there is a column called "author_name" in the dataset
       if (values[3][0].author_name !== undefined) {
@@ -239,6 +409,14 @@ const createORCAVisual = (
     // console.log("Remaining contributor force simulation done")
 
     /////////////////////////////////////////////////////////////
+    ////////////// Resolve String References in Links ///////////
+    /////////////////////////////////////////////////////////////
+    // After all force simulations, ensure ALL links have source/target
+    // as node objects (not string IDs). Some links may not pass through
+    // any simulation, leaving their references as strings.
+    resolveLinkReferences();
+
+    /////////////////////////////////////////////////////////////
     ////////////////////// Setup the Hover //////////////////////
     /////////////////////////////////////////////////////////////
     setupHover();
@@ -281,13 +459,24 @@ const createORCAVisual = (
 
     /////////////////////////////////////////////////////////////
     // Draw all the links as lines (skip links to/from the central pseudo-node)
+    // Also validate that nodes exist and are positioned to prevent rendering errors
     links.forEach((l) => {
       // Skip drawing links that connect directly to the central "team" node
       // These are artificial links that don't represent real contributions
       const targetId = l.target.id || l.target;
       const sourceId = l.source.id || l.source;
       if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return;
-      drawLink(context, SF, l);
+
+      // Validate that both nodes exist and have finite coordinates
+      if (
+        l.source && l.target &&
+        typeof l.source.x === 'number' && typeof l.source.y === 'number' &&
+        typeof l.target.x === 'number' && typeof l.target.y === 'number' &&
+        isFinite(l.source.x) && isFinite(l.source.y) &&
+        isFinite(l.target.x) && isFinite(l.target.y)
+      ) {
+        drawLink(context, SF, l);
+      }
     });
 
     /////////////////////////////////////////////////////////////
@@ -366,6 +555,75 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   /////////////////// Data Preparation Functions //////////////////
   /////////////////////////////////////////////////////////////////
+
+  //////////////// Apply filters to the data ////////////////
+  function applyFilters() {
+    // Guard against uninitialized data
+    if (!originalRepos || !originalLinks || !originalContributors) {
+      console.error("applyFilters(): Original data not initialized");
+      return;
+    }
+
+    // Start with pristine DEEP COPY of all repos (not shallow .slice())
+    // Critical: prepareData() mutates objects (adds/deletes properties),
+    // so we must clone to avoid corrupting originalRepos on subsequent rebuilds
+    visibleRepos = JSON.parse(JSON.stringify(originalRepos));
+
+    // If organizations are selected, filter to those organizations
+    if (activeFilters.organizations.length > 0) {
+      visibleRepos = visibleRepos.filter((repo) => {
+        // Always include the central pseudo-repo
+        if (repo.repo === REPO_CENTRAL) return true;
+        const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
+        return activeFilters.organizations.includes(owner);
+      });
+    }
+
+    // Get visible repo names for quick lookup
+    const visibleRepoNames = new Set(visibleRepos.map((r) => r.repo));
+
+    // Filter links to DEEP COPY (filter first, then clone)
+    // Links are also mutated in prepareData() (source/target set, author_name deleted)
+    visibleLinks = originalLinks
+      .filter((link) => visibleRepoNames.has(link.repo))
+      .map((link) => JSON.parse(JSON.stringify(link)));
+
+    // Build set of visible contributor display names from visible links
+    const visibleDisplayNames = new Set(
+      visibleLinks.map((link) => link.author_name),
+    );
+
+    // Filter contributors to DEEP COPY
+    // Contributors are mutated in prepareData() (contributor_name_top deleted, etc.)
+    visibleContributors = originalContributors
+      .filter((contributor) => visibleDisplayNames.has(contributor.author_name))
+      .map((c) => JSON.parse(JSON.stringify(c)));
+
+    // Build set of visible contributor names for link filtering
+    const visibleContributorNames = new Set(
+      visibleContributors.map((c) => c.author_name),
+    );
+
+    // Re-filter links to only those where the contributor is also visible
+    visibleLinks = visibleLinks.filter((link) => {
+      return visibleContributorNames.has(link.author_name);
+    });
+
+    // Update the working arrays that prepareData() uses
+    contributors = visibleContributors;
+    repos = visibleRepos;
+    links = visibleLinks;
+
+    // Debug: Log filtering results (enable via localStorage)
+    if (localStorage.getItem('debug-orca') === 'true') {
+      console.debug('=== APPLY FILTERS ===');
+      console.debug(`Filters applied: ${activeFilters.organizations.join(", ") || "none"}`);
+      console.debug(`Data before: ${originalContributors.length} contributors, ${originalRepos.length} repos, ${originalLinks.length} links`);
+      console.debug(`Data after: ${visibleContributors.length} contributors, ${visibleRepos.length} repos, ${visibleLinks.length} links`);
+      console.debug('Visible repos:', visibleRepos.map(r => r.repo));
+      console.debug('Visible contributors:', visibleContributors.map(c => c.author_name));
+    }
+  }
 
   //////////////// Prepare the data for the visual ////////////////
   function prepareData() {
@@ -505,15 +763,16 @@ const createORCAVisual = (
     }); // forEach
 
     // Save all the original links
+    // Note: Use getLinkNodeId() for consistency - handles both string and object refs
     contributors.forEach((d) => {
-      d.links_original = links.filter((l) => l.source === d.contributor_name);
+      d.links_original = links.filter((l) => getLinkNodeId(l.source) === d.contributor_name);
       // To which repositories did this contributor contribute
       d.repos = d.links_original.map((l) =>
         repos.find((r) => r.repo === l.repo),
       );
     }); // forEach
     repos.forEach((d) => {
-      d.links_original = links.filter((l) => l.target === d.repo);
+      d.links_original = links.filter((l) => getLinkNodeId(l.target) === d.repo);
       // Who contributed to this repository (filter out undefined for contributors not in the visualization)
       d.contributors = d.links_original
         .map((l) => contributors.find((r) => r.contributor_name === l.contributor_name))
@@ -575,8 +834,26 @@ const createORCAVisual = (
       else return 0;
     }); // sort
 
-    console.log("Owners:", owners);
-    console.log("Contributors:", contributors);
+    // Validate owners have repos (prevents positioning issues during filtering)
+    // After filtering, some owners might have no visible repos left
+    const beforeOwnerCount = owners.length;
+    owners = owners.filter(owner => {
+      const ownerRepos = nodes.filter(n => n.type === 'repo' && n.data.owner === owner.owner);
+      if (ownerRepos.length === 0) {
+        debugWarn(`Filtering out owner with no repos: ${owner.owner}`);
+        return false;
+      }
+      return true;
+    });
+    if (localStorage.getItem('debug-orca') === 'true' && beforeOwnerCount !== owners.length) {
+      console.debug(`Removed ${beforeOwnerCount - owners.length} owners with no repos`);
+    }
+
+    // Debug logging (enable via: localStorage.setItem('debug-orca', 'true'))
+    if (localStorage.getItem('debug-orca') === 'true') {
+      console.log("Owners:", owners);
+      console.log("Contributors:", contributors);
+    }
 
     // Check which of the repos are owned by those in the "owners" dataset
     nodes
@@ -685,33 +962,76 @@ const createORCAVisual = (
     // Set-up the new links dataset
     links = [...links, ...new_links_owner_repo, ...new_links_contributor_owner];
 
-    // Add a link between the owner of the central repo and the central repo
-    links.push({
-      source: central_repo.data.owner,
-      target: central_repo.id,
-      owner: central_repo.data.owner,
-      commit_count: d3.sum(
-        links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_count,
-      ),
-      commit_sec_min: d3.min(
-        links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_sec_min,
-      ),
-      commit_sec_max: d3.max(
-        links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_sec_max,
-      ),
+    // Filter out links with empty or invalid source/target IDs
+    // These can occur if contributor names or owner names are empty strings
+    links = links.filter(link => {
+      // Check for empty strings or missing values
+      if (!link.source || typeof link.source !== 'string' || link.source.trim() === '') {
+        if (localStorage.getItem('debug-orca') === 'true') {
+          console.warn(`Filtered link with empty source: → "${link.target}"`);
+        }
+        return false;
+      }
+      if (!link.target || typeof link.target !== 'string' || link.target.trim() === '') {
+        if (localStorage.getItem('debug-orca') === 'true') {
+          console.warn(`Filtered link with empty target: "${link.source}" →`);
+        }
+        return false;
+      }
+      return true;
     });
 
-    console.log("Links:", links);
+    // Validate all links reference nodes that exist (fixes filtering crash)
+    // This prevents "non-finite" gradient errors when filtered links reference missing nodes
+    const nodeIds = new Set(nodes.map(n => n.id));
+    links = links.filter(link => {
+      const sourceExists = nodeIds.has(link.source);
+      const targetExists = nodeIds.has(link.target);
+      if (!sourceExists || !targetExists) {
+        if (localStorage.getItem('debug-orca') === 'true') {
+          console.warn(`Filtered invalid link: "${link.source}" → "${link.target}"`, {
+            sourceNodeExists: sourceExists,
+            targetNodeExists: targetExists
+          });
+        }
+        return false;
+      }
+      return true;
+    });
+
+    // Add a link between the owner of the central repo and the central repo
+    // Only add if owner is not empty (prevent empty string source)
+    if (central_repo.data.owner && central_repo.data.owner.trim() !== '') {
+      links.push({
+        source: central_repo.data.owner,
+        target: central_repo.id,
+        owner: central_repo.data.owner,
+        commit_count: d3.sum(
+          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
+          (d) => d.commit_count,
+        ),
+        commit_sec_min: d3.min(
+          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
+          (d) => d.commit_sec_min,
+        ),
+        commit_sec_max: d3.max(
+          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
+          (d) => d.commit_sec_max,
+        ),
+      });
+    }
+
+    // Debug logging (enable via: localStorage.setItem('debug-orca', 'true'))
+    if (localStorage.getItem('debug-orca') === 'true') {
+      console.log("Links:", links);
+    }
 
     /////////////////////////////////////////////////////////////
     // Which of these owner types have links that are all to the same contributor node
     // If so, mark them as "single-contributor"
     owners.forEach((d) => {
       // Get all the links that are connected to this owner, where the owner is the target (and the source is a contributor)
-      let links_owner = links.filter((l) => l.target === d.owner);
+      let links_owner = links.filter((l) => getLinkNodeId(l.target) === d.owner);
       // If the length is 1, it means that this owner is only connected to one contributor
       d.single_contributor = links_owner.length === 1 ? true : false;
 
@@ -722,15 +1042,29 @@ const createORCAVisual = (
     }); // forEach
 
     /////////////////////////////////////////////////////////////
-    // Set scales
-    scale_repo_radius.domain(d3.extent(repos, (d) => d.stars));
-    scale_contributor_radius.domain(
-      d3.extent(
-        links.filter((l) => l.target === central_repo.id),
-        (d) => d.commit_count,
-      ),
-    );
-    scale_link_width.domain([1, 10, d3.max(links, (d) => d.commit_count)]);
+    // Set scales with guards against empty filtered data
+    const repoStars = repos.map((d) => d.stars);
+    if (repoStars.length > 0) {
+      scale_repo_radius.domain(d3.extent(repoStars));
+    } else {
+      scale_repo_radius.domain([0, 10]); // fallback for empty dataset
+    }
+
+    const linksToCentral = links.filter((l) => getLinkNodeId(l.target) === central_repo.id);
+    if (linksToCentral.length > 0) {
+      scale_contributor_radius.domain(
+        d3.extent(linksToCentral, (d) => d.commit_count),
+      );
+    } else {
+      scale_contributor_radius.domain([1, 10]); // fallback for empty dataset
+    }
+
+    if (links.length > 0) {
+      scale_link_width.domain([1, 10, d3.max(links, (d) => d.commit_count)]);
+    } else {
+      scale_link_width.domain([1, 10, 60]); // fallback
+    }
+
     scale_remaining_contributor_radius.domain([
       0,
       scale_contributor_radius.domain()[0],
@@ -744,7 +1078,7 @@ const createORCAVisual = (
 
       // Find the degree of each node
       d.degree = links.filter(
-        (l) => l.source === d.id || l.target === d.id,
+        (l) => getLinkNodeId(l.source) === d.id || getLinkNodeId(l.target) === d.id,
       ).length;
       // d.in_degree = links.filter(l => l.target === d.id).length
       // d.out_degree = links.filter(l => l.source === d.id).length
@@ -760,7 +1094,7 @@ const createORCAVisual = (
       // If this node is an "contributor", find the number of commits they have on the central repo node
       if (d.type === "contributor") {
         let link_to_central = links.find(
-          (l) => l.source === d.id && l.target === central_repo.id,
+          (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === central_repo.id,
         );
         d.data.link_central = link_to_central;
         // d.data.commit_count_central = link_to_central.commit_count
@@ -832,10 +1166,11 @@ const createORCAVisual = (
       .filter((d) => d.type === "owner")
       .forEach((d) => {
         // Find all the nodes that are connected to this one with a degree of one, including the node itself
+        // Note: Use getLinkNodeId() since D3 force simulations may have converted some refs to objects
         let nodes_connected = nodes.filter(
           (n) =>
             links.find(
-              (l) => l.source === d.id && l.target === n.id && n.degree === 1,
+              (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === n.id && n.degree === 1,
             ) || n.id === d.id,
         );
 
@@ -850,7 +1185,7 @@ const createORCAVisual = (
         // Get the links between this node and nodes_connected
         let links_connected = links.filter(
           (l) =>
-            l.source === d.id && nodes_connected.find((n) => n.id === l.target),
+            getLinkNodeId(l.source) === d.id && nodes_connected.find((n) => n.id === getLinkNodeId(l.target)),
         );
 
         // Let the nodes start on the location of the contributor node
@@ -958,15 +1293,16 @@ const createORCAVisual = (
       .filter((d) => d.type === "contributor")
       .forEach((d) => {
         // Find all the nodes that are connected to this one with a degree of one, including the contributor node itself
+        // Note: Use getLinkNodeId() since D3 force simulations may have converted some refs to objects
         let nodes_to_contributor = nodes.filter(
           (n) =>
             links.find(
-              (l) => l.source === d.id && l.target === n.id && n.degree === 1,
+              (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === n.id && n.degree === 1,
             ) ||
             links.find(
               (l) =>
-                l.source === d.id &&
-                l.target === n.id &&
+                getLinkNodeId(l.source) === d.id &&
+                getLinkNodeId(l.target) === n.id &&
                 n.type === "owner" &&
                 n.data.single_contributor === true,
             ) ||
@@ -978,12 +1314,30 @@ const createORCAVisual = (
           (n) => n.type === "repo" || n.type === "owner",
         );
 
-        // Get the links between this node and nodes_to_contributor
-        let links_contributor = links.filter(
-          (l) =>
-            l.source === d.id &&
-            nodes_to_contributor.find((n) => n.id === l.target),
-        );
+        if (localStorage.getItem('debug-orca') === 'true') {
+          console.log(`Contributor ${d.id}: connected repos = ${d.connected_single_repo.length}`);
+          if (d.connected_single_repo.length === 0) {
+            // Check why?
+            const allConnect = links.filter(l => getLinkNodeId(l.source) === d.id);
+            console.log(`  - Actual links from contributor: ${allConnect.length}`);
+            if (allConnect.length > 0) {
+              const targetId = getLinkNodeId(allConnect[0].target);
+              const targetNode = nodes.find(n => n.id === targetId);
+              console.log(`  - First target: ${targetId}, degree: ${targetNode ? targetNode.degree : '?'}`);
+            }
+          }
+        }
+
+        // // For the simulation we only want loops between the nodes (so the repo nodes will be attracted to each other)
+        // // But we don't need the link from the contributor to the repo
+        // let links_contributor = links.filter(l => l.source === d.id && nodes_to_contributor.indexOf(nodes.find(n => n.id === l.target)) > -1)
+        let links_contributor = [];
+        d.connected_single_repo.forEach((n) => {
+          links_contributor.push({ source: d.id, target: n.id });
+        });
+
+        // let node_ids = nodes_to_contributor.map(d => d.id)
+        // let links_contributor = links.filter(l => node_ids.indexOf(l.source) > -1 && node_ids.indexOf(l.target) > -1)
 
         // Let the nodes start on the location of the contributor node
         nodes_to_contributor.forEach((n) => {
@@ -997,34 +1351,37 @@ const createORCAVisual = (
         // Define the simulation
         let simulation = d3
           .forceSimulation()
+          .nodes(nodes_to_contributor)
           .force(
             "link",
-            // There are links, but they have no strength
+            // There are links, but they have no strength (like singleOwnerForceSimulation)
             d3
               .forceLink()
               .id((d) => d.id)
               .strength(0),
           )
+          .force("charge", d3.forceManyBody().strength(-10)) // -2
           .force(
             "collide",
-            // Use a non-overlap, but let it start out at strength 0
-            d3
-              .forceCollide()
-              .radius((n) => {
-                let r;
-                if (n.id === d.id) r = d.r + min(14, max(10, d.r));
-                else if (n.max_radius) {
-                  r = n.max_radius;
-                  // r -= 4
-                  // r = r + max(r*0.1, 2)
-                } else r = n.r + max(2, n.r * 0.2);
-                return r;
-              })
-              .strength(0),
-          )
-          // .force("charge",
-          //     d3.forceManyBody()
-          //         .strength(-20)
+            d3.forceCollide((n) => n.r + 2).strength(0.1),
+          ) // +1
+          // .force("link", d3.forceLink(links_contributor).id(d => d.id).distance(d.r + 10))
+          // .force("r", d3.forceRadial(20, d.x, d.y))
+          // .force("x", d3.forceX(d.x))
+          // .force("y", d3.forceY(d.y))
+          // .force("link", d3.forceLink(links_contributor).distance(d => d.source.r + 20 + d.target.r))
+          // .force("link", d3.forceLink(links_contributor).id(d => d.id).divisor(2).strength(0.5).distance(2)) //distance(d => d.source.r + d.target.r + 5)
+          // .force("link", d3.forceLink(links_contributor).id(d => d.id).distance(10))
+          // .force("link", d3.forceLink(links_contributor).distance(d => d.source.r + d.target.r + 2))
+          // .force("charge", d3.forceManyBody().strength(-100))
+          // .force("link", d3.forceLink(links_contributor).distance(20).strength(1))
+          //  .force("link", d3.forceLink(links_contributor).distance(d.r + 15).strength(1))
+
+          // .force("r", d3.forceRadial(
+          //         (d) => d.type === "contributor" ? 0 : d.r + 30) //radius
+          //         // .x(d.x)
+          //         // .y(d.y)
+          //         // .strength(0.5)
           //         // .distanceMax(WIDTH / 3)
           // )
           // Keep the repo nodes want to stay close to the contributor node
@@ -1056,8 +1413,11 @@ const createORCAVisual = (
           (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
         );
         // Get the overall radius to take into account for the next simulation and labeling
-        d.max_radius = max(d.max_radius + max_radius_node.r, d.r);
+        d.max_radius = max(d.max_radius + (max_radius_node ? max_radius_node.r : 0), d.r);
         // See this as the new "contributor node" radius that includes all of it's single-degree repos
+        if (localStorage.getItem('debug-orca') === 'true' && i < 5) {
+          console.log(`Contributor ${d.id}: max_radius = ${d.max_radius}`);
+        }
       }); // forEach
 
     function drawContributorBubbles(nodes, links) {
@@ -1066,8 +1426,9 @@ const createORCAVisual = (
 
       // Draw all the links as lines
       links.forEach((l) => {
-        if (l.source.x !== undefined && l.target.x !== undefined) {
+        if (l.source && l.target && l.source.x !== undefined && l.target.x !== undefined) {
           calculateEdgeCenters(l, 0.8);
+          // Only calculate gradient if context is valid
           calculateLinkGradient(context, l);
           context.strokeStyle = l.gradient;
         } else context.strokeStyle = COLOR_LINK;
@@ -1091,33 +1452,76 @@ const createORCAVisual = (
   // Place the contributor nodes in a circle around the central repo
   // Taking into account the max_radius of single-degree repos around them
   function positionContributorNodes() {
+    // Ensure all contributors have a valid max_radius before calculating ring size
+    const contributorNodes = nodes.filter((d) => d.type === "contributor");
+    contributorNodes.forEach((d) => {
+      // Ensure max_radius is set - fallback to contributor's own radius
+      if (!d.max_radius || !isFinite(d.max_radius) || d.max_radius <= 0) {
+        d.max_radius = d.r || 20; // Minimum fallback radius
+      }
+      // Ensure connected_single_repo array exists
+      if (!d.connected_single_repo) {
+        d.connected_single_repo = [];
+      }
+    });
+
     // Get the sum of all the contributor nodes' max_radius
-    let sum_radius = nodes
-      .filter((d) => d.type === "contributor")
+    let sum_radius = contributorNodes
       .reduce((acc, curr) => acc + curr.max_radius * 2, 0);
     // Take padding into account between the contributor nodes
     sum_radius += contributors.length * CONTRIBUTOR_PADDING;
     // This sum should be the circumference of the circle around the central node, what radius belongs to this -> 2*pi*R
     RADIUS_CONTRIBUTOR = sum_radius / TAU;
+
+    // Ensure minimum radius so contributors don't collapse to center
+    // Use a larger minimum that scales with the number of contributors
+    const MIN_RADIUS = Math.max(200, contributorNodes.length * 15);
+    let useEvenSpacing = false;
+    if (!isFinite(RADIUS_CONTRIBUTOR) || RADIUS_CONTRIBUTOR < MIN_RADIUS) {
+      console.warn(`RADIUS_CONTRIBUTOR too small (${RADIUS_CONTRIBUTOR}), using minimum ${MIN_RADIUS}`);
+      RADIUS_CONTRIBUTOR = MIN_RADIUS;
+      useEvenSpacing = true; // When using minimum, distribute evenly
+    }
+
     RADIUS_CONTRIBUTOR_NON_ORCA = RADIUS_CONTRIBUTOR * (ORCA_PRESENT ? 1.3 : 1);
     ORCA_RING_WIDTH = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2; // Not too sure about this in how well it holds up for other data
+
+    // Calculate even angle increment for when we need to override spacing
+    const evenAngleIncrement = TAU / contributorNodes.length;
+
+    // Always log positioning info for debugging
+    console.log(`positionContributorNodes: ${contributorNodes.length} contributors, sum_radius=${sum_radius}, RADIUS_CONTRIBUTOR=${RADIUS_CONTRIBUTOR}, useEvenSpacing=${useEvenSpacing}`);
 
     // Fix the contributor nodes in a ring around the central node
     // const angle = TAU / (nodes.filter(d => d.type === "contributor").length)
     let angle = 0;
-    nodes
-      .filter((d) => d.type === "contributor")
-      .forEach((d, i) => {
+    contributorNodes.forEach((d, i) => {
         // Subtract the contributor node position from all it's connected single-degree repos
-        d.connected_single_repo.forEach((repo) => {
-          repo.x -= d.x;
-          repo.y -= d.y;
-        }); // forEach
+        // (this converts their positions from absolute to relative to the contributor)
+        if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+          d.connected_single_repo.forEach((repo) => {
+            repo.x -= d.x;
+            repo.y -= d.y;
+          }); // forEach
+        }
 
         // Find the new position of the contributor node in a ring around the central node
+        // max_radius should already be set from the validation above
+
+        // Debug: log first few contributor positions
+        if (i < 3) {
+          console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, central_repo=(${central_repo.fx}, ${central_repo.fy})`);
+        }
+
         let contributor_arc = d.max_radius * 2 + CONTRIBUTOR_PADDING;
         // translate this distance to an angle
-        let contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
+        let contributor_angle;
+        if (useEvenSpacing) {
+          // When using minimum radius, distribute evenly around the circle
+          contributor_angle = evenAngleIncrement / 2;
+        } else {
+          contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
+        }
 
         let radius_drawn = d.data.orca_received
           ? RADIUS_CONTRIBUTOR
@@ -1129,23 +1533,24 @@ const createORCAVisual = (
           central_repo.fy +
           radius_drawn * sin(angle + contributor_angle - PI / 2);
         d.contributor_angle = angle + contributor_angle - PI / 2;
-        angle += contributor_angle * 2;
+        angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;
 
         // Fix the contributors for the force simulation
         d.fx = d.x;
         d.fy = d.y;
 
         // Add the new contributor position to all it's connected single-degree repos
-        d.connected_single_repo.forEach((repo) => {
-          repo.x += d.x;
-          repo.y += d.y;
+        // (converting their positions back from relative to absolute)
+        if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+          d.connected_single_repo.forEach((repo) => {
+            repo.x += d.x;
+            repo.y += d.y;
 
-          // Just in case
-          repo.fx = repo.x;
-          repo.fy = repo.y;
-        }); // forEach
-
-        //
+            // Fix position for force simulation
+            repo.fx = repo.x;
+            repo.fy = repo.y;
+          }); // forEach
+        }
       }); // forEach
   } // function positionContributorNodes
 
@@ -1258,10 +1663,12 @@ const createORCAVisual = (
     }); // forEach
 
     // Only keep the links that have the nodes that are in the nodes_central array
+    // Filter links to only those between nodes in nodes_central
+    // Use getLinkNodeId() since D3 may have converted some refs to objects
     let links_central = links.filter(
       (d) =>
-        nodes_central.find((n) => n.id === d.source) &&
-        nodes_central.find((n) => n.id === d.target),
+        nodes_central.find((n) => n.id === getLinkNodeId(d.source)) &&
+        nodes_central.find((n) => n.id === getLinkNodeId(d.target)),
     );
 
     // Perform the simulation
@@ -1307,10 +1714,13 @@ const createORCAVisual = (
     nodes
       .filter((d) => d.type === "owner")
       .forEach((d) => {
-        d.connected_node_cloud.forEach((repo) => {
-          repo.x = d.x + repo.x;
-          repo.y = d.y + repo.y;
-        }); // forEach
+        // Guard against missing connected_node_cloud
+        if (d.connected_node_cloud && d.connected_node_cloud.length > 0) {
+          d.connected_node_cloud.forEach((repo) => {
+            repo.x = d.x + repo.x;
+            repo.y = d.y + repo.y;
+          }); // forEach
+        }
       }); // forEach
 
     /////////////////////////////////////////////////////////////
@@ -1614,10 +2024,21 @@ const createORCAVisual = (
 
   ////////// Draw the link between the source and target //////////
   function drawLink(context, SF, l) {
+    // Guard: only draw links with valid, positioned nodes
+    if (
+      !l.source || !l.target ||
+      typeof l.source.x !== 'number' || typeof l.target.x !== 'number' ||
+      !isFinite(l.source.x) || !isFinite(l.source.y) ||
+      !isFinite(l.target.x) || !isFinite(l.target.y)
+    ) {
+      return; // Skip this link - prevents rendering errors
+    }
+
     if (l.source.x !== undefined && l.target.x !== undefined) {
       calculateLinkGradient(context, l);
       calculateEdgeCenters(l, 1);
-      context.strokeStyle = l.gradient;
+      // Use gradient if available, fall back to solid color
+      context.strokeStyle = l.gradient || COLOR_LINK;
     } else context.strokeStyle = COLOR_LINK;
 
     // Base line width
@@ -1657,6 +2078,13 @@ const createORCAVisual = (
 
   ////////////////////// Draw a curved line ///////////////////////
   function drawCircleArc(context, SF, line) {
+    // Guard against missing arc center (can happen if arc radius is impossible)
+    if (!line.center) {
+      // Fallback to straight line
+      context.lineTo(line.target.x * SF, line.target.y * SF);
+      return;
+    }
+
     let center = line.center;
     let ang1 = Math.atan2(
       line.source.y * SF - center.y * SF,
@@ -1749,24 +2177,51 @@ const createORCAVisual = (
       color_rgb_target =
         "rgba(" + col.r + "," + col.g + "," + col.b + "," + alpha + ")";
 
-      if (l.source.x !== undefined && l.target.x !== undefined) {
-        l.gradient = context.createLinearGradient(
-          l.source.x * SF,
-          l.source.y * SF,
-          l.target.x * SF,
-          l.target.y * SF,
-        );
+      // Guard against non-finite coordinates (NaN, Infinity, -Infinity)
+      // This prevents "createLinearGradient: non-finite" errors during filtering
+      if (
+        l.source && l.target &&
+        typeof l.source.x === 'number' && typeof l.source.y === 'number' &&
+        typeof l.target.x === 'number' && typeof l.target.y === 'number' &&
+        isFinite(l.source.x) && isFinite(l.source.y) &&
+        isFinite(l.target.x) && isFinite(l.target.y)
+      ) {
+        try {
+          l.gradient = context.createLinearGradient(
+            l.source.x * SF,
+            l.source.y * SF,
+            l.target.x * SF,
+            l.target.y * SF,
+          );
 
-        // Distance between source and target
-        let dist = sqrt(
-          sq(l.target.x - l.source.x) + sq(l.target.y - l.source.y),
-        );
-        // What percentage is the source's radius of the total distance
-        let perc = l.source.r / dist;
-        // Let the starting color be at perc, so it starts changing color right outside the radius of the source node
-        l.gradient.addColorStop(perc, color_rgb_source);
-        l.gradient.addColorStop(1, color_rgb_target);
-      } else l.gradient = COLOR_LINK;
+          // Distance between source and target
+          let dist = sqrt(
+            sq(l.target.x - l.source.x) + sq(l.target.y - l.source.y),
+          );
+          // What percentage is the source's radius of the total distance
+          let perc = l.source.r / dist;
+          // Let the starting color be at perc, so it starts changing color right outside the radius of the source node
+          l.gradient.addColorStop(perc, color_rgb_source);
+          l.gradient.addColorStop(1, color_rgb_target);
+        } catch (e) {
+          // If gradient creation fails for any reason, fall back to solid color
+          if (localStorage.getItem('debug-orca') === 'true') {
+            console.warn('Gradient creation error:', e, { link: l, sf: SF });
+          }
+          l.gradient = COLOR_LINK;
+        }
+      } else {
+        // Gradient can't be created - invalid coordinates
+        if (localStorage.getItem('debug-orca') === 'true') {
+          console.warn('Invalid coordinates for gradient', {
+            sourceX: l.source?.x,
+            sourceY: l.source?.y,
+            targetX: l.target?.x,
+            targetY: l.target?.y
+          });
+        }
+        l.gradient = COLOR_LINK;
+      }
     } //function createGradient
   } //function calculateLinkGradient
 
@@ -1858,7 +2313,7 @@ const createORCAVisual = (
             const sourceId = l.source.id || l.source;
             if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
             return (l.source.id === d.id && l.target.id === n.id) ||
-                   (l.target.id === d.id && l.source.id === n.id);
+              (l.target.id === d.id && l.source.id === n.id);
           }
         );
       });
@@ -2016,7 +2471,7 @@ const createORCAVisual = (
     //Get the closest hovered node
     let point = delaunay.find(mx, my);
     let d = nodes_delaunay[point];
-    
+
     // Safety check - if no node found, return early
     if (!d) {
       return [null, false];
@@ -2075,9 +2530,8 @@ const createORCAVisual = (
       text = "";
       d.connected_node_cloud.forEach((repo, i) => {
         // Check the length of the new text to add
-        let new_repo = `${repo.data.name}${
-          i < d.connected_node_cloud.length - 1 ? ", " : ""
-        }`;
+        let new_repo = `${repo.data.name}${i < d.connected_node_cloud.length - 1 ? ", " : ""
+          }`;
         // If it's longer, push the current text to the array and start a new one
         if (
           context.measureText(`${text}${new_repo}`).width * 1.25 >
@@ -2127,9 +2581,8 @@ const createORCAVisual = (
         setFont(context, 11.5 * SF, 400, "normal");
         let text = "";
         for (let i = 0; i < min(3, d.data.languages.length); i++) {
-          text += `${d.data.languages[i]}${
-            i < min(3, d.data.languages.length) - 1 ? ", " : ""
-          }`;
+          text += `${d.data.languages[i]}${i < min(3, d.data.languages.length) - 1 ? ", " : ""
+            }`;
         } // for i
         if (context.measureText(text).width * 1.25 > tW)
           tW = context.measureText(text).width * 1.24;
@@ -2257,8 +2710,7 @@ const createORCAVisual = (
       let forks = d.data.forks;
       renderText(
         context,
-        `${stars < 10 ? stars : formatDigit(stars)} stars | ${
-          forks < 10 ? forks : formatDigit(forks)
+        `${stars < 10 ? stars : formatDigit(stars)} stars | ${forks < 10 ? forks : formatDigit(forks)
         } forks`,
         x * SF,
         y * SF,
@@ -2280,9 +2732,8 @@ const createORCAVisual = (
         setFont(context, font_size * SF, 400, "normal");
         text = "";
         for (let i = 0; i < min(3, d.data.languages.length); i++) {
-          text += `${d.data.languages[i]}${
-            i < min(3, d.data.languages.length) - 1 ? ", " : ""
-          }`;
+          text += `${d.data.languages[i]}${i < min(3, d.data.languages.length) - 1 ? ", " : ""
+            }`;
         } // for i
         renderText(context, text, x * SF, y * SF, 1.25 * SF);
         if (d.data.languages.length > 3) {
@@ -2701,6 +3152,202 @@ const createORCAVisual = (
     REPO_CENTRAL = value;
     return chart;
   }; // chart.repository
+
+  /////////////////////////////////////////////////////////////////
+  ////////////////////// Filtering Functions //////////////////////
+  /////////////////////////////////////////////////////////////////
+
+  chart.rebuild = function () {
+    // Reset visualization state completely
+    nodes = [];
+    links = [];
+    nodes_central = [];  // Reset derived array for central nodes
+
+    // Reset interaction state
+    HOVER_ACTIVE = false;
+    HOVERED_NODE = null;
+    CLICK_ACTIVE = false;
+    CLICKED_NODE = null;
+
+    // Reset spatial data structures (will be rebuilt in resize())
+    nodes_delaunay = [];
+    delaunay = null;
+    delaunay_remaining = null;
+
+    // Apply current filters
+    applyFilters();
+
+    // Re-run the full initialization pipeline
+    prepareData();
+
+    // Place the central repo in the middle (critical for positioning contributors)
+    central_repo.x = central_repo.fx = 0;
+    central_repo.y = central_repo.fy = 0;
+
+    singleOwnerForceSimulation();
+    singleContributorForceSimulation();
+    positionContributorNodes();
+    collaborationRepoSimulation();
+    if (REMAINING_PRESENT) remainingContributorSimulation();
+
+    // Resolve any remaining string references in links
+    resolveLinkReferences();
+
+    // Position any nodes that didn't get positioned by force simulations
+    // Critical for filtered data where force simulations may not include all nodes
+    const unpositionedNodes = nodes.filter(n =>
+      n.x === 0 && n.y === 0 && n.id !== REPO_CENTRAL
+    );
+
+    if (unpositionedNodes.length > 0) {
+      // Get total counts by type for proper distribution
+      const contributorCount = nodes.filter(n => n.type === 'contributor').length;
+      const repoCount = nodes.filter(n => n.type === 'repo').length;
+
+      let contributorIdx = 0;
+      let repoIdx = 0;
+
+      unpositionedNodes.forEach(node => {
+        if (node.type === 'contributor') {
+          // Distribute contributors evenly around outer circle
+          const angle = (contributorIdx / Math.max(1, contributorCount)) * Math.PI * 2;
+          const radius = 250; // Outer ring for contributors
+          node.x = Math.cos(angle) * radius;
+          node.y = Math.sin(angle) * radius;
+          // Ensure radius property is set for gradient calculations
+          if (!node.r) node.r = 6;
+          contributorIdx++;
+        } else if (node.type === 'repo') {
+          // Distribute repos around middle zone
+          const angle = (repoIdx / Math.max(1, repoCount)) * Math.PI * 2;
+          const radius = 150 + Math.random() * 50;
+          node.x = Math.cos(angle) * radius;
+          node.y = Math.sin(angle) * radius;
+          // Ensure radius property is set for gradient calculations
+          if (!node.r) node.r = 8;
+          repoIdx++;
+        } else if (node.type === 'owner') {
+          // Owners stay near center
+          const angle = (repoIdx / 5) * Math.PI * 2;
+          const radius = 50;
+          node.x = Math.cos(angle) * radius;
+          node.y = Math.sin(angle) * radius;
+          // Ensure radius property is set for gradient calculations
+          if (!node.r) node.r = 15;
+        }
+      });
+
+      if (localStorage.getItem('debug-orca') === 'true') {
+        console.debug(`Positioned ${unpositionedNodes.length} unpositioned nodes in rings by type`);
+      }
+    }
+
+    // Ensure all nodes in links have valid, finite coordinates
+    links.forEach(link => {
+      if (link.source && link.target) {
+        // Check/fix source coordinates
+        if (typeof link.source.x !== 'number' || typeof link.source.y !== 'number' ||
+          !isFinite(link.source.x) || !isFinite(link.source.y)) {
+          link.source.x = 0;
+          link.source.y = 0;
+        }
+        // Check/fix target coordinates
+        if (typeof link.target.x !== 'number' || typeof link.target.y !== 'number' ||
+          !isFinite(link.target.x) || !isFinite(link.target.y)) {
+          link.target.x = 0;
+          link.target.y = 0;
+        }
+      }
+    });
+
+    // Re-setup interaction handlers
+    setupHover();
+    setupClick();
+
+    // Redraw with new scale factors
+    chart.resize();
+
+    return chart;
+  };
+
+  /**
+   * Updates the active filters and rebuilds the chart
+   * @param {string} organizationName - Organization to filter by
+   * @param {boolean} enabled - Whether to enable or disable this filter
+   * @returns {Object} - The chart instance
+   */
+  chart.setFilter = function (organizationName, enabled) {
+    if (enabled && !activeFilters.organizations.includes(organizationName)) {
+      activeFilters.organizations.push(organizationName);
+    } else if (
+      !enabled &&
+      activeFilters.organizations.includes(organizationName)
+    ) {
+      activeFilters.organizations = activeFilters.organizations.filter(
+        (org) => org !== organizationName,
+      );
+    }
+
+    chart.rebuild();
+    return chart;
+  };
+
+  chart.getActiveFilters = function () {
+    return { ...activeFilters };
+  };
+
+  /**
+   * DEBUG: Get internal nodes array for diagnostic purposes
+   */
+  chart.getNodes = function () {
+    return nodes;
+  };
+
+  /**
+   * DEBUG: Get internal links array for diagnostic purposes
+   */
+  chart.getLinks = function () {
+    return links;
+  };
+
+  /**
+   * DEBUG: Get debug state snapshot
+   */
+  chart.getDebugState = function () {
+    const validLinks = links.filter(l =>
+      l.source && l.target &&
+      typeof l.source === 'object' && typeof l.target === 'object'
+    );
+
+    // Count how many links would be drawn (not to central repo)
+    const drawnLinks = validLinks.filter(l => {
+      const targetId = l.target.id || l.target;
+      const sourceId = l.source.id || l.source;
+      return targetId !== REPO_CENTRAL && sourceId !== REPO_CENTRAL;
+    });
+
+    // Count links that have valid coordinates for drawing
+    const drawableLinks = drawnLinks.filter(l =>
+      l.source && l.target &&
+      typeof l.source.x === 'number' && typeof l.source.y === 'number' &&
+      typeof l.target.x === 'number' && typeof l.target.y === 'number' &&
+      isFinite(l.source.x) && isFinite(l.source.y) &&
+      isFinite(l.target.x) && isFinite(l.target.y)
+    );
+
+    return {
+      nodesCount: nodes.length,
+      linksCount: links.length,
+      nodeTypes: nodes.reduce((acc, n) => {
+        acc[n.type] = (acc[n.type] || 0) + 1;
+        return acc;
+      }, {}),
+      validLinks: validLinks.length,
+      linksToBeDrawn: drawnLinks.length,
+      linksWithValidCoordinates: drawableLinks.length,
+      activeFilters: { ...activeFilters }
+    };
+  };
 
   return chart;
 }; // function createORCAVisual
