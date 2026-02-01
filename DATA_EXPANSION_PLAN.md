@@ -1,5 +1,17 @@
 # GitHub Data Expansion Plan
 
+## Progress Tracker
+
+| Phase | Status | Completed |
+|-------|--------|-----------|
+| **Phase 1: Quick Wins** | ✅ Complete | Jan 2026 |
+| **Phase 2: Community Metrics** | ✅ Complete | Jan 2026 |
+| **Phase 3: Timeline Data** | 🔲 Not started | - |
+| **Phase 4: PR/Issues** | 🔲 Not started | - |
+| **Phase 5: Advanced** | 🔲 Not started | - |
+
+---
+
 ## Goals
 
 1. **Showcase OSS Impact** - Demonstrate the value and reach of repositories DevSeed contributes to
@@ -29,10 +41,11 @@
 
 ---
 
-## Phase 1: Quick Wins
+## Phase 1: Quick Wins ✅ COMPLETE
 
 **Effort: Minimal** - Same API calls, just extracting more fields
 **Value: High** - Immediately enriches the visualization
+**Status: Implemented in `models.py`**
 
 ### Repository Fields
 
@@ -72,10 +85,11 @@ is_recent_contributor: bool     # commit_sec_max > (now - 90 days).timestamp()
 
 ---
 
-## Phase 2: Community Metrics
+## Phase 2: Community Metrics ✅ COMPLETE
 
 **Effort: Low-Medium** - One additional API call per repo
 **Value: Very High** - Directly addresses "community effort" goal
+**Status: Implemented in `models.py` and `client.py`**
 
 ### Repository Fields
 
@@ -320,12 +334,116 @@ With expanded data, new visualization options become possible:
 
 ## Next Steps
 
-1. **Phase 1**: Add quick-win fields to models, update CLI
-2. **Phase 2**: Add contributor counting, compute community ratios
+1. ~~**Phase 1**: Add quick-win fields to models, update CLI~~ ✅
+2. ~~**Phase 2**: Add contributor counting, compute community ratios~~ ✅
 3. **Phase 3**: Integrate statistics API with retry logic
 4. Review visualization needs before Phase 4+
 
 ---
 
+## When to Consider a Database
+
+The current architecture uses JSON files for individual records and CSVs for aggregated output. This works well for the current scale but has tradeoffs worth considering.
+
+### Current Approach: JSON + CSV Files
+
+**Pros:**
+- Simple, no infrastructure to maintain
+- Easy to debug (human-readable files)
+- Version controllable with git
+- No setup required for new contributors
+- Works offline
+
+**Cons:**
+- No query capability (must load all data into memory)
+- No relationships between entities
+- Duplicate API calls if data isn't cached properly
+- File I/O overhead scales linearly with data size
+
+### When to Switch: Decision Matrix
+
+| Trigger | Threshold | Recommendation |
+|---------|-----------|----------------|
+| **Number of repositories** | > 200 | Consider SQLite |
+| **Number of contributors** | > 500 | Consider SQLite |
+| **Timeline data (Phase 3)** | 52 weeks × repos × contributors | Likely need SQLite |
+| **Query complexity** | Need JOINs, aggregations, filtering | Need a database |
+| **Multiple consumers** | Dashboard + API + reports | Consider PostgreSQL |
+| **Real-time updates** | Live data refresh | Consider PostgreSQL + cache |
+
+### Recommended Migration Path
+
+**Stage 1: SQLite (Local, Single-file)**
+- When: Phase 3 implementation or >100 repos
+- Why: Still simple, no server, but enables SQL queries
+- Schema: Normalize repos, contributors, links, weekly_stats tables
+- Effort: ~1 day to migrate
+
+**Stage 2: PostgreSQL (If needed)**
+- When: Multiple users/services need access, or need advanced features
+- Why: Concurrent access, better JSON support, full-text search
+- Effort: ~2-3 days + infrastructure
+
+### Suggested SQLite Schema (for reference)
+
+```sql
+-- Core entities
+CREATE TABLE repositories (
+    id INTEGER PRIMARY KEY,
+    full_name TEXT UNIQUE NOT NULL,
+    stars INTEGER,
+    forks INTEGER,
+    total_contributors INTEGER,
+    community_ratio REAL,
+    -- ... other fields
+    fetched_at TIMESTAMP
+);
+
+CREATE TABLE contributors (
+    id INTEGER PRIMARY KEY,
+    login TEXT UNIQUE NOT NULL,
+    display_name TEXT,
+    is_devseed BOOLEAN
+);
+
+-- Relationships
+CREATE TABLE contributions (
+    id INTEGER PRIMARY KEY,
+    repo_id INTEGER REFERENCES repositories(id),
+    contributor_id INTEGER REFERENCES contributors(id),
+    commit_count INTEGER,
+    first_commit_at TIMESTAMP,
+    last_commit_at TIMESTAMP,
+    contribution_span_days INTEGER,
+    UNIQUE(repo_id, contributor_id)
+);
+
+-- Timeline data (Phase 3)
+CREATE TABLE weekly_stats (
+    id INTEGER PRIMARY KEY,
+    repo_id INTEGER REFERENCES repositories(id),
+    contributor_id INTEGER REFERENCES contributors(id),  -- NULL for repo-level
+    week_start TIMESTAMP,
+    commits INTEGER,
+    additions INTEGER,
+    deletions INTEGER
+);
+
+-- Indexes for common queries
+CREATE INDEX idx_contributions_repo ON contributions(repo_id);
+CREATE INDEX idx_weekly_stats_repo_week ON weekly_stats(repo_id, week_start);
+```
+
+### Current Recommendation
+
+**Stay with JSON/CSV for now.** The current ~50 repositories and ~30 contributors are well within the file-based approach's sweet spot. Re-evaluate when:
+
+1. You implement Phase 3 (timeline data significantly increases data volume)
+2. You want to query data in new ways (e.g., "show me all repos where DevSeed contribution dropped in the last 6 months")
+3. Build times become noticeably slow (>5 minutes for full refresh)
+
+---
+
 *Document created: January 2026*
+*Last updated: January 2026*
 *For: Development Seed Contributor Network Tool*

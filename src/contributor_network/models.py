@@ -71,6 +71,11 @@ class Repository(BaseModel):
     repo_has_wiki: bool = False
     repo_default_branch: str = "main"
     repo_archived: bool = False
+    # Phase 2: Community metrics
+    repo_total_contributors: int = 0
+    repo_devseed_contributors: int = 0
+    repo_external_contributors: int = 0
+    repo_community_ratio: float = 0.0
 
     @classmethod
     def from_github(cls, repo: Repo) -> Repository:
@@ -78,6 +83,9 @@ class Repository(BaseModel):
         license_id = None
         if repo.license:
             license_id = repo.license.spdx_id
+
+        # Get total contributor count (Phase 2)
+        total_contributors = repo.get_contributors().totalCount
 
         return cls(
             repo=repo.full_name,
@@ -98,4 +106,20 @@ class Repository(BaseModel):
             repo_has_wiki=repo.has_wiki,
             repo_default_branch=repo.default_branch,
             repo_archived=repo.archived,
+            # Phase 2 fields
+            repo_total_contributors=total_contributors,
         )
+
+    def update_community_stats(self, devseed_count: int) -> None:
+        """Update community metrics given the count of DevSeed contributors.
+
+        Call this after processing contributors for the repository.
+        """
+        self.repo_devseed_contributors = devseed_count
+        self.repo_external_contributors = self.repo_total_contributors - devseed_count
+        if self.repo_total_contributors > 0:
+            self.repo_community_ratio = round(
+                self.repo_external_contributors / self.repo_total_contributors, 3
+            )
+        else:
+            self.repo_community_ratio = 0.0

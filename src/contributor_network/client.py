@@ -28,9 +28,24 @@ class Client:
 
     def update_links(self, repo: Repo, contributors: dict[str, str]) -> None:
         """Update the links for a single repository."""
+        devseed_count = 0
         for contributor in repo.get_contributors():
             if contributor_name := contributors.get(contributor.login):
                 self.update_link(repo, contributor, contributor_name)
+                devseed_count += 1
+
+        # Update repository with community stats (Phase 2)
+        self.update_repository_community_stats(repo.full_name, devseed_count)
+
+    def update_repository_community_stats(
+        self, repo_full_name: str, devseed_count: int
+    ) -> None:
+        """Update the community stats for a repository after processing contributors."""
+        path = self.directory / "repositories" / (repo_full_name + ".json")
+        if path.exists():
+            repository = Repository.model_validate_json(path.read_text())
+            repository.update_community_stats(devseed_count)
+            path.write_text(repository.model_dump_json())
 
     def update_link(
         self, repo: Repo, contributor: NamedUser, contributor_name: str
