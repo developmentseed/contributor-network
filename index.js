@@ -23,7 +23,8 @@ import { COLORS, FONTS, SIZES, LAYOUT as THEME_LAYOUT } from './src/js/config/th
 import {
   isValidNode,
   isValidLink,
-  getLinkNodeId
+  getLinkNodeId,
+  resolveLinkReferences
 } from './src/js/utils/validation.js';
 import {
   createRepoRadiusScale,
@@ -77,6 +78,24 @@ import {
   setDelaunay,
   clearDelaunay
 } from './src/js/state/interactionState.js';
+import { findNode as findNodeAtPosition } from './src/js/interaction/findNode.js';
+import { setupHover as setupHoverInteraction } from './src/js/interaction/hover.js';
+import { setupClick as setupClickInteraction } from './src/js/interaction/click.js';
+import {
+  drawCircle,
+  drawCircleArc,
+  drawLine,
+  drawNode,
+  drawNodeArc,
+  drawHoverRing,
+  timeRangeArc,
+  drawHatchPattern,
+  drawLink
+} from './src/js/render/shapes.js';
+import { drawTooltip as drawTooltipModule } from './src/js/render/tooltip.js';
+import { drawNodeLabel } from './src/js/render/labels.js';
+import { DEFAULT_SIZE, LAYOUT } from './src/js/layout/constants.js';
+import { handleResize, sizeCanvas, calculateScaleFactor } from './src/js/layout/resize.js';
 
 // ============================================================
 // Main Visualization
@@ -157,20 +176,28 @@ const createORCAVisual = (
   // Extracted to src/js/state/interactionState.js
   let interactionState = createInteractionState();
   
-  // Convenience references to state properties (for easier migration)
-  // These will be replaced with interactionState.* throughout the code
-  let delaunay = interactionState.delaunay;
-  let nodes_delaunay = interactionState.nodesDelaunay;
-  let delaunay_remaining = interactionState.delaunayRemaining;
+  // Convenience references to Delaunay data
+  // These are kept in sync with interactionState and delaunayData object
+  let delaunay;
+  let nodes_delaunay;
+  let delaunay_remaining;
+  
+  // Helper to sync local variables with delaunayData
+  function syncDelaunayVars(delaunayData) {
+    delaunay = delaunayData.delaunay;
+    nodes_delaunay = delaunayData.nodesDelaunay;
+    delaunay_remaining = delaunayData.delaunayRemaining;
+  }
 
   // Visual Settings - Based on SF = 1
-  const CENTRAL_RADIUS = 35; // The radius of the central repository node (reduced for less prominence)
+  // Layout constants imported from src/js/layout/constants.js
+  const CENTRAL_RADIUS = LAYOUT.centralRadius; // The radius of the central repository node (reduced for less prominence)
   let RADIUS_CONTRIBUTOR; // The eventual radius along which the contributor nodes are placed
   let RADIUS_CONTRIBUTOR_NON_ORCA; // The radius along which the contributor nodes are placed that have not received ORCA
   let ORCA_RING_WIDTH;
 
-  const INNER_RADIUS_FACTOR = 0.7; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
-  const MAX_CONTRIBUTOR_WIDTH = 55; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
+  const INNER_RADIUS_FACTOR = LAYOUT.innerRadiusFactor; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
+  const MAX_CONTRIBUTOR_WIDTH = LAYOUT.maxContributorWidth; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
   const CONTRIBUTOR_PADDING = contributor_padding; // The padding between the contributor nodes around the circle (at SF = 1)
 
   let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
@@ -236,10 +263,15 @@ const createORCAVisual = (
   styleBackgroundCanvas(canvas);
   styleBackgroundCanvas(canvas_click);
 
+  // canvas_click is positioned by styleBackgroundCanvas, but needs pointer events
+  canvas_click.style.pointerEvents = "auto";
+  canvas_click.style.zIndex = "1";
+
   canvas_hover.style.position = "absolute";
   canvas_hover.style.top = "0";
   canvas_hover.style.left = "0";
   canvas_hover.style.zIndex = "2";
+  canvas_hover.style.pointerEvents = "auto"; // Hover canvas needs pointer events for hover to work
 
   function styleCanvas(canvas) {
     canvas.style.display = "block";
@@ -260,7 +292,7 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
 
   //Sizes
-  const DEFAULT_SIZE = 1500;
+  // DEFAULT_SIZE imported from src/js/layout/constants.js
   let WIDTH = DEFAULT_SIZE;
   let HEIGHT = DEFAULT_SIZE;
   let width = DEFAULT_SIZE;
@@ -400,18 +432,19 @@ const createORCAVisual = (
     // After all force simulations, ensure ALL links have source/target
     // as node objects (not string IDs). Some links may not pass through
     // any simulation, leaving their references as strings.
-    resolveLinkReferences();
-
-    /////////////////////////////////////////////////////////////
-    ////////////////////// Setup the Hover //////////////////////
-    /////////////////////////////////////////////////////////////
-    setupHover();
-    setupClick();
+    links = resolveLinkReferences(links, nodes);
 
     /////////////////////////////////////////////////////////////
     ///////////// Set the Sizes and Draw the Visual /////////////
     /////////////////////////////////////////////////////////////
     chart.resize();
+
+    /////////////////////////////////////////////////////////////
+    ////////////////////// Setup the Hover //////////////////////
+    /////////////////////////////////////////////////////////////
+    // Setup interactions AFTER resize so they have correct WIDTH/HEIGHT/SF values
+    setupHover();
+    setupClick();
   } // function chart
 
   /////////////////////////////////////////////////////////////////
@@ -419,6 +452,16 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
 
   function draw() {
+    // Debug: Check if canvas is properly sized
+    if (WIDTH === 0 || HEIGHT === 0) {
+      console.warn('draw() called with invalid canvas size:', { WIDTH, HEIGHT, width, height, SF });
+      return;
+    }
+    if (nodes.length === 0) {
+      console.warn('draw() called with no nodes');
+      return;
+    }
+    console.log('draw() called', { WIDTH, HEIGHT, SF, nodesCount: nodes.length, canvasWidth: canvas.width, canvasHeight: canvas.height });
     /////////////////////////////////////////////////////////////
     // Fill the background with a color
     context.fillStyle = COLOR_BACKGROUND;
@@ -461,7 +504,7 @@ const createORCAVisual = (
         isFinite(l.source.x) && isFinite(l.source.y) &&
         isFinite(l.target.x) && isFinite(l.target.y)
       ) {
-        drawLink(context, SF, l);
+        drawLinkWrapper(context, SF, l);
       }
     });
 
@@ -469,18 +512,18 @@ const createORCAVisual = (
     // Draw all the nodes as circles (skip the central pseudo-node)
     nodes.forEach((d) => {
       if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
-      drawNodeArc(context, SF, d);
+      drawNodeArcWrapper(context, SF, d);
     });
     nodes.forEach((d) => {
       if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
-      drawNode(context, SF, d);
+      drawNodeWrapper(context, SF, d);
     });
 
     /////////////////////////////////////////////////////////////
     // Draw the labels (skip central pseudo-node)
     nodes_central.forEach((d) => {
       if (d.id === REPO_CENTRAL) return;
-      drawNodeLabel(context, d);
+      drawNodeLabelWrapper(context, d);
     });
 
     // Test to see how the bbox of the nodes look
@@ -493,51 +536,88 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   //////////////////////// Resize the chart ///////////////////////
   /////////////////////////////////////////////////////////////////
+  // Extracted to src/js/layout/resize.js
   chart.resize = () => {
-    // Screen pixel ratio
-    PIXEL_RATIO = Math.max(2, window.devicePixelRatio);
-
-    // It's the width that determines the size
-    WIDTH = round(width * PIXEL_RATIO);
-    HEIGHT = round(height * PIXEL_RATIO);
-
-    sizeCanvas(canvas, context);
-    sizeCanvas(canvas_click, context_click);
-    sizeCanvas(canvas_hover, context_hover);
-
-    // Size the canvas
-    function sizeCanvas(canvas, context) {
-      canvas.width = WIDTH;
-      canvas.height = HEIGHT;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${HEIGHT / PIXEL_RATIO}px`;
-
-      // Some canvas settings
-      context.lineJoin = "round";
-      context.lineCap = "round";
-    } // function sizeCanvas
-
-    // Set the scale factor
-    SF = WIDTH / DEFAULT_SIZE;
-    // If this means that the ring won't fit, make the SF smaller
-    let OUTER_RING = RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2;
-    if (WIDTH / 2 < OUTER_RING * SF) SF = WIDTH / (2 * OUTER_RING);
-    // console.log("SF:", SF)
-
-    // Reset the delaunay for the mouse events
-    nodes_delaunay = nodes;
-    delaunay = d3.Delaunay.from(nodes_delaunay.map((d) => [d.x, d.y]));
-    if (REMAINING_PRESENT)
-      delaunay_remaining = d3.Delaunay.from(
-        remainingContributors.map((d) => [d.x, d.y]),
-      );
-    // Update interaction state with Delaunay data
-    setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
-    // // Test to see if the delaunay works
-    // testDelaunay(delaunay, context_hover)
-
-    // Draw the visual
-    draw();
+    // Debug: Log resize call
+    console.log('chart.resize() called', { width, height, nodesCount: nodes.length });
+    
+    const canvases = {
+      canvas,
+      canvas_click,
+      canvas_hover
+    };
+    const contexts = {
+      context,
+      context_click,
+      context_hover
+    };
+    const config = {
+      width,
+      height,
+      DEFAULT_SIZE,
+      RADIUS_CONTRIBUTOR_NON_ORCA,
+      ORCA_RING_WIDTH,
+      round
+    };
+    const state = {
+      WIDTH,
+      HEIGHT,
+      PIXEL_RATIO,
+      SF,
+      nodes_delaunay,
+      delaunay,
+      delaunay_remaining
+    };
+    const data = {
+      nodes,
+      remainingContributors
+    };
+    
+    // Update local variables from state object BEFORE calling handleResize
+    // so that draw() uses the correct values
+    WIDTH = state.WIDTH;
+    HEIGHT = state.HEIGHT;
+    PIXEL_RATIO = state.PIXEL_RATIO;
+    SF = state.SF;
+    
+    // Create a wrapper for draw() that updates local variables first
+    const drawWithUpdatedState = () => {
+      // Update local variables from state object before drawing
+      WIDTH = state.WIDTH;
+      HEIGHT = state.HEIGHT;
+      PIXEL_RATIO = state.PIXEL_RATIO;
+      SF = state.SF;
+      nodes_delaunay = state.nodes_delaunay;
+      delaunay = state.delaunay;
+      delaunay_remaining = state.delaunay_remaining;
+      // Now draw with updated values
+      draw();
+    };
+    
+    handleResize(
+      canvases,
+      contexts,
+      config,
+      state,
+      data,
+      REMAINING_PRESENT,
+      d3,
+      setDelaunay,
+      interactionState,
+      drawWithUpdatedState
+    );
+    
+    // Update local variables from state object after resize (in case they changed)
+    WIDTH = state.WIDTH;
+    HEIGHT = state.HEIGHT;
+    PIXEL_RATIO = state.PIXEL_RATIO;
+    SF = state.SF;
+    nodes_delaunay = state.nodes_delaunay;
+    delaunay = state.delaunay;
+    delaunay_remaining = state.delaunay_remaining;
+    
+    // Debug: Log after resize
+    console.log('chart.resize() completed', { WIDTH, HEIGHT, SF, nodesCount: nodes.length });
   }; //function resize
 
   /////////////////////////////////////////////////////////////////
@@ -1359,220 +1439,53 @@ const createORCAVisual = (
   ///////////////////// Node Drawing Functions ////////////////////
   /////////////////////////////////////////////////////////////////
 
-  function drawNode(context, SF, d) {
-    // Is this a node that is a repo that is not impacted by ORCA?
-    let REPO_NOT_ORCA = d.type === "repo" && !d.data.orca_impacted;
-    // The central "team" node should be subtle/muted since it's not a real repo
-    const IS_CENTRAL = d.id === REPO_CENTRAL;
-    if (IS_CENTRAL) REPO_NOT_ORCA = false;
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function drawNodeWrapper(context, SF, d) {
+    const config = { REPO_CENTRAL, COLOR_BACKGROUND, max };
+    drawNode(context, SF, d, config, interactionState);
+  }
 
-    // Draw a circle for the node
-    context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
-    context.shadowColor = "#f7f7f7";
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function drawNodeArcWrapper(context, SF, d) {
+    drawNodeArc(context, SF, d, interactionState, COLOR_CONTRIBUTOR, d3, central_repo);
+  }
 
-    // Central node gets reduced opacity to be less prominent
-    context.globalAlpha = IS_CENTRAL ? 0.5 : (REPO_NOT_ORCA ? 0.4 : 1);
-    context.fillStyle = d.color;
-    drawCircle(context, d.x, d.y, SF, d.r);
-    context.globalAlpha = 1;
-    context.shadowBlur = 0;
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function drawHoverRingWrapper(context, d) {
+    drawHoverRing(context, d, SF, central_repo);
+  }
 
-    // Draw a small circle in the center for the not ORCA impacted repos
-    if (REPO_NOT_ORCA) drawCircle(context, d.x, d.y, SF, d.r * 0.3);
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function timeRangeArcWrapper(context, SF, d, repo, link, COL = COLOR_REPO_MAIN) {
+    timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo);
+  }
 
-    // Also draw a stroke around the node
-    if (!d.remaining_contributor) {
-      context.strokeStyle = COLOR_BACKGROUND;
-      context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
-      drawCircle(context, d.x, d.y, SF, d.r, true, true);
-      context.stroke();
-    } // if
-  } // function drawNode
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function drawHatchPatternWrapper(context, radius, angle, d) {
+    drawHatchPattern(context, radius, angle, SF, d.color, sin);
+  }
 
-  function drawNodeArc(context, SF, d) {
-    // Draw an arc around the repository node that shows how long the contributor has been active in that repo for all its existence, based on the first and last commit time
-    if (
-      interactionState.hoverActive &&
-      interactionState.hoveredNode &&
-      interactionState.hoveredNode.type === "contributor" &&
-      d.type === "repo"
-    ) {
-      let link = interactionState.hoveredNode.data.links_original.find((p) => p.repo === d.id);
-      // Only draw arc if link exists
-      if (link) timeRangeArc(context, SF, d, d, link, COLOR_CONTRIBUTOR);
-    } // if
-  } // function drawNodeArc
-
-  //////////////////////// Draw Hover Ring ////////////////////////
-  // Draw a stroked ring around the hovered node
-  function drawHoverRing(context, d) {
-    let r = d.r + (d.type === "contributor" ? 9 : d === central_repo ? 14 : 7);
-    context.beginPath();
-    context.moveTo((d.x + r) * SF, d.y * SF);
-    context.arc(d.x * SF, d.y * SF, r * SF, 0, TAU);
-    context.strokeStyle = d.color;
-    context.lineWidth = 3 * SF;
-    context.stroke();
-  } // function drawHoverRing
-
-  /////////////////////// Arc around Circle ///////////////////////
-  // Draw a tiny arc around the node to show how long they've been involved in a certain repo's existence, based on their first and last commit
-  function timeRangeArc(context, SF, d, repo, link, COL = COLOR_REPO_MAIN) {
-    context.save();
-    context.translate(d.x * SF, d.y * SF);
-
-    context.fillStyle = COL;
-    context.strokeStyle = COL;
-
-    // The scale for between which min and max date the contributor has been involved in the central repo
-    const scale_involved_range = d3
-      .scaleLinear()
-      .domain([repo.data.createdAt, repo.data.updatedAt])
-      .range([0, TAU]);
-
-    let r_inner =
-      d.r + (d.type === "contributor" || d === central_repo ? 2.5 : 1);
-    let r_outer = r_inner + 3;
-
-    const arc = d3
-      .arc()
-      .innerRadius(r_inner * SF)
-      .outerRadius(r_outer * SF)
-      .startAngle(scale_involved_range(link.commit_sec_min))
-      .endAngle(scale_involved_range(link.commit_sec_max))
-      .context(context);
-
-    // Create the arc
-    context.beginPath();
-    arc();
-    context.fill();
-
-    // // Draw a tiny marker at the top to show where the "start" is
-    // context.beginPath()
-    // context.moveTo(0, - (d.r + 2) * SF)
-    // context.lineTo(0, - (d.r + 2 + 5) * SF)
-    // context.lineWidth = 1 * SF
-    // context.stroke()
-
-    context.restore();
-  } // function timeRangeArc
-
-  ////////// Fill a circle with a diagonal hatch pattern //////////
-  function drawHatchPattern(context, radius, angle) {
-    context.save();
-    context.beginPath();
-    context.arc(0, 0, radius, 0, TAU);
-    context.clip();
-
-    const lW = 1.5 * SF;
-    // const lW = min(0.3 * radius, 2.5)
-    const step = 4 * lW * sin(angle / 2);
-
-    context.lineWidth = lW;
-    context.strokeStyle = d.color;
-    for (let x = -2.5 * radius; x < 2.5 * radius; x += step) {
-      context.beginPath();
-      context.moveTo(x, -radius);
-      context.lineTo(x + radius * Math.tan(angle / 2), radius);
-      context.stroke();
-    } // for x
-    context.restore();
-  } // function drawHatchPattern
-
-  ///////////////////////// Draw a circle /////////////////////////
-  function drawCircle(context, x, y, SF, r = 10, begin = true, stroke = false) {
-    if (begin === true) context.beginPath();
-    context.moveTo((x + r) * SF, y * SF);
-    context.arc(x * SF, y * SF, r * SF, 0, TAU);
-    if (begin && stroke == false) context.fill();
-    // if(begin) { context.lineWidth = 1.5 * SF; context.stroke() }
-  } //function drawCircle
+  // Extracted to src/js/render/shapes.js
+  // drawCircle is now imported directly
 
   /////////////////////////////////////////////////////////////////
   ///////////////////// Line Drawing Functions ////////////////////
   /////////////////////////////////////////////////////////////////
 
-  ////////// Draw the link between the source and target //////////
-  function drawLink(context, SF, l) {
-    // Guard: only draw links with valid, positioned nodes
-    if (
-      !l.source || !l.target ||
-      typeof l.source.x !== 'number' || typeof l.target.x !== 'number' ||
-      !isFinite(l.source.x) || !isFinite(l.source.y) ||
-      !isFinite(l.target.x) || !isFinite(l.target.y)
-    ) {
-      return; // Skip this link - prevents rendering errors
-    }
+  // Extracted to src/js/render/shapes.js
+  // Wrapper to adapt old signature to new module signature
+  function drawLinkWrapper(context, SF, l) {
+    const config = { COLOR_LINK };
+    drawLink(context, SF, l, config, interactionState, calculateLinkGradient, calculateEdgeCenters, scale_link_width);
+  }
 
-    if (l.source.x !== undefined && l.target.x !== undefined) {
-      calculateLinkGradient(context, l);
-      calculateEdgeCenters(l, 1);
-      // Use gradient if available, fall back to solid color
-      context.strokeStyle = l.gradient || COLOR_LINK;
-    } else context.strokeStyle = COLOR_LINK;
-
-    // Base line width
-    let line_width = scale_link_width(l.commit_count);
-
-    // If a hover is active, and the hovered node is a contributor, and this is a link between an owner and repository, make the line width depend on the commit_count of the original link between the contributor and the repository
-    if (
-      interactionState.hoverActive &&
-      interactionState.hoveredNode &&
-      interactionState.hoveredNode.type === "contributor" &&
-      interactionState.hoveredNode.data &&
-      interactionState.hoveredNode.data.links_original &&
-      l.source.type === "owner" &&
-      l.target.type === "repo"
-    ) {
-      // Find the link between this contributor and the repository in the links_original
-      let link_original = interactionState.hoveredNode.data.links_original.find(
-        (p) => p.repo === l.target.id,
-      );
-      // Base the line width on this commit count
-      if (link_original)
-        line_width = scale_link_width(link_original.commit_count);
-    } // if
-
-    context.lineWidth = line_width * SF;
-    drawLine(context, SF, l);
-  } // function drawLink
-
-  ///////////////////////// Draw the lines ////////////////////////
-  function drawLine(context, SF, line) {
-    context.beginPath();
-    context.moveTo(line.source.x * SF, line.source.y * SF);
-    if (line.center) drawCircleArc(context, SF, line);
-    else context.lineTo(line.target.x * SF, line.target.y * SF);
-    context.stroke();
-  } //function drawLine
-
-  ////////////////////// Draw a curved line ///////////////////////
-  function drawCircleArc(context, SF, line) {
-    // Guard against missing arc center (can happen if arc radius is impossible)
-    if (!line.center) {
-      // Fallback to straight line
-      context.lineTo(line.target.x * SF, line.target.y * SF);
-      return;
-    }
-
-    let center = line.center;
-    let ang1 = Math.atan2(
-      line.source.y * SF - center.y * SF,
-      line.source.x * SF - center.x * SF,
-    );
-    let ang2 = Math.atan2(
-      line.target.y * SF - center.y * SF,
-      line.target.x * SF - center.x * SF,
-    );
-    context.arc(
-      center.x * SF,
-      center.y * SF,
-      line.r * SF,
-      ang1,
-      ang2,
-      line.sign,
-    );
-  } //function drawCircleArc
+  // Extracted to src/js/render/shapes.js
+  // drawLine and drawCircleArc are now imported directly
 
   ///////////////////// Calculate Line Centers ////////////////////
   function calculateEdgeCenters(l, size = 2, sign = true) {
@@ -1698,52 +1611,42 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   //////////////////////// Hover Functions ////////////////////////
   /////////////////////////////////////////////////////////////////
-  // Setup the hover on the top canvas, get the mouse position and call the drawing functions
+  // Extracted to src/js/interaction/hover.js
   function setupHover() {
-    d3.select("#canvas-hover").on("mousemove", function (event) {
-      try {
-        // Get the position of the mouse on the canvas
-        let [mx, my] = d3.pointer(event, this);
-        let [d, FOUND] = findNode(mx, my);
-
-        // Draw the hover state on the top canvas
-        // Skip hover on the central pseudo-node (it's not a real entity)
-        if (FOUND && d && d.id !== REPO_CENTRAL) {
-          setHovered(interactionState, d);
-
-          // Fade out the main canvas, using CSS
-          if (!d.remaining_contributor)
-            canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
-
-          // Draw the hovered node and its neighbors and links
-          drawHoverState(context_hover, d);
-        } else {
-          context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-          clearHover(interactionState);
-
-          if (!interactionState.clickActive) {
-            // Fade the main canvas back in
-            canvas.style.opacity = "1";
-          } // if
-        } // else
-      } catch (err) {
-        // Log error but don't break the handler
-        console.warn("Hover error:", err);
-        context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-        clearHover(interactionState);
-        if (!interactionState.clickActive) canvas.style.opacity = "1";
-      }
-    }); // on mousemove
-
-    // Clean up hover state when mouse leaves the canvas
-    d3.select("#canvas-hover").on("mouseleave", function () {
-      context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-      clearHover(interactionState);
-
-      if (!interactionState.clickActive) {
-        canvas.style.opacity = "1";
-      }
-    }); // on mouseleave
+    const config = {
+      PIXEL_RATIO,
+      WIDTH,
+      HEIGHT,
+      SF,
+      RADIUS_CONTRIBUTOR_NON_ORCA,
+      ORCA_RING_WIDTH,
+      sqrt
+    };
+    // Create delaunayData object that will be kept in sync
+    const delaunayData = {
+      get delaunay() { return delaunay; },
+      set delaunay(val) { delaunay = val; },
+      get nodesDelaunay() { return nodes_delaunay; },
+      set nodesDelaunay(val) { nodes_delaunay = val; },
+      get delaunayRemaining() { return delaunay_remaining; },
+      set delaunayRemaining(val) { delaunay_remaining = val; }
+    };
+    
+    setupHoverInteraction(
+      d3,
+      "#canvas-hover",
+      config,
+      delaunayData,
+      interactionState,
+      REPO_CENTRAL,
+      canvas,
+      context_hover,
+      REMAINING_PRESENT,
+      remainingContributors,
+      setHovered,
+      clearHover,
+      drawHoverState
+    );
   } // function setupHover
 
   // Draw the hovered node and its links and neighbors and a tooltip
@@ -1842,33 +1745,36 @@ const createORCAVisual = (
     // Draw all the links to this node (with null safety)
     if (d.neighbor_links) {
       d.neighbor_links.forEach((l) => {
-        if (l && l.source && l.target) drawLink(context, SF, l);
+        if (l && l.source && l.target) drawLinkWrapper(context, SF, l);
       }); // forEach
     }
 
     // Draw all the connected nodes (with null safety)
     if (d.neighbors) {
-      d.neighbors.forEach((n) => { if (n) drawNodeArc(context, SF, n); });
-      d.neighbors.forEach((n) => { if (n) drawNode(context, SF, n); });
+      d.neighbors.forEach((n) => { if (n) drawNodeArcWrapper(context, SF, n); });
+      d.neighbors.forEach((n) => { if (n) drawNodeWrapper(context, SF, n); });
       // Draw all the labels of the "central" connected nodes
       d.neighbors.forEach((n) => {
-        if (n && n.node_central) drawNodeLabel(context, n);
+        if (n && n.node_central) drawNodeLabelWrapper(context, n);
       }); // forEach
     }
 
     /////////////////////////////////////////////////
     // Draw the hovered node
-    drawNode(context, SF, d);
+    drawNodeWrapper(context, SF, d);
     // Show a ring around the hovered node
-    drawHoverRing(context, d);
+    drawHoverRingWrapper(context, d);
 
     /////////////////////////////////////////////////
     // Show its label
-    if (d.node_central && d.type === "contributor") drawNodeLabel(context, d);
+    if (d.node_central && d.type === "contributor") drawNodeLabelWrapper(context, d);
 
     /////////////////////////////////////////////////
     // Create a tooltip with more info
-    if (DO_TOOLTIP) drawTooltip(context, d);
+    if (DO_TOOLTIP) {
+      console.log('drawTooltipWrapper called', { type: d.type, id: d.id, x: d.x, y: d.y, SF, WIDTH, HEIGHT });
+      drawTooltipWrapper(context, d);
+    }
 
     context.restore();
   } // function drawHoverState
@@ -1876,89 +1782,98 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   //////////////////////// Click Functions ////////////////////////
   /////////////////////////////////////////////////////////////////
-
+  // Extracted to src/js/interaction/click.js
   function setupClick() {
-    d3.select("#canvas-hover").on("click", function (event) {
-      // Get the position of the mouse on the canvas
-      let [mx, my] = d3.pointer(event, this);
-      let [d, FOUND] = findNode(mx, my);
-
-      // Clear the "clicked" canvas
-      context_click.clearRect(0, 0, WIDTH, HEIGHT);
-
-      // Skip click on the central pseudo-node (it's not a real entity)
-      if (FOUND && d && d.id !== REPO_CENTRAL) {
-        setClicked(interactionState, d);
-
-        // Reset the delaunay for the hover, taking only the neighbors into account of the clicked node
-        nodes_delaunay = d.neighbors ? [...d.neighbors, d] : nodes;
-        delaunay = d3.Delaunay.from(nodes_delaunay.map((n) => [n.x, n.y]));
-        setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
-
-        // Copy the context_hovered to the context_click without the tooltip
-        drawHoverState(context_click, d, false);
-        // Empty the hovered canvas
-        context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-
-        // // Test if the delaunay works
-        // testDelaunay(delaunay, context_hover)
-      } else {
-        clearClick(interactionState);
-        clearHover(interactionState);
-
-        // Reset the delaunay to all the nodes
-        nodes_delaunay = nodes;
-        delaunay = d3.Delaunay.from(nodes_delaunay.map((d) => [d.x, d.y]));
-        setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
-
-        // Fade the main canvas back in
-        canvas.style.opacity = "1";
-      } // else
-    }); // on mousemove
-  } // function setupHover
+    const config = {
+      PIXEL_RATIO,
+      WIDTH,
+      HEIGHT,
+      SF,
+      RADIUS_CONTRIBUTOR_NON_ORCA,
+      ORCA_RING_WIDTH,
+      sqrt
+    };
+    // Create delaunayData object that will be kept in sync
+    const delaunayData = {
+      get delaunay() { return delaunay; },
+      set delaunay(val) { delaunay = val; },
+      get nodesDelaunay() { return nodes_delaunay; },
+      set nodesDelaunay(val) { nodes_delaunay = val; },
+      get delaunayRemaining() { return delaunay_remaining; },
+      set delaunayRemaining(val) { delaunay_remaining = val; }
+    };
+    
+    setupClickInteraction(
+      d3,
+      "#canvas-hover", // Use hover canvas for clicks too since it's on top
+      config,
+      delaunayData,
+      interactionState,
+      REPO_CENTRAL,
+      canvas,
+      context_click,
+      context_hover,
+      nodes,
+      REMAINING_PRESENT,
+      remainingContributors,
+      setClicked,
+      clearClick,
+      clearHover,
+      setDelaunay,
+      drawHoverState
+    );
+  } // function setupClick
 
   /////////////////////////////////////////////////////////////////
   ///////////////// General Interaction Functions /////////////////
   /////////////////////////////////////////////////////////////////
-
-  // Turn the mouse position into a canvas x and y location and see if it's close enough to a node
-  function findNode(mx, my) {
-    mx = (mx * PIXEL_RATIO - WIDTH / 2) / SF;
-    my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
-
-    // Check if mouse is within the visualization bounds (with some margin)
-    const MAX_RADIUS = RADIUS_CONTRIBUTOR_NON_ORCA + ORCA_RING_WIDTH + 200;
-    const distFromCenter = sqrt(mx * mx + my * my);
-    if (distFromCenter > MAX_RADIUS) {
-      return [null, false];
-    }
-
-    //Get the closest hovered node
-    let point = delaunay.find(mx, my);
-    let d = nodes_delaunay[point];
-
-    // Safety check - if no node found, return early
-    if (!d) {
-      return [null, false];
-    }
-
-    // Get the distance from the mouse to the node
-    let dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
-    // If the distance is too big, don't show anything
-    let FOUND = dist < d.r + (interactionState.clickActive ? 10 : 50);
-
-    // Check if the mouse is close enough to one of the remaining contributors of FOUND is false
-    if (!FOUND && REMAINING_PRESENT) {
-      point = delaunay_remaining.find(mx, my);
-      d = remainingContributors[point];
-      dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
-      FOUND = dist < d.r + 5;
-    } // if
-
-    return [d, FOUND];
-  } // function findNode
+  // Extracted to src/js/interaction/findNode.js
+  // Note: findNode is now imported and used directly in hover.js and click.js
 
   // Draw the tooltip above the node
+  // Extracted to src/js/render/tooltip.js
+  // Wrapper to adapt old signature to new module signature
+  function drawTooltipWrapper(context, d) {
+    try {
+      const config = {
+        SF,
+        REPO_CENTRAL,
+        COLOR_BACKGROUND,
+        COLOR_TEXT,
+        COLOR_CONTRIBUTOR,
+        COLOR_REPO,
+        COLOR_OWNER,
+        min
+      };
+      console.log('drawTooltipWrapper: calling drawTooltipModule', { context: !!context, d: !!d, config: !!config, interactionState: !!interactionState, central_repo: !!central_repo, formatDate: !!formatDate });
+      drawTooltipModule(context, d, config, interactionState, central_repo, formatDate, formatDateExact, formatDigit);
+      console.log('drawTooltipWrapper: drawTooltipModule completed');
+    } catch (err) {
+      console.error('drawTooltipWrapper error:', err);
+    }
+  }
+  
+  // Keep old function name for compatibility - delegate to wrapper
+  function drawTooltip(context, d) {
+    return drawTooltipWrapper(context, d);
+  }
+  
+  // Wrapper to adapt old signature to new module signature
+  function drawNodeLabelWrapper(context, d, DO_CENTRAL_OUTSIDE = false) {
+    const config = {
+      SF,
+      REPO_CENTRAL,
+      COLOR_TEXT,
+      COLOR_BACKGROUND,
+      COLOR_REPO_MAIN,
+      PI
+    };
+    drawNodeLabel(context, d, config, central_repo, DO_CENTRAL_OUTSIDE);
+  }
+  
+  // REMOVED - function body extracted to src/js/render/tooltip.js
+  // Original function started here:
+  /*
   function drawTooltip(context, d) {
     let line_height = 1.2;
     let font_size;
@@ -2524,7 +2439,7 @@ const createORCAVisual = (
     }
 
     // Resolve any remaining string references in links
-    resolveLinkReferences();
+    links = resolveLinkReferences(links, nodes);
 
     // Position any nodes that didn't get positioned by force simulations
     // Critical for filtered data where force simulations may not include all nodes
