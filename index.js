@@ -53,6 +53,30 @@ import {
   renderArchivedBadge,
   REPO_CARD_CONFIG
 } from './src/js/render/repoCard.js';
+import {
+  runOwnerSimulation,
+  runContributorSimulation,
+  runCollaborationSimulation,
+  runRemainingSimulation
+} from './src/js/simulations/index.js';
+import {
+  createFilterState,
+  addOrganization,
+  removeOrganization,
+  clearFilters,
+  hasOrganization,
+  hasActiveFilters
+} from './src/js/state/filterState.js';
+import {
+  createInteractionState,
+  setHovered,
+  clearHover,
+  setClicked,
+  clearClick,
+  clearAll,
+  setDelaunay,
+  clearDelaunay
+} from './src/js/state/interactionState.js';
 
 // ============================================================
 // Main Visualization
@@ -84,14 +108,8 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   // Filter State Management
   /////////////////////////////////////////////////////////////////
-  // Tracks which filters are currently active
-  // Structure: { organizations: [org1, org2, ...] }
-  // Usage: chart.setFilter("developmentseed", true)
-  // Note: Multiple organizations can be active at once (multi-select)
-  // Future: Could expand to support additional filters (skills, activity level, etc.)
-  let activeFilters = {
-    organizations: [], // e.g., ["developmentseed", "stac-utils"]
-  };
+  // Extracted to src/js/state/filterState.js
+  let activeFilters = createFilterState();
 
   // Master contributor list (passed from template)
   // Used for: validating contributors exist, future username-based filtering
@@ -133,14 +151,17 @@ const createORCAVisual = (
   let links;
   let central_repo;
 
-  // Hover options
-  let delaunay;
-  let nodes_delaunay;
-  let delaunay_remaining;
-  let HOVER_ACTIVE = false;
-  let HOVERED_NODE = null;
-  let CLICK_ACTIVE = false;
-  let CLICKED_NODE = null;
+  /////////////////////////////////////////////////////////////////
+  // Interaction State Management
+  /////////////////////////////////////////////////////////////////
+  // Extracted to src/js/state/interactionState.js
+  let interactionState = createInteractionState();
+  
+  // Convenience references to state properties (for easier migration)
+  // These will be replaced with interactionState.* throughout the code
+  let delaunay = interactionState.delaunay;
+  let nodes_delaunay = interactionState.nodesDelaunay;
+  let delaunay_remaining = interactionState.delaunayRemaining;
 
   // Visual Settings - Based on SF = 1
   const CENTRAL_RADIUS = 35; // The radius of the central repository node (reduced for less prominence)
@@ -309,7 +330,7 @@ const createORCAVisual = (
     /////////////////////////////////////////////////////////////
     // Run a force simulation for per owner for all the repos that have the same "owner"
     // Like a little cloud of repos around them
-    singleOwnerForceSimulation();
+    runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, min);
     // console.log("Contributor mini force simulation done")
 
     /////////////////////////////////////////////////////////////
@@ -317,7 +338,7 @@ const createORCAVisual = (
     /////////////////////////////////////////////////////////////
     // Run a force simulation for per contributor for all the repos that are not shared between other contributors
     // Like a little cloud of repos around them
-    singleContributorForceSimulation();
+    runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max);
     // console.log("Owner mini force simulation done")
 
     /////////////////////////////////////////////////////////////
@@ -336,14 +357,41 @@ const createORCAVisual = (
     /////////// Run Force Simulation for Shared Repos ///////////
     /////////////////////////////////////////////////////////////
     // Run a force simulation to position the repos that are shared between contributors
-    collaborationRepoSimulation();
+    nodes_central = runCollaborationSimulation(
+      nodes,
+      links,
+      d3,
+      getLinkNodeId,
+      sqrt,
+      max,
+      context,
+      REPO_CENTRAL,
+      central_repo,
+      scale_link_distance,
+      RADIUS_CONTRIBUTOR,
+      INNER_RADIUS_FACTOR
+    );
     // console.log("Central force simulation done")
 
     /////////////////////////////////////////////////////////////
     ////// Run Force Simulation for Remaining Contributors //////
     /////////////////////////////////////////////////////////////
     // Run a force simulation to position the remaining contributors around the central area
-    if (REMAINING_PRESENT) remainingContributorSimulation();
+    if (REMAINING_PRESENT) {
+      runRemainingSimulation(
+        remainingContributors,
+        d3,
+        TAU,
+        cos,
+        sin,
+        max,
+        RADIUS_CONTRIBUTOR,
+        RADIUS_CONTRIBUTOR_NON_ORCA,
+        ORCA_RING_WIDTH,
+        DEFAULT_SIZE,
+        scale_remaining_contributor_radius
+      );
+    }
     // console.log("Remaining contributor force simulation done")
 
     /////////////////////////////////////////////////////////////
@@ -483,6 +531,8 @@ const createORCAVisual = (
       delaunay_remaining = d3.Delaunay.from(
         remainingContributors.map((d) => [d.x, d.y]),
       );
+    // Update interaction state with Delaunay data
+    setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
     // // Test to see if the delaunay works
     // testDelaunay(delaunay, context_hover)
 
@@ -512,12 +562,12 @@ const createORCAVisual = (
     visibleRepos = JSON.parse(JSON.stringify(originalRepos));
 
     // If organizations are selected, filter to those organizations
-    if (activeFilters.organizations.length > 0) {
+    if (hasActiveFilters(activeFilters)) {
       visibleRepos = visibleRepos.filter((repo) => {
         // Always include the central pseudo-repo
         if (repo.repo === REPO_CENTRAL) return true;
         const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
-        return activeFilters.organizations.includes(owner);
+        return hasOrganization(activeFilters, owner);
       });
     }
 
@@ -1108,310 +1158,12 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   ///////////////// Force Simulation | Per Owner //////////////////
   /////////////////////////////////////////////////////////////////
-  // Run a force simulation for per "owner" node for all the repos that fall under it
-  function singleOwnerForceSimulation() {
-    // First fix the nodes in the center - this is only temporarily
-    nodes
-      .filter((d) => d.type === "owner")
-      .forEach((d, i) => {
-        d.x = d.fx = 0;
-        d.y = d.fy = 0;
-
-        // // For testing
-        // // Place the contributors in a grid of 10 columns
-        // d.x = -WIDTH/4 + (i % 8) * 140
-        // d.y = -HEIGHT/4 + Math.floor(i / 8) * 150
-        // d.fx = d.x
-        // d.fy = d.y
-      }); // forEach
-
-    // Next run a force simulation to place all the repositories
-    nodes
-      .filter((d) => d.type === "owner")
-      .forEach((d) => {
-        // Find all the nodes that are connected to this one with a degree of one, including the node itself
-        // Note: Use getLinkNodeId() since D3 force simulations may have converted some refs to objects
-        let nodes_connected = nodes.filter(
-          (n) =>
-            links.find(
-              (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === n.id && n.degree === 1,
-            ) || n.id === d.id,
-        );
-
-        // If there are no nodes connected to this one, skip it
-        // if(nodes_to_contributor.length <= 1) return
-
-        // Save the list of repositories that are connected to this node
-        d.connected_node_cloud = nodes_connected.filter(
-          (n) => n.type === "repo",
-        );
-
-        // Get the links between this node and nodes_connected
-        let links_connected = links.filter(
-          (l) =>
-            getLinkNodeId(l.source) === d.id && nodes_connected.find((n) => n.id === getLinkNodeId(l.target)),
-        );
-
-        // Let the nodes start on the location of the contributor node
-        nodes_connected.forEach((n) => {
-          n.x = d.fx + Math.random() * (Math.random() > 0.5 ? 1 : -1);
-          n.y = d.fy + Math.random() * (Math.random() > 0.5 ? 1 : -1);
-        }); // forEach
-
-        /////////////////////////////////////////////////////////
-        /////////////////////// Simulation //////////////////////
-        /////////////////////////////////////////////////////////
-        // Define the simulation
-        let simulation = d3
-          .forceSimulation()
-          .force(
-            "link",
-            // There are links, but they have no strength
-            d3
-              .forceLink()
-              .id((d) => d.id)
-              .strength(0),
-          )
-          .force(
-            "collide",
-            // Use a non-overlap, but let it start out at strength 0
-            d3
-              .forceCollide()
-              .radius((n) => {
-                let r;
-                if (n.id === d.id) {
-                  if (d.data.single_contributor) r = d.r + 2;
-                  else r = d.r + min(14, max(10, d.r));
-                } else r = n.r + max(2, n.r * 0.2);
-                return r;
-              })
-              .strength(0),
-          )
-          // .force("charge",
-          //     d3.forceManyBody()
-          //         .strength(-20)
-          //         // .distanceMax(WIDTH / 3)
-          // )
-          // Keep the repo nodes want to stay close to the contributor node
-          // so they try to spread out evenly around it
-          .force("x", d3.forceX().x(d.fx).strength(0.1))
-          .force("y", d3.forceY().y(d.fy).strength(0.1));
-
-        simulation.nodes(nodes_connected).stop();
-        // .on("tick", ticked)
-
-        simulation.force("link").links(links_connected);
-
-        //Manually "tick" through the network
-        let n_ticks = 200;
-        for (let i = 0; i < n_ticks; ++i) {
-          simulation.tick();
-          //Ramp up collision strength to provide smooth transition
-          simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.8);
-        } //for i
-        // TEST - Draw the result
-        // drawContributorBubbles(nodes_connected, links_connected)
-
-        // Determine the farthest distance of the nodes (including its radius) to the owner node
-        d.max_radius = d3.max(nodes_connected, (n) =>
-          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2),
-        );
-        // Determine which node is the largest distance to the central node
-        let max_radius_node = nodes_connected.find(
-          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
-        );
-        // Get the overall radius to take into account for the next simulation and labeling
-        d.max_radius = max(d.max_radius + max_radius_node.r, d.r);
-        // See this as the new "node" radius that includes all of it's repos
-
-        // Reset the fx and fy
-        delete d.fx;
-        delete d.fy;
-      }); // forEach
-  } // function singleOwnerForceSimulation
+  // Extracted to src/js/simulations/ownerSimulation.js
 
   /////////////////////////////////////////////////////////////////
   /////////////// Force Simulation | Per Contributor //////////////
   /////////////////////////////////////////////////////////////////
-
-  // Run a force simulation for per contributor for all the repos that are not shared between other contributors
-  // Like a little cloud of repos around them
-  function singleContributorForceSimulation() {
-    // First fix the contributor nodes in the center - this is only temporarily
-    nodes
-      .filter((d) => d.type === "contributor")
-      .forEach((d, i) => {
-        d.x = d.fx = 0;
-        d.y = d.fy = 0;
-
-        // // For testing
-        // // Place the contributors in a grid of 10 columns
-        // d.x = -WIDTH/4 + (i % 8) * 140
-        // d.y = -HEIGHT/4 + Math.floor(i / 8) * 150
-        // d.fx = d.x
-        // d.fy = d.y
-      }); // forEach
-
-    // Next run a force simulation to place all the single-degree repositories
-    nodes
-      .filter((d) => d.type === "contributor")
-      .forEach((d) => {
-        // Find all the nodes that are connected to this one with a degree of one, including the contributor node itself
-        // Note: Use getLinkNodeId() since D3 force simulations may have converted some refs to objects
-        let nodes_to_contributor = nodes.filter(
-          (n) =>
-            links.find(
-              (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === n.id && n.degree === 1,
-            ) ||
-            links.find(
-              (l) =>
-                getLinkNodeId(l.source) === d.id &&
-                getLinkNodeId(l.target) === n.id &&
-                n.type === "owner" &&
-                n.data.single_contributor === true,
-            ) ||
-            n.id === d.id,
-        );
-
-        // Save the list of repositories that are connected to this contributor (with a degree of one)
-        d.connected_single_repo = nodes_to_contributor.filter(
-          (n) => n.type === "repo" || n.type === "owner",
-        );
-
-        if (localStorage.getItem('debug-orca') === 'true') {
-          console.log(`Contributor ${d.id}: connected repos = ${d.connected_single_repo.length}`);
-          if (d.connected_single_repo.length === 0) {
-            // Check why?
-            const allConnect = links.filter(l => getLinkNodeId(l.source) === d.id);
-            console.log(`  - Actual links from contributor: ${allConnect.length}`);
-            if (allConnect.length > 0) {
-              const targetId = getLinkNodeId(allConnect[0].target);
-              const targetNode = nodes.find(n => n.id === targetId);
-              console.log(`  - First target: ${targetId}, degree: ${targetNode ? targetNode.degree : '?'}`);
-            }
-          }
-        }
-
-        // // For the simulation we only want loops between the nodes (so the repo nodes will be attracted to each other)
-        // // But we don't need the link from the contributor to the repo
-        // let links_contributor = links.filter(l => l.source === d.id && nodes_to_contributor.indexOf(nodes.find(n => n.id === l.target)) > -1)
-        let links_contributor = [];
-        d.connected_single_repo.forEach((n) => {
-          links_contributor.push({ source: d.id, target: n.id });
-        });
-
-        // let node_ids = nodes_to_contributor.map(d => d.id)
-        // let links_contributor = links.filter(l => node_ids.indexOf(l.source) > -1 && node_ids.indexOf(l.target) > -1)
-
-        // Let the nodes start on the location of the contributor node
-        nodes_to_contributor.forEach((n) => {
-          n.x = d.fx + Math.random() * (Math.random() > 0.5 ? 1 : -1);
-          n.y = d.fy + Math.random() * (Math.random() > 0.5 ? 1 : -1);
-        }); // forEach
-
-        /////////////////////////////////////////////////////////
-        /////////////////////// Simulation //////////////////////
-        /////////////////////////////////////////////////////////
-        // Define the simulation
-        let simulation = d3
-          .forceSimulation()
-          .nodes(nodes_to_contributor)
-          .force(
-            "link",
-            // There are links, but they have no strength (like singleOwnerForceSimulation)
-            d3
-              .forceLink()
-              .id((d) => d.id)
-              .strength(0),
-          )
-          .force("charge", d3.forceManyBody().strength(-10)) // -2
-          .force(
-            "collide",
-            d3.forceCollide((n) => n.r + 2).strength(0.1),
-          ) // +1
-          // .force("link", d3.forceLink(links_contributor).id(d => d.id).distance(d.r + 10))
-          // .force("r", d3.forceRadial(20, d.x, d.y))
-          // .force("x", d3.forceX(d.x))
-          // .force("y", d3.forceY(d.y))
-          // .force("link", d3.forceLink(links_contributor).distance(d => d.source.r + 20 + d.target.r))
-          // .force("link", d3.forceLink(links_contributor).id(d => d.id).divisor(2).strength(0.5).distance(2)) //distance(d => d.source.r + d.target.r + 5)
-          // .force("link", d3.forceLink(links_contributor).id(d => d.id).distance(10))
-          // .force("link", d3.forceLink(links_contributor).distance(d => d.source.r + d.target.r + 2))
-          // .force("charge", d3.forceManyBody().strength(-100))
-          // .force("link", d3.forceLink(links_contributor).distance(20).strength(1))
-          //  .force("link", d3.forceLink(links_contributor).distance(d.r + 15).strength(1))
-
-          // .force("r", d3.forceRadial(
-          //         (d) => d.type === "contributor" ? 0 : d.r + 30) //radius
-          //         // .x(d.x)
-          //         // .y(d.y)
-          //         // .strength(0.5)
-          //         // .distanceMax(WIDTH / 3)
-          // )
-          // Keep the repo nodes want to stay close to the contributor node
-          // so they try to spread out evenly around it
-          .force("x", d3.forceX().x(d.fx).strength(0.1))
-          .force("y", d3.forceY().y(d.fy).strength(0.1));
-
-        simulation.nodes(nodes_to_contributor).stop();
-        // .on("tick", ticked)
-
-        simulation.force("link").links(links_contributor);
-
-        //Manually "tick" through the network
-        let n_ticks = 200;
-        for (let i = 0; i < n_ticks; ++i) {
-          simulation.tick();
-          //Ramp up collision strength to provide smooth transition
-          simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.8);
-        } //for i
-        // TEST - Draw the result
-        // drawContributorBubbles(nodes_to_contributor, links_contributor)
-
-        // Determine the farthest distance of the nodes (including its radius) to the contributor node
-        d.max_radius = d3.max(nodes_to_contributor, (n) =>
-          sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2),
-        );
-        // Determine which node is the largest distance to the contributor node
-        let max_radius_node = nodes_to_contributor.find(
-          (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
-        );
-        // Get the overall radius to take into account for the next simulation and labeling
-        d.max_radius = max(d.max_radius + (max_radius_node ? max_radius_node.r : 0), d.r);
-        // See this as the new "contributor node" radius that includes all of it's single-degree repos
-        if (localStorage.getItem('debug-orca') === 'true' && i < 5) {
-          console.log(`Contributor ${d.id}: max_radius = ${d.max_radius}`);
-        }
-      }); // forEach
-
-    function drawContributorBubbles(nodes, links) {
-      context.save();
-      context.translate(WIDTH / 2, HEIGHT / 2);
-
-      // Draw all the links as lines
-      links.forEach((l) => {
-        if (l.source && l.target && l.source.x !== undefined && l.target.x !== undefined) {
-          calculateEdgeCenters(l, 0.8);
-          // Only calculate gradient if context is valid
-          calculateLinkGradient(context, l);
-          context.strokeStyle = l.gradient;
-        } else context.strokeStyle = COLOR_LINK;
-        context.lineWidth = scale_link_width(l.commit_count) * SF;
-        drawLine(context, SF, l);
-      }); // forEach
-
-      // Draw all the nodes as circles
-      nodes
-        .filter((d) => d.id !== central_repo.id)
-        .forEach((d) => {
-          context.fillStyle = d.color;
-          let r = d.r; //d.type === "contributor" ? 10 : d.r
-          drawCircle(context, d.x, d.y, SF, r);
-        }); // forEach
-
-      context.restore();
-    } // function drawContributorBubbles
-  } // function singleContributorForceSimulation
+  // Extracted to src/js/simulations/contributorSimulation.js
 
   // Place the contributor nodes in a circle around the central repo
   // Taking into account the max_radius of single-degree repos around them
@@ -1521,264 +1273,17 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   ///////////// Force Simulation | Collaboration Repos ////////////
   /////////////////////////////////////////////////////////////////
-  // Run a force simulation to position the repos that are shared between contributors
-  function collaborationRepoSimulation() {
-    let simulation = d3
-      .forceSimulation()
-      .force(
-        "link",
-        d3
-          .forceLink()
-          .id((d) => d.id)
-          .distance((d) => scale_link_distance(d.target.degree) * 5),
-      )
-      // .force("collide",
-      //     d3.forceCollide()
-      //         .radius(d => {
-      //             let r = d.max_radius ? d.max_radius : d.r
-      //             return r + (d.padding ? d.padding : max(r/2, 15))
-      //         })
-      //         .strength(0)
-      // )
-      .force(
-        "collide",
-        //Make sure that the words don't overlap
-        //https://github.com/emeeks/d3-bboxCollide
-        d3
-          .bboxCollide((d) => d.bbox)
-          .strength(0)
-          .iterations(1),
-      )
-      .force(
-        "charge",
-        d3.forceManyBody(),
-        // .strength(d => scale_node_charge(d.id))
-        // .distanceMax(WIDTH / 3)
-      );
-    // .force("x", d3.forceX().x(d => d.focusX).strength(0.08)) //0.1
-    // .force("y", d3.forceY().y(d => d.focusY).strength(0.08)) //0.1
-    // .force("center", d3.forceCenter(0,0))
-
-    // Keep the nodes that are an "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
-    // nodes_central = nodes.filter(d => d.type === "contributor" || d.type === "owner")
-    nodes_central = nodes.filter(
-      (d) =>
-        d.type === "contributor" ||
-        (d.type === "owner" && d.data.single_contributor == false) ||
-        d.id === REPO_CENTRAL ||
-        (d.type === "repo" &&
-          d.data.multi_repo_owner === false &&
-          d.degree > 1),
-    );
-    nodes_central.forEach((d) => {
-      d.node_central = true;
-    }); // forEach
-
-    // Calculate the bounding box around the nodes including their label
-    nodes_central.forEach((d) => {
-      if (d.type === "contributor") {
-        d.bbox = [
-          [-d.max_radius, -d.max_radius],
-          [d.max_radius, d.max_radius],
-        ];
-        return;
-      } // if
-
-      // Set the fonts
-      if (d.id === central_repo.id) {
-        setCentralRepoFont(context, 1);
-      } else if (d.type === "owner") {
-        setOwnerFont(context, 1);
-      } else if (d.type === "repo") {
-        setRepoFont(context, 1);
-      } // else
-
-      let text_size = context.measureText(d.label);
-
-      // In case the owner name is longer than the repo name
-      if (d.type === "repo") {
-        if (context.measureText(d.data.owner).width > text_size.width)
-          text_size = context.measureText(d.data.owner);
-      } // if
-
-      // The central repo is the only one with the label in the center instead of along the top
-      if (d.id === REPO_CENTRAL) {
-        let r = d.r + 14;
-        let w = max(r * 2, text_size.width * 1.25) + 10;
-        d.bbox = [
-          [-w / 2, -r],
-          [w / 2, r],
-        ];
-        return;
-      } // if
-
-      let text_height =
-        text_size.fontBoundingBoxAscent + text_size.fontBoundingBoxDescent;
-      if (d.type === "repo") text_height *= 2;
-
-      let r = d.type === "owner" ? d.max_radius : d.r;
-      let top = max(r, d.r + text_height);
-      let w = max(r * 2, text_size.width * 1.25) + 10;
-
-      d.bbox = [
-        [-w / 2, -top],
-        [w / 2, r],
-      ];
-    }); // forEach
-
-    // Only keep the links that have the nodes that are in the nodes_central array
-    // Filter links to only those between nodes in nodes_central
-    // Use getLinkNodeId() since D3 may have converted some refs to objects
-    let links_central = links.filter(
-      (d) =>
-        nodes_central.find((n) => n.id === getLinkNodeId(d.source)) &&
-        nodes_central.find((n) => n.id === getLinkNodeId(d.target)),
-    );
-
-    // Perform the simulation
-    simulation.nodes(nodes_central).stop();
-    // .on("tick", ticked)
-
-    // function ticked() {
-    //     simulationPlacementConstraints()
-    //     drawQuick()
-    // }
-
-    // // ramp up collision strength to provide smooth transition
-    // let transitionTime = 3000
-    // let t = d3.timer(function (elapsed) {
-    //     let dt = elapsed / transitionTime
-    //     simulation.force("collide").strength(0.1 + dt ** 2 * 0.6)
-    //     if (dt >= 1.0) t.stop()
-    // })
-
-    // Only use the links that are not going to the central node
-    simulation.force("link").links(links_central);
-    // .links(links_central.filter(d => d.target !== central_repo.id))
-    // simulation.force("link").links(links)
-
-    //Manually "tick" through the network
-    let n_ticks = 300;
-    for (let i = 0; i < n_ticks; ++i) {
-      simulation.tick();
-      simulationPlacementConstraints(nodes_central);
-      //Ramp up collision strength to provide smooth transition
-      simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.7);
-    } //for i
-
-    // Once it's done, fix the positions of the nodes used in the simulation
-    // simulation.on("end", () => {
-    nodes_central.forEach((d) => {
-      d.fx = d.x;
-      d.fy = d.y;
-    }); // forEach
-    // })
-
-    // Update the position of the repositories connected to an "owner" node
-    nodes
-      .filter((d) => d.type === "owner")
-      .forEach((d) => {
-        // Guard against missing connected_node_cloud
-        if (d.connected_node_cloud && d.connected_node_cloud.length > 0) {
-          d.connected_node_cloud.forEach((repo) => {
-            repo.x = d.x + repo.x;
-            repo.y = d.y + repo.y;
-          }); // forEach
-        }
-      }); // forEach
-
-    /////////////////////////////////////////////////////////////
-    function simulationPlacementConstraints(nodes) {
-      // Make sure the "repo" nodes cannot be placed farther away from the center than RADIUS_CONTRIBUTOR
-      nodes.forEach((d) => {
-        if (d.type === "repo" || d.type === "owner") {
-          const dist = sqrt(d.x ** 2 + d.y ** 2);
-          if (dist > RADIUS_CONTRIBUTOR * INNER_RADIUS_FACTOR) {
-            d.x = (d.x / dist) * RADIUS_CONTRIBUTOR * INNER_RADIUS_FACTOR;
-            d.y = (d.y / dist) * RADIUS_CONTRIBUTOR * INNER_RADIUS_FACTOR;
-          } //if
-        } //if
-      }); // forEach
-    } // simulationPlacementConstraints
-  } // function collaborationRepoSimulation
+  // Extracted to src/js/simulations/collaborationSimulation.js
 
   /////////////////////////////////////////////////////////////////
   ///////////// Force Simulation | Other Contributors /////////////
   /////////////////////////////////////////////////////////////////
-  // Run a force simulation to place the remaining contributors somewhere outside the outer NON-ORCA ring
-  function remainingContributorSimulation() {
-    let LW = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2;
-    let R = RADIUS_CONTRIBUTOR_NON_ORCA + LW * 2;
+  // Extracted to src/js/simulations/remainingSimulation.js
 
-    // Initial random position, but outside of the ORCA ring
-    remainingContributors.forEach((d) => {
-      let angle = Math.random() * TAU;
-      d.x = (R + Math.random() * 50) * cos(angle);
-      d.y = (R + Math.random() * 50) * sin(angle);
-
-      d.r = scale_remaining_contributor_radius(d.commit_count);
-    }); // forEach
-
-    let simulation = d3
-      .forceSimulation()
-      .force(
-        "collide",
-        d3
-          .forceCollide()
-          .radius((d) => d.r + Math.random() * 20 + 10)
-          .strength(1),
-      )
-      // .force("charge",
-      //     d3.forceManyBody()
-      // )
-      .force("x", d3.forceX().x(0).strength(0.01)) //0.1
-      .force("y", d3.forceY().y(0).strength(0.01)); //0.1
-
-    // Add a dummy node to the dataset that is fixed in the center that is as big as the NON-ORCA circle
-    remainingContributors.push({
-      x: 0,
-      y: 0,
-      fx: 0,
-      fy: 0,
-      r: RADIUS_CONTRIBUTOR_NON_ORCA + LW * 0.75,
-      id: "dummy",
-    });
-
-    // Perform the simulation
-    simulation.nodes(remainingContributors).stop();
-
-    // Manually "tick" through the network
-    let n_ticks = 30;
-    for (let i = 0; i < n_ticks; ++i) {
-      simulation.tick();
-      // Make sure that the nodes remain within the canvas
-      // simulationPlacementConstraints(remainingContributors)
-    } //for i
-
-    // Remove the dummy node from the dataset again
-    remainingContributors.pop();
-
-    /////////////////////////////////////////////////////////////
-    function simulationPlacementConstraints(nodes) {
-      let OUTER_AREA = max(
-        DEFAULT_SIZE / 2,
-        RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2,
-      );
-      let O = 30;
-      // Make sure the nodes remain within the canvas
-      nodes.forEach((d) => {
-        if (d.x < -OUTER_AREA + d.r)
-          d.x = -OUTER_AREA + d.r * 2 + Math.random() * O;
-        else if (d.x > OUTER_AREA - d.r)
-          d.x = OUTER_AREA - d.r * 2 - Math.random() * O;
-        if (d.y < -OUTER_AREA + d.r)
-          d.y = -OUTER_AREA + d.r * 2 + Math.random() * O;
-        else if (d.y > OUTER_AREA - d.r)
-          d.y = OUTER_AREA - d.r * 2 - Math.random() * O;
-      }); // forEach
-    } // simulationPlacementConstraints
-  } // function remainingContributorSimulation
-
+  /////////////////////////////////////////////////////////////////
+  ////////////////////// Background Elements //////////////////////
+  /////////////////////////////////////////////////////////////////
+  // Draw two rings around the central node to show those that receive ORCA (if present) vs the other top contributors
   /////////////////////////////////////////////////////////////////
   ////////////////////// Background Elements //////////////////////
   /////////////////////////////////////////////////////////////////
@@ -1862,7 +1367,7 @@ const createORCAVisual = (
     if (IS_CENTRAL) REPO_NOT_ORCA = false;
 
     // Draw a circle for the node
-    context.shadowBlur = HOVER_ACTIVE ? 0 : max(2, d.r * 0.2) * SF;
+    context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
     context.shadowColor = "#f7f7f7";
 
     // Central node gets reduced opacity to be less prominent
@@ -1878,7 +1383,7 @@ const createORCAVisual = (
     // Also draw a stroke around the node
     if (!d.remaining_contributor) {
       context.strokeStyle = COLOR_BACKGROUND;
-      context.lineWidth = max(HOVER_ACTIVE ? 1.5 : 1, d.r * 0.07) * SF;
+      context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
       drawCircle(context, d.x, d.y, SF, d.r, true, true);
       context.stroke();
     } // if
@@ -1887,11 +1392,12 @@ const createORCAVisual = (
   function drawNodeArc(context, SF, d) {
     // Draw an arc around the repository node that shows how long the contributor has been active in that repo for all its existence, based on the first and last commit time
     if (
-      HOVER_ACTIVE &&
-      HOVERED_NODE.type === "contributor" &&
+      interactionState.hoverActive &&
+      interactionState.hoveredNode &&
+      interactionState.hoveredNode.type === "contributor" &&
       d.type === "repo"
     ) {
-      let link = HOVERED_NODE.data.links_original.find((p) => p.repo === d.id);
+      let link = interactionState.hoveredNode.data.links_original.find((p) => p.repo === d.id);
       // Only draw arc if link exists
       if (link) timeRangeArc(context, SF, d, d, link, COLOR_CONTRIBUTOR);
     } // if
@@ -2010,16 +1516,16 @@ const createORCAVisual = (
 
     // If a hover is active, and the hovered node is a contributor, and this is a link between an owner and repository, make the line width depend on the commit_count of the original link between the contributor and the repository
     if (
-      HOVER_ACTIVE &&
-      HOVERED_NODE &&
-      HOVERED_NODE.type === "contributor" &&
-      HOVERED_NODE.data &&
-      HOVERED_NODE.data.links_original &&
+      interactionState.hoverActive &&
+      interactionState.hoveredNode &&
+      interactionState.hoveredNode.type === "contributor" &&
+      interactionState.hoveredNode.data &&
+      interactionState.hoveredNode.data.links_original &&
       l.source.type === "owner" &&
       l.target.type === "repo"
     ) {
       // Find the link between this contributor and the repository in the links_original
-      let link_original = HOVERED_NODE.data.links_original.find(
+      let link_original = interactionState.hoveredNode.data.links_original.find(
         (p) => p.repo === l.target.id,
       );
       // Base the line width on this commit count
@@ -2125,7 +1631,7 @@ const createORCAVisual = (
 
     // Incorporate opacity into gradient
     let alpha;
-    if (HOVER_ACTIVE) alpha = l.target.special_type ? 0.3 : 0.7;
+    if (interactionState.hoverActive) alpha = l.target.special_type ? 0.3 : 0.7;
     else alpha = l.target.special_type ? 0.15 : scale_alpha(links.length);
     createGradient(l, alpha);
 
@@ -2203,8 +1709,7 @@ const createORCAVisual = (
         // Draw the hover state on the top canvas
         // Skip hover on the central pseudo-node (it's not a real entity)
         if (FOUND && d && d.id !== REPO_CENTRAL) {
-          HOVER_ACTIVE = true;
-          HOVERED_NODE = d;
+          setHovered(interactionState, d);
 
           // Fade out the main canvas, using CSS
           if (!d.remaining_contributor)
@@ -2214,10 +1719,9 @@ const createORCAVisual = (
           drawHoverState(context_hover, d);
         } else {
           context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-          HOVER_ACTIVE = false;
-          HOVERED_NODE = null;
+          clearHover(interactionState);
 
-          if (!CLICK_ACTIVE) {
+          if (!interactionState.clickActive) {
             // Fade the main canvas back in
             canvas.style.opacity = "1";
           } // if
@@ -2226,19 +1730,17 @@ const createORCAVisual = (
         // Log error but don't break the handler
         console.warn("Hover error:", err);
         context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-        HOVER_ACTIVE = false;
-        HOVERED_NODE = null;
-        if (!CLICK_ACTIVE) canvas.style.opacity = "1";
+        clearHover(interactionState);
+        if (!interactionState.clickActive) canvas.style.opacity = "1";
       }
     }); // on mousemove
 
     // Clean up hover state when mouse leaves the canvas
     d3.select("#canvas-hover").on("mouseleave", function () {
       context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-      HOVER_ACTIVE = false;
-      HOVERED_NODE = null;
+      clearHover(interactionState);
 
-      if (!CLICK_ACTIVE) {
+      if (!interactionState.clickActive) {
         canvas.style.opacity = "1";
       }
     }); // on mouseleave
@@ -2386,12 +1888,12 @@ const createORCAVisual = (
 
       // Skip click on the central pseudo-node (it's not a real entity)
       if (FOUND && d && d.id !== REPO_CENTRAL) {
-        CLICK_ACTIVE = true;
-        CLICKED_NODE = d;
+        setClicked(interactionState, d);
 
         // Reset the delaunay for the hover, taking only the neighbors into account of the clicked node
         nodes_delaunay = d.neighbors ? [...d.neighbors, d] : nodes;
         delaunay = d3.Delaunay.from(nodes_delaunay.map((n) => [n.x, n.y]));
+        setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
 
         // Copy the context_hovered to the context_click without the tooltip
         drawHoverState(context_click, d, false);
@@ -2401,14 +1903,13 @@ const createORCAVisual = (
         // // Test if the delaunay works
         // testDelaunay(delaunay, context_hover)
       } else {
-        CLICK_ACTIVE = false;
-        CLICKED_NODE = null;
-        HOVER_ACTIVE = false;
-        HOVERED_NODE = null;
+        clearClick(interactionState);
+        clearHover(interactionState);
 
         // Reset the delaunay to all the nodes
         nodes_delaunay = nodes;
         delaunay = d3.Delaunay.from(nodes_delaunay.map((d) => [d.x, d.y]));
+        setDelaunay(interactionState, delaunay, nodes_delaunay, delaunay_remaining);
 
         // Fade the main canvas back in
         canvas.style.opacity = "1";
@@ -2444,7 +1945,7 @@ const createORCAVisual = (
     // Get the distance from the mouse to the node
     let dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
     // If the distance is too big, don't show anything
-    let FOUND = dist < d.r + (CLICK_ACTIVE ? 10 : 50);
+    let FOUND = dist < d.r + (interactionState.clickActive ? 10 : 50);
 
     // Check if the mouse is close enough to one of the remaining contributors of FOUND is false
     if (!FOUND && REMAINING_PRESENT) {
@@ -2480,7 +1981,7 @@ const createORCAVisual = (
       else if (d.data.languages.length > 0) H = 210;
       else H = 169;
 
-      if (CLICK_ACTIVE && CLICKED_NODE.type === "contributor") H += 63;
+      if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") H += 63;
     } // else
 
     // Start with a minimum width
@@ -2702,9 +2203,9 @@ const createORCAVisual = (
       context.globalAlpha = 0.9;
 
       // First and last commit the the hovered repo if a click is active
-      if (CLICK_ACTIVE && CLICKED_NODE.type === "contributor") {
+      if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
         // Get the first and last commit of the contributor to this repo
-        let link = CLICKED_NODE.data.links_original.find(
+        let link = interactionState.clickedNode.data.links_original.find(
           (l) => l.repo === d.id,
         );
         // Skip if link doesn't exist (contributor not connected to this repo)
@@ -2725,7 +2226,7 @@ const createORCAVisual = (
         setFont(context, font_size * SF, 700, "normal");
         renderText(
           context,
-          CLICKED_NODE.data.contributor_name,
+          interactionState.clickedNode.data.contributor_name,
           x * SF,
           y * SF,
           1.25 * SF,
@@ -2970,15 +2471,14 @@ const createORCAVisual = (
     nodes_central = [];  // Reset derived array for central nodes
 
     // Reset interaction state
-    HOVER_ACTIVE = false;
-    HOVERED_NODE = null;
-    CLICK_ACTIVE = false;
-    CLICKED_NODE = null;
+    clearAll(interactionState);
+    clearDelaunay(interactionState);
 
     // Reset spatial data structures (will be rebuilt in resize())
     nodes_delaunay = [];
     delaunay = null;
     delaunay_remaining = null;
+    // Note: clearDelaunay already called above via clearAll
 
     // Apply current filters
     applyFilters();
@@ -2990,11 +2490,38 @@ const createORCAVisual = (
     central_repo.x = central_repo.fx = 0;
     central_repo.y = central_repo.fy = 0;
 
-    singleOwnerForceSimulation();
-    singleContributorForceSimulation();
+    runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, min);
+    runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max);
     positionContributorNodes();
-    collaborationRepoSimulation();
-    if (REMAINING_PRESENT) remainingContributorSimulation();
+    nodes_central = runCollaborationSimulation(
+      nodes,
+      links,
+      d3,
+      getLinkNodeId,
+      sqrt,
+      max,
+      context,
+      REPO_CENTRAL,
+      central_repo,
+      scale_link_distance,
+      RADIUS_CONTRIBUTOR,
+      INNER_RADIUS_FACTOR
+    );
+    if (REMAINING_PRESENT) {
+      runRemainingSimulation(
+        remainingContributors,
+        d3,
+        TAU,
+        cos,
+        sin,
+        max,
+        RADIUS_CONTRIBUTOR,
+        RADIUS_CONTRIBUTOR_NON_ORCA,
+        ORCA_RING_WIDTH,
+        DEFAULT_SIZE,
+        scale_remaining_contributor_radius
+      );
+    }
 
     // Resolve any remaining string references in links
     resolveLinkReferences();
@@ -3083,15 +2610,10 @@ const createORCAVisual = (
    * @returns {Object} - The chart instance
    */
   chart.setFilter = function (organizationName, enabled) {
-    if (enabled && !activeFilters.organizations.includes(organizationName)) {
-      activeFilters.organizations.push(organizationName);
-    } else if (
-      !enabled &&
-      activeFilters.organizations.includes(organizationName)
-    ) {
-      activeFilters.organizations = activeFilters.organizations.filter(
-        (org) => org !== organizationName,
-      );
+    if (enabled) {
+      addOrganization(activeFilters, organizationName);
+    } else {
+      removeOrganization(activeFilters, organizationName);
     }
 
     chart.rebuild();
