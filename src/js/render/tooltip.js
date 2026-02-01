@@ -32,19 +32,19 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
   let height = 0;
 
   // Header section
-  height += 20; // Top padding
+  height += 18; // Top padding (balanced)
   height += 12 * line_height; // "Repository" label (12px font * 1.2 line height = 14.4px)
-  height += 24; // Spacing
+  height += 18; // Spacing (balanced)
 
   // Title section (owner/name) - two lines
   height += 15 * line_height; // Owner line (15px font * 1.2 = 18px)
   height += 15 * line_height; // Name line (15px font * 1.2 = 18px)
-  height += 42; // Spacing
+  height += 42; // Spacing to dates (matches render: y += 42 accounts for name at y+18 plus padding)
 
   // Dates section
   height += 11 * line_height; // Created date (11px font * 1.2 = 13.2px)
   height += 11 * line_height; // Updated date (11px font * 1.2 = 13.2px)
-  height += 23; // Spacing before stats
+  height += 20; // Spacing before stats (balanced)
 
   // Stats line
   height += config.headerFontSize * line_height; // Stats line (12px font * 1.2 = 14.4px)
@@ -53,7 +53,7 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
   // Languages section (if present)
   // renderLanguages adds sectionSpacing, then label, then value lines
   if (d.data.languages && d.data.languages.length > 0) {
-    height += config.sectionSpacing; // 24px spacing (added by renderLanguages)
+    height += config.sectionSpacing; // 20px spacing (added by renderLanguages)
     height += config.labelFontSize * config.lineHeight + 4; // Label line (11px * 1.4 + 4 = 19.4px)
     height += config.valueFontSize * config.lineHeight; // Languages line (11.5px * 1.4 = 16.1px)
     if (d.data.languages.length > 3) {
@@ -64,7 +64,7 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
   // Community metrics section (if present)
   // renderCommunityMetrics adds sectionSpacing, then label, then contributor count, then health, optionally bus factor
   if (d.data.totalContributors && d.data.totalContributors > 0) {
-    height += config.sectionSpacing; // 24px spacing (added by renderCommunityMetrics)
+    height += config.sectionSpacing; // 20px spacing (added by renderCommunityMetrics)
     height += config.labelFontSize * config.lineHeight + 4; // Label line (11px * 1.4 + 4 = 19.4px)
     height += config.valueFontSize * config.lineHeight; // Contributors line (11.5px * 1.4 = 16.1px)
     height += config.valueFontSize * config.lineHeight; // Health line (11.5px * 1.4 = 16.1px)
@@ -76,21 +76,16 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
   // License section (if present)
   // renderLicense adds sectionSpacing, then license text
   if (d.data.license) {
-    height += config.sectionSpacing; // 24px spacing (added by renderLicense)
+    height += config.sectionSpacing; // 20px spacing (added by renderLicense)
     height += config.valueFontSize * config.lineHeight; // License line (11.5px * 1.4 = 16.1px)
   }
 
   // Archived badge (if present)
   // renderArchivedBadge adds sectionSpacing, then archived text
   if (d.data.archived) {
-    height += config.sectionSpacing; // 24px spacing (added by renderArchivedBadge)
+    height += config.sectionSpacing; // 20px spacing (added by renderArchivedBadge)
     height += config.valueFontSize * config.lineHeight; // Archived line (11.5px * 1.4 = 16.1px)
   }
-
-  // ORCA recipients section
-  // This section is always rendered (even if ORCA_RECEIVED is 0)
-  height += 26; // Spacing before ORCA section
-  height += 11 * line_height; // Text line (11px font * 1.2 = 13.2px)
 
   // Clicked contributor section (if active)
   if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
@@ -106,12 +101,9 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
   }
 
   // Bottom padding
-  height += 20;
+  height += 12;
 
-  // Add a buffer to ensure all content fits (accounts for rounding, spacing variations, etc.)
-  height += 15;
-
-  return Math.ceil(height); // Round up to ensure we have enough space
+  return Math.ceil(height);
 }
 
 /**
@@ -259,8 +251,6 @@ function calculateRepoTooltipWidth(context, d, interactionState, central_repo, S
 export function drawTooltip(context, d, config, interactionState, central_repo, formatDate, formatDateExact, formatDigit) {
   const { SF, REPO_CENTRAL, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER, min } = config;
   
-  console.log('drawTooltip called', { type: d.type, id: d.id, x: d.x, y: d.y, SF, COLOR_BACKGROUND });
-  
   let line_height = 1.2;
   let font_size;
   let text;
@@ -368,7 +358,6 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   const rectY = y * SF;
   const rectW = W * SF;
   const rectH = H * SF;
-  console.log('Drawing tooltip rect', { rectX, rectY, rectW, rectH, bgColor, x_base, y_base, H_OFFSET, W, H, SF });
   context.shadowBlur = 3 * SF;
   context.shadowColor = "#d4d4d4";
   context.fillStyle = bgColor;
@@ -384,7 +373,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   context.textBaseline = "middle";
 
   // Contributor, owner or repo
-  y = 20;
+  y = 18; // Balanced
   font_size = 12;
   setFont(context, font_size * SF, 400, "italic");
   context.fillStyle = COL;
@@ -396,7 +385,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   renderText(context, text, x * SF, y * SF, 2.5 * SF);
 
   context.fillStyle = COLOR_TEXT;
-  y += 24;
+  y += 18; // Balanced
 
   if (d.id === central_repo.id) {
     font_size = 15;
@@ -444,6 +433,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     );
 
     // The creation date
+    // Note: name was rendered at y + 18, so we need to move past it (18) plus add spacing (24) = 42
     y += 42;
     font_size = 11;
     context.globalAlpha = 0.7;
@@ -470,7 +460,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     // ============================================================
 
     // Stats line: stars, forks, watchers
-    y += 23;
+    y += 20; // Balanced
     renderStatsLine(context, d.data, x, y, SF, formatDigit);
 
     // Languages section
@@ -485,19 +475,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     // Archived badge (if applicable)
     y = renderArchivedBadge(context, d.data, x, y, SF);
 
-    // Number of ORCA recipients
-    let ORCA_RECEIVED = 0;
-    let weight = 400;
-    context.globalAlpha = 0.8;
-    font_size = 11;
-
-    d.data.contributors.forEach((c) => {
-      if (c.orca_received) ORCA_RECEIVED++;
-    });
-    y += 26;
-
-    setFont(context, font_size * SF, weight, "normal");
-    renderText(context, text, x * SF, y * SF, 1.25 * SF);
+    // Reset context for potential click section
     context.fillStyle = COLOR_TEXT;
     context.globalAlpha = 0.9;
 
@@ -511,14 +489,14 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
       if (!link) return;
       let num_commits = link.commit_count;
 
-      y += 28;
+      y += 20; // Reduced from 28
       font_size = 11;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "italic");
       text = num_commits === 1 ? "1 commit by" : `${num_commits} commits by`;
       renderText(context, text, x * SF, y * SF, 2 * SF);
 
-      y += 16;
+      y += 12; // Reduced from 16
       font_size = 11.5;
       context.globalAlpha = 0.9;
       setFont(context, font_size * SF, 700, "normal");
@@ -530,7 +508,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
         1.25 * SF,
       );
 
-      y += 18;
+      y += 14; // Reduced from 18
       font_size = 11;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "normal");

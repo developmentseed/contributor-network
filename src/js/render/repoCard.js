@@ -16,7 +16,7 @@ import { min } from '../utils/helpers.js';
  */
 export const REPO_CARD_CONFIG = {
   lineHeight: 1.4,
-  sectionSpacing: 24,
+  sectionSpacing: 20, // Balanced spacing (was 24, reduced to 18, now 20 for better readability)
   labelFontSize: 11,
   valueFontSize: 11.5,
   headerFontSize: 12,
@@ -117,6 +117,9 @@ export function renderLanguages(context, data, x, y, SF) {
   if (data.languages.length > 3) {
     y += config.valueFontSize * config.lineHeight;
     renderText(context, `& ${data.languages.length - 3} more`, x * SF, y * SF, 1.25 * SF);
+    y += config.valueFontSize * config.lineHeight; // Increment after last line
+  } else {
+    y += config.valueFontSize * config.lineHeight; // Increment after value line
   }
 
   return y;
@@ -185,6 +188,9 @@ export function renderCommunityMetrics(context, data, x, y, SF) {
     renderText(context, '⚠ Single DevSeed maintainer', x * SF, y * SF, 1.25 * SF);
     context.globalAlpha = config.valueOpacity;
     setFont(context, config.valueFontSize * SF, 400, 'normal');
+    y += config.valueFontSize * config.lineHeight; // Increment after warning line
+  } else {
+    y += config.valueFontSize * config.lineHeight; // Increment after health line
   }
 
   return y;
@@ -251,6 +257,7 @@ export function renderLicense(context, data, x, y, SF) {
   context.globalAlpha = config.valueOpacity;
   setFont(context, config.valueFontSize * SF, 400, 'normal');
   renderText(context, `License: ${data.license}`, x * SF, y * SF, 1.25 * SF);
+  y += config.valueFontSize * config.lineHeight; // Increment after license line
 
   return y;
 }
@@ -276,6 +283,7 @@ export function renderArchivedBadge(context, data, x, y, SF) {
   setFont(context, config.valueFontSize * SF, 400, 'italic');
   renderText(context, '📦 Archived', x * SF, y * SF, 1.25 * SF);
   context.globalAlpha = config.valueOpacity;
+  y += config.valueFontSize * config.lineHeight; // Increment after archived line
 
   return y;
 }

@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "devDependencies": {
+    "esbuild": "^0.27.2",
     "vite": "^4.5.3",
     "vitest": "^1.6.0"
   }
