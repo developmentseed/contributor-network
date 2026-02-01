@@ -5,10 +5,22 @@ export default defineConfig({
   root: '.',
   publicDir: 'lib',
   build: {
-    outDir: 'dist',
+    outDir: 'build',
+    emptyOutDir: true,
+    lib: {
+      // Bundle the main visualization as a library
+      entry: resolve(__dirname, 'index.js'),
+      name: 'ContributorNetwork',
+      fileName: (format) => `contributor-network.${format}.js`,
+      formats: ['es', 'iife']
+    },
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'dist/index.html')
+      // D3 is loaded externally via script tag
+      external: ['d3'],
+      output: {
+        globals: {
+          d3: 'd3'
+        }
       }
     }
   },

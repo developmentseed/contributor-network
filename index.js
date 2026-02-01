@@ -9,12 +9,54 @@
 // - Added boundary checking to prevent hover outside visualization area
 // - Added mouseleave handler to properly clean up hover state
 // - Filtered out artificial links to/from the central pseudo-node
+// - Refactored to use modular components (Phase 1 & 2 data expansion)
 //
 /////////////////////////////////////////////////////////////////////
 /////////////// Visualization designed & developed by ///////////////
 /////////////////////////// Nadieh Bremer ///////////////////////////
 ///////////////////////// VisualCinnamon.com ////////////////////////
 /////////////////////////////////////////////////////////////////////
+
+// ============================================================
+// Modular Imports (loaded via Vite bundler)
+import { COLORS, FONTS, SIZES, LAYOUT as THEME_LAYOUT } from './src/js/config/theme.js';
+import {
+  isValidNode,
+  isValidLink,
+  getLinkNodeId
+} from './src/js/utils/validation.js';
+import {
+  createRepoRadiusScale,
+  createContributorRadiusScale,
+  createRemainingContributorRadiusScale,
+  createLinkDistanceScale,
+  createLinkWidthScale
+} from './src/js/config/scales.js';
+import {
+  setFont,
+  setRepoFont,
+  setCentralRepoFont,
+  setOwnerFont,
+  setContributorFont,
+  renderText,
+  getLines,
+  splitString,
+  drawTextAlongArc
+} from './src/js/render/text.js';
+
+// ============================================================
+import {
+  renderStatsLine,
+  renderLanguages,
+  renderCommunityMetrics,
+  renderLicense,
+  renderArchivedBadge,
+  REPO_CARD_CONFIG
+} from './src/js/render/repoCard.js';
+
+// ============================================================
+// Main Visualization
+// ============================================================
 const createORCAVisual = (
   container,
   initial_repo_central,
@@ -116,141 +158,30 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   ///////////////////////////// Colors ////////////////////////////
   /////////////////////////////////////////////////////////////////
-  // DevSeed Brand Colors
-  // NOTE: Authoritative source is now src/js/config/theme.js
-  // These constants are duplicated here for backward compatibility.
-  // When migrating to ES6 modules, import from theme.js instead.
-  // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
+  /* 
+   * DevSeed Brand Colors
+   * Imported from src/js/config/theme.js
+   * Kept as local constants for compatibility
+   */
+  const COLOR_BACKGROUND = COLORS.background;
 
-  const COLOR_BACKGROUND = "#f7f7f7";
+  // Was purple, now Grenadier for accent rings
+  const COLOR_PURPLE = COLORS.grenadier;
 
-  const COLOR_PURPLE = "#CF3F02";          // Was purple, now Grenadier for accent rings
+  const COLOR_REPO_MAIN = COLORS.repoMain;       // Grenadier (signature orange)
+  const COLOR_REPO = COLORS.repo;            // Aquamarine (secondary blue)
+  const COLOR_OWNER = COLORS.owner;           // Grenadier
+  const COLOR_CONTRIBUTOR = COLORS.contributor;     // Lighter aquamarine
 
-  const COLOR_REPO_MAIN = "#CF3F02";       // Grenadier (signature orange)
-  const COLOR_REPO = "#2E86AB";            // Aquamarine (secondary blue)
-  const COLOR_OWNER = "#CF3F02";           // Grenadier
-  const COLOR_CONTRIBUTOR = "#3A9BBF";     // Lighter aquamarine
-
-  const COLOR_LINK = "#e8e8e8";
-  const COLOR_TEXT = "#443F3F";            // Base dark gray
+  const COLOR_LINK = COLORS.link;
+  const COLOR_TEXT = COLORS.text;            // Base dark gray
 
   /////////////////////////////////////////////////////////////////
   //////////////////////// Validation Helpers /////////////////////
   /////////////////////////////////////////////////////////////////
-  // Constants and helpers for validating node/link data integrity
-  // Added to prevent rendering crashes during filtering operations
+  // Imported from src/js/utils/validation.js
+  // isValidNode, isValidLink, getLinkNodeId are now imported
 
-  const VALID_NODE_TYPES = new Set(['contributor', 'repo', 'owner']);
-
-  /**
-   * Check if a node has valid positioning data
-   * @param {Object} node - The node to validate
-   * @returns {boolean} - True if node is valid and positioned
-   */
-  function isValidNode(node) {
-    return (
-      node &&
-      node.id &&
-      VALID_NODE_TYPES.has(node.type) &&
-      typeof node.x === 'number' &&
-      typeof node.y === 'number' &&
-      isFinite(node.x) &&
-      isFinite(node.y)
-    );
-  }
-
-  /**
-   * Check if a link has valid source and target nodes
-   * @param {Object} link - The link to validate
-   * @returns {boolean} - True if link is valid
-   */
-  function isValidLink(link) {
-    return (
-      link &&
-      link.source &&
-      link.target &&
-      isValidNode(link.source) &&
-      isValidNode(link.target)
-    );
-  }
-
-  /**
-   * Conditional debug logging based on localStorage flag
-   * Usage: debugLog("message", { data })
-   */
-  function debugLog(message, data = {}) {
-    if (localStorage.getItem('debug-orca') === 'true') {
-      const timestamp = new Date().toISOString().substr(11, 8);
-      console.log(`[${timestamp}] ${message}`, data);
-    }
-  }
-
-  function debugWarn(message, data = {}) {
-    if (localStorage.getItem('debug-orca') === 'true') {
-      const timestamp = new Date().toISOString().substr(11, 8);
-      console.warn(`[${timestamp}] ⚠️ ${message}`, data);
-    }
-  }
-
-  /**
-   * Get the ID from a link's source or target, whether it's a string or node object.
-   * D3's forceLink converts string refs to object refs during simulation,
-   * so we need to handle both cases when comparing link endpoints.
-   * @param {string|Object} ref - The source or target reference
-   * @returns {string} - The node ID
-   */
-  function getLinkNodeId(ref) {
-    return (typeof ref === 'object' && ref !== null) ? ref.id : ref;
-  }
-
-  /**
-   * Resolves string references in links to actual node objects.
-   * After force simulations, some links may still have source/target as string IDs
-   * instead of node object references. This function converts them.
-   */
-  function resolveLinkReferences() {
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    let unresolvedCount = 0;
-
-    links.forEach(link => {
-      if (typeof link.source === 'string') {
-        const resolvedSource = nodeMap.get(link.source);
-        if (resolvedSource) {
-          link.source = resolvedSource;
-        } else {
-          unresolvedCount++;
-          debugWarn(`Could not resolve source node: "${link.source}"`);
-          link.source = null; // Mark as invalid
-        }
-      }
-      if (typeof link.target === 'string') {
-        const resolvedTarget = nodeMap.get(link.target);
-        if (resolvedTarget) {
-          link.target = resolvedTarget;
-        } else {
-          unresolvedCount++;
-          debugWarn(`Could not resolve target node: "${link.target}"`);
-          link.target = null; // Mark as invalid
-        }
-      }
-    });
-
-    // Remove any links where source or target couldn't be resolved or are empty
-    const beforeCount = links.length;
-    links = links.filter(link => {
-      // Must have both source and target
-      if (!link.source || !link.target) return false;
-      // Both must be objects (not strings or empty objects)
-      if (typeof link.source !== 'object' || typeof link.target !== 'object') return false;
-      // Both must have an id property
-      if (!link.source.id || !link.target.id) return false;
-      return true;
-    });
-
-    if (localStorage.getItem('debug-orca') === 'true' && beforeCount !== links.length) {
-      console.debug(`Removed ${beforeCount - links.length} unresolved links`);
-    }
-  }
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////// Create Canvas /////////////////////////
@@ -326,15 +257,16 @@ const createORCAVisual = (
   let formatDigit = d3.format(",.2s");
   // let formatDigit = d3.format(",.2r")
 
-  const scale_repo_radius = d3.scaleSqrt().range([4, 20]);
+  /* D3 Scales - using factories from src/js/config/scales.js */
+  const scale_repo_radius = createRepoRadiusScale(d3);
 
   // Based on the number of commits to the central repo
-  const scale_contributor_radius = d3.scaleSqrt().range([8, 30]);
-  const scale_remaining_contributor_radius = d3.scaleSqrt().range([1, 8]);
+  const scale_contributor_radius = createContributorRadiusScale(d3);
+  const scale_remaining_contributor_radius = createRemainingContributorRadiusScale(d3);
 
-  const scale_link_distance = d3.scaleLinear().domain([1, 50]).range([10, 80]);
+  const scale_link_distance = createLinkDistanceScale(d3);
 
-  const scale_link_width = d3.scalePow().exponent(0.75).range([1, 2, 60]);
+  const scale_link_width = createLinkWidthScale(d3);
   // .clamp(true)
 
   /////////////////////////////////////////////////////////////////
@@ -670,6 +602,18 @@ const createORCAVisual = (
       // d.repo
       d.forks = +d.repo_forks;
       d.stars = +d.repo_stars;
+      // Phase 1: Additional metadata
+      d.watchers = +d.repo_watchers || 0;
+      d.openIssues = +d.repo_open_issues || 0;
+      d.license = d.repo_license || null;
+      d.topics = d.repo_topics ? d.repo_topics.split(",").filter(t => t !== "") : [];
+      d.hasDiscussions = d.repo_has_discussions === "true" || d.repo_has_discussions === true;
+      d.archived = d.repo_archived === "true" || d.repo_archived === true;
+      // Phase 2: Community metrics
+      d.totalContributors = +d.repo_total_contributors || 0;
+      d.devseedContributors = +d.repo_devseed_contributors || 0;
+      d.externalContributors = +d.repo_external_contributors || 0;
+      d.communityRatio = +d.repo_community_ratio || 0;
 
       // Check if the dates are in unix time or not
       if (isInteger(d.createdAt)) {
@@ -696,6 +640,16 @@ const createORCAVisual = (
 
       delete d.repo_forks;
       delete d.repo_stars;
+      delete d.repo_watchers;
+      delete d.repo_open_issues;
+      delete d.repo_license;
+      delete d.repo_topics;
+      delete d.repo_has_discussions;
+      delete d.repo_archived;
+      delete d.repo_total_contributors;
+      delete d.repo_devseed_contributors;
+      delete d.repo_external_contributors;
+      delete d.repo_community_ratio;
       delete d.repo_createdAt;
       delete d.repo_updatedAt;
     }); // forEach
@@ -1506,62 +1460,62 @@ const createORCAVisual = (
     // const angle = TAU / (nodes.filter(d => d.type === "contributor").length)
     let angle = 0;
     contributorNodes.forEach((d, i) => {
-        // Subtract the contributor node position from all it's connected single-degree repos
-        // (this converts their positions from absolute to relative to the contributor)
-        if (d.connected_single_repo && d.connected_single_repo.length > 0) {
-          d.connected_single_repo.forEach((repo) => {
-            repo.x -= d.x;
-            repo.y -= d.y;
-          }); // forEach
-        }
+      // Subtract the contributor node position from all it's connected single-degree repos
+      // (this converts their positions from absolute to relative to the contributor)
+      if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+        d.connected_single_repo.forEach((repo) => {
+          repo.x -= d.x;
+          repo.y -= d.y;
+        }); // forEach
+      }
 
-        // Find the new position of the contributor node in a ring around the central node
-        // max_radius should already be set from the validation above
+      // Find the new position of the contributor node in a ring around the central node
+      // max_radius should already be set from the validation above
 
-        // Debug: log first few contributor positions
-        if (i < 3) {
-          console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, central_repo=(${central_repo.fx}, ${central_repo.fy})`);
-        }
+      // Debug: log first few contributor positions
+      if (i < 3) {
+        console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, central_repo=(${central_repo.fx}, ${central_repo.fy})`);
+      }
 
-        let contributor_arc = d.max_radius * 2 + CONTRIBUTOR_PADDING;
-        // translate this distance to an angle
-        let contributor_angle;
-        if (useEvenSpacing) {
-          // When using minimum radius, distribute evenly around the circle
-          contributor_angle = evenAngleIncrement / 2;
-        } else {
-          contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
-        }
+      let contributor_arc = d.max_radius * 2 + CONTRIBUTOR_PADDING;
+      // translate this distance to an angle
+      let contributor_angle;
+      if (useEvenSpacing) {
+        // When using minimum radius, distribute evenly around the circle
+        contributor_angle = evenAngleIncrement / 2;
+      } else {
+        contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
+      }
 
-        let radius_drawn = d.data.orca_received
-          ? RADIUS_CONTRIBUTOR
-          : RADIUS_CONTRIBUTOR_NON_ORCA;
-        d.x =
-          central_repo.fx +
-          radius_drawn * cos(angle + contributor_angle - PI / 2);
-        d.y =
-          central_repo.fy +
-          radius_drawn * sin(angle + contributor_angle - PI / 2);
-        d.contributor_angle = angle + contributor_angle - PI / 2;
-        angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;
+      let radius_drawn = d.data.orca_received
+        ? RADIUS_CONTRIBUTOR
+        : RADIUS_CONTRIBUTOR_NON_ORCA;
+      d.x =
+        central_repo.fx +
+        radius_drawn * cos(angle + contributor_angle - PI / 2);
+      d.y =
+        central_repo.fy +
+        radius_drawn * sin(angle + contributor_angle - PI / 2);
+      d.contributor_angle = angle + contributor_angle - PI / 2;
+      angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;
 
-        // Fix the contributors for the force simulation
-        d.fx = d.x;
-        d.fy = d.y;
+      // Fix the contributors for the force simulation
+      d.fx = d.x;
+      d.fy = d.y;
 
-        // Add the new contributor position to all it's connected single-degree repos
-        // (converting their positions back from relative to absolute)
-        if (d.connected_single_repo && d.connected_single_repo.length > 0) {
-          d.connected_single_repo.forEach((repo) => {
-            repo.x += d.x;
-            repo.y += d.y;
+      // Add the new contributor position to all it's connected single-degree repos
+      // (converting their positions back from relative to absolute)
+      if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+        d.connected_single_repo.forEach((repo) => {
+          repo.x += d.x;
+          repo.y += d.y;
 
-            // Fix position for force simulation
-            repo.fx = repo.x;
-            repo.fy = repo.y;
-          }); // forEach
-        }
-      }); // forEach
+          // Fix position for force simulation
+          repo.fx = repo.x;
+          repo.fy = repo.y;
+        }); // forEach
+      }
+    }); // forEach
   } // function positionContributorNodes
 
   /////////////////////////////////////////////////////////////////
@@ -2711,47 +2665,25 @@ const createORCAVisual = (
         1.25 * SF,
       );
 
-      // The number of stars & forks
+      // ============================================================
+      // Repo Card Sections (using modular components)
+      // ============================================================
+
+      // Stats line: stars, forks, watchers
       y += 23;
-      font_size = 12;
-      setFont(context, font_size * SF, 400, "normal");
-      context.globalAlpha = 1;
-      let stars = d.data.stars;
-      let forks = d.data.forks;
-      renderText(
-        context,
-        `${stars < 10 ? stars : formatDigit(stars)} stars | ${forks < 10 ? forks : formatDigit(forks)
-        } forks`,
-        x * SF,
-        y * SF,
-        1.25 * SF,
-      );
-      context.globalAlpha = 1;
+      renderStatsLine(context, d.data, x, y, SF, formatDigit);
 
-      // Languages
-      if (d.data.languages.length > 0) {
-        y += 24;
-        font_size = 11;
-        context.globalAlpha = 0.6;
-        setFont(context, font_size * SF, 400, "italic");
-        renderText(context, "Languages", x * SF, y * SF, 2 * SF);
+      // Languages section
+      y = renderLanguages(context, d.data, x, y, SF);
 
-        font_size = 11.5;
-        y += font_size * line_height + 4;
-        context.globalAlpha = 0.9;
-        setFont(context, font_size * SF, 400, "normal");
-        text = "";
-        for (let i = 0; i < min(3, d.data.languages.length); i++) {
-          text += `${d.data.languages[i]}${i < min(3, d.data.languages.length) - 1 ? ", " : ""
-            }`;
-        } // for i
-        renderText(context, text, x * SF, y * SF, 1.25 * SF);
-        if (d.data.languages.length > 3) {
-          y += font_size * line_height;
-          text = `& ${d.data.languages.length - 3} more`;
-          renderText(context, text, x * SF, y * SF, 1.25 * SF);
-        } // if
-      } // if
+      // Community metrics section (Phase 2)
+      y = renderCommunityMetrics(context, d.data, x, y, SF);
+
+      // License (if available)
+      y = renderLicense(context, d.data, x, y, SF);
+
+      // Archived badge (if applicable)
+      y = renderArchivedBadge(context, d.data, x, y, SF);
 
       // Number of ORCA recipients
       let ORCA_RECEIVED = 0;
@@ -2950,148 +2882,12 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////////
 
   ////////////////////// Different Font Settings //////////////////////
-  function setFont(context, font_size, font_weight, font_style = "normal") {
-    context.font = `${font_weight} ${font_style} ${font_size}px ${FONT_FAMILY}`;
-  } //function setFont
+  /* 
+   * Text Functions - REFACTORED
+   * These functions have been moved to src/js/render/text.js
+   * and are now imported at the top of the file.
+   */
 
-  function setRepoFont(context, SF = 1, font_size = 12) {
-    setFont(context, font_size * SF, 400, "normal");
-  } //function setRepoFont
-
-  function setCentralRepoFont(context, SF = 1, font_size = 15) {
-    setFont(context, font_size * SF, 700, "normal");
-  } //function setCentralRepoFont
-
-  function setOwnerFont(context, SF = 1, font_size = 12) {
-    setFont(context, font_size * SF, 700, "normal");
-  } //function setOwnerFont
-
-  function setContributorFont(context, SF = 1, font_size = 13) {
-    setFont(context, font_size * SF, 700, "italic");
-  } //function setContributorFont
-
-  //////////////// Add tracking (space) between letters ///////////////
-  function renderText(context, text, x, y, letterSpacing = 0, stroke = false) {
-    //Based on http://jsfiddle.net/davidhong/hKbJ4/
-    let characters = String.prototype.split.call(text, "");
-    let index = 0;
-    let current;
-    let currentPosition = x;
-    let alignment = context.textAlign;
-
-    let start_position;
-    let end_position;
-
-    let totalWidth = 0;
-    for (let i = 0; i < characters.length; i++) {
-      totalWidth += context.measureText(characters[i]).width + letterSpacing;
-    } //for i
-
-    if (alignment === "right") {
-      currentPosition = x - totalWidth;
-    } else if (alignment === "center") {
-      currentPosition = x - totalWidth / 2;
-    } //else if
-
-    context.textAlign = "left";
-    start_position = currentPosition;
-    while (index < text.length) {
-      current = characters[index++];
-      if (stroke) context.strokeText(current, currentPosition, y);
-      context.fillText(current, currentPosition, y);
-      currentPosition += context.measureText(current).width + letterSpacing;
-    } //while
-    end_position = currentPosition - context.measureText(current).width / 2;
-    context.textAlign = alignment;
-
-    return [start_position, end_position];
-  } //function renderText
-
-  ////////////// Split string into sections for wrapping //////////////
-  //From: https://stackoverflow.com/questions/2936112
-  function getLines(context, text, max_width, balance = true) {
-    let words = text.split(" ");
-    let lines = [];
-    let currentLine = words[0];
-
-    for (let i = 1; i < words.length; i++) {
-      let word = words[i];
-      let width = context.measureText(currentLine + " " + word).width;
-      if (width < max_width) {
-        currentLine += " " + word;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      } //else
-    } //for i
-    lines.push(currentLine);
-
-    //Now that we know how many lines are needed, split those of 2 lines into better balanced sections
-    if (balance && lines.length === 2) {
-      lines = splitSpring(text);
-    } //if
-
-    //Figure out the maximum width of all the lines
-    let max_length = 0;
-    lines.forEach((l) => {
-      let width = context.measureText(l).width;
-      if (width > max_length) max_length = width;
-    }); //forEach
-
-    return [lines, max_length];
-  } //function getLines
-
-  ////////////// Split a string into 2 balanced sections //////////////
-  function splitSpring(text) {
-    let len = text.length;
-
-    //Find the index of all spaces
-    let indices = [];
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === " ") indices.push(i);
-    } //for i
-
-    //Which space is the closes to the middle
-    let diff = indices.map((d) => Math.abs(len / 2 - d));
-    let min_value = min(...diff);
-    let ind = indices[diff.indexOf(min_value)];
-
-    //Split the string at the "most-middle" space
-    let str1 = text.substr(0, ind);
-    let str2 = text.substr(ind);
-
-    return [str1.trim(), str2.trim()];
-  } //function splitSpring
-
-  ////////////////////////// Draw curved text /////////////////////////
-  function drawTextAlongArc(context, str, angle, radius, side, kerning = 0) {
-    let startAngle = side === "up" ? angle : angle - pi;
-    if (side === "up") str = str.split("").reverse().join(""); // Reverse letters
-
-    //Rotate 50% of total angle for center alignment
-    for (let j = 0; j < str.length; j++) {
-      let charWid = context.measureText(str[j]).width;
-      startAngle +=
-        (charWid + (j === str.length - 1 ? 0 : kerning)) / radius / 2;
-    } //for j
-
-    context.save();
-    context.rotate(startAngle);
-
-    for (let n = 0; n < str.length; n++) {
-      let charWid = context.measureText(str[n]).width / 2; // half letter
-      let y = (side === "up" ? -1 : 1) * radius;
-      //Rotate half letter
-      context.rotate(-(charWid + kerning) / radius);
-
-      // context.fillText(str[n], 0, y)
-      renderText(context, str[n], 0, y, 0);
-      //Rotate another half letter
-      context.rotate(-(charWid + kerning) / radius);
-    } //for n
-
-    context.restore();
-  } //function drawTextAlongArc
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////// Test Functions ////////////////////////
@@ -3361,3 +3157,13 @@ const createORCAVisual = (
 
   return chart;
 }; // function createORCAVisual
+
+// ============================================================
+// Exports (for ES module bundling)
+// ============================================================
+export { createORCAVisual };
+
+// Also expose globally for non-module usage during transition
+if (typeof window !== 'undefined') {
+  window.createORCAVisual = createORCAVisual;
+}

@@ -140,6 +140,17 @@ export {
   drawMultilineText
 } from './render/text.js';
 
+export {
+  REPO_CARD_CONFIG,
+  getCommunityHealthLabel,
+  renderStatsLine,
+  renderLanguages,
+  renderCommunityMetrics,
+  renderContributorCommitInfo,
+  renderLicense,
+  renderArchivedBadge
+} from './render/repoCard.js';
+
 // ============================================================
 // Version
 // ============================================================

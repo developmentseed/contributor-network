@@ -144,7 +144,13 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
         shutil.copy(directory / file_name, destination / file_name)
-    shutil.copy(ROOT / "index.js", destination / "index.js")
+    # Use bundled JS if available, otherwise fall back to source
+    bundled_js = ROOT / "build" / "contributor-network.iife.js"
+    if bundled_js.exists():
+        shutil.copy(bundled_js, destination / "index.js")
+    else:
+        print("Warning: Bundled JS not found, using source. Run 'npm run build' first.")
+        shutil.copy(ROOT / "index.js", destination / "index.js")
     shutil.copy(ROOT / "css" / "style.css", destination / "style.css")
     for path in (ROOT / "lib").glob("**/*.js"):
         shutil.copy(path, destination / path.name)
