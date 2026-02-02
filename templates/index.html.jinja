@@ -45,6 +45,18 @@
                 </div>
             </div>
 
+            <!-- Filter Controls -->
+            <div id="chart-filters">
+                <div id="filter-header">
+                    <label for="org-select">Filter by Organization:</label>
+                    <select id="org-select">
+                        <option value="">-- All Organizations --</option>
+                        <!-- Additional options will be added by JavaScript -->
+                    </select>
+                    <p id="filter-stats"></p>
+                </div>
+            </div>
+
             <!-- The visual will be drawn here -->
             <div id="chart-container">
             </div>
@@ -66,6 +78,78 @@
             promises.push(d3.csv(`repositories.csv`))
             promises.push(d3.csv(`links.csv`))
 
+            ////////////////// Master Data //////////////////
+            // Master contributor list from config.toml
+            // Maps GitHub username → Display Name
+            const masterContributors = {
+              "AMSCamacho": "Angela Camacho",
+              "AliceR": "Alice Rühl",
+              "LanesGood": "Lane Goodman",
+              "abarciauskas-bgse": "Aimee Barciauskas",
+              "aboydnw": "Anthony Boyd",
+              "aliziel": "Ali Z",
+              "alukach": "Anthony Lukach",
+              "anayeaye": "Alexandra Kirk",
+              "batpad": "Sanjay Bhangar",
+              "beatrizbsperes": "Beatriz Peres",
+              "benbovy": "Benoît Bovy",
+              "bitner": "David Bitner",
+              "botanical": "Jennifer Tran",
+              "brianna-corremonte": "Brianna Corremonte",
+              "camillecroft": "Camille Croft",
+              "ceholden": "Chris Holden",
+              "chuckwondo": "Chuck Daniels",
+              "ciaransweet": "Ciaran Sweet",
+              "danielfdsilva": "Daniel da Silva",
+              "dannybauman": "Danny Bauman",
+              "dzole0311": "Gjore Milevski",
+              "emmalu": "Emma Paz",
+              "emmanuelmathot": "Emmanuel Mathot",
+              "faustoperez": "Fausto Pérez",
+              "gadomski": "Pete Gadomski",
+              "geohacker": "Sajjad Anwar",
+              "hanbyul-here": "Hanbyul Jo",
+              "hrodmn": "Henry Rodman",
+              "ianschuler": "Ian Schuler",
+              "indraneel": "Indraneel Purohit",
+              "ividito": "Isayah Vidito",
+              "j08lue": "Jonas Sølvsteen",
+              "jjfrench": "Jamison French",
+              "kamicut": "Marc Farra",
+              "kcarini": "Kiri Carini",
+              "kevinbullock": "Kevin Bullock",
+              "kimmurph": "Kim Murphy",
+              "kylebarron": "Kyle Barron",
+              "leothomas": "Leo Thomas",
+              "lillythomas": "Lilly Thomas",
+              "maxrjones": "Max Jones",
+              "martham93": "Martha Morrissey",
+              "olafveerman": "Olaf Veerman",
+              "omniajoe": "Omnia Joehar",
+              "pantierra": "xıʃǝɟ",
+              "ricardoduplos": "Ricardo Duplos",
+              "sandrahoang686": "Sandra Hoang",
+              "sharkinsspatial": "Sean Harkins",
+              "sharonwanlu": "SharonLu",
+              "smohiudd": "Saadiq Mohiuddin",
+              "srmsoumya": "Soumya Ranjan Mohanty",
+              "sunu": "Tarashish Mishra",
+              "vgeorge": "Vitor George",
+              "vincentsarago": "Vincent Sarago",
+              "weiji14": "Wei Ji",
+              "wildintellect": "Alex I. Mandel",
+              "willemarcel": "Wille Marcel",
+              "wrynearson": "Will Rynearson",
+              "yellowcap": "Daniel Wiesmann",
+              "zacdezgeo": "Zac Deziel",
+            };
+
+            // Build reverse lookup: Display Name → GitHub Username
+            const displayNameToUsername = {};
+            Object.entries(masterContributors).forEach(([username, displayName]) => {
+              displayNameToUsername[displayName] = username;
+            });
+
             /////////////////// Fonts to activate ///////////////////
             const FONT_FAMILY = "Roboto"
             document.fonts.load(`normal 400 10px "${FONT_FAMILY}"`)
@@ -84,7 +168,13 @@
             ///////////////////// Start Drawing /////////////////////
             // Set-up the visual - Doesn't draw anything yet
             // NOTE: This visual still uses a random "ORCA_LEVEL" variable for now
-            let ORCAVisual = createORCAVisual(container, REPOSITORY, {{ contributor_padding }})
+            let ORCAVisual = createORCAVisual(
+                container, 
+                REPOSITORY, 
+                {{ contributor_padding }},
+                masterContributors,
+                displayNameToUsername
+            )
                 .width(width)
                 .height(height)
                 .repository(REPOSITORY)
@@ -124,6 +214,71 @@
                     document.querySelectorAll(".top-contributor-num").forEach(d => d.innerHTML = `${formatDigit(values[0].length)} `)
 
                     /////////////////////////////////////////////////
+                    // Generate dropdown options from unique organizations
+                    /////////////////////////////////////////////////
+
+                    // Extract unique organizations from repos
+                    const uniqueOrgs = new Set();
+                    values[1].forEach(repo => {
+                        const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
+                        if (owner) uniqueOrgs.add(owner);
+                    });
+
+                    // Sort organizations alphabetically
+                    const sortedOrgs = Array.from(uniqueOrgs).sort();
+
+                    // Create options for each organization
+                    const orgSelect = document.getElementById("org-select");
+                    sortedOrgs.forEach(org => {
+                        const option = document.createElement("option");
+                        option.value = org;
+                        option.textContent = org;
+                        orgSelect.appendChild(option);
+                    });
+
+                    // Track which organization is currently selected
+                    let currentSelectedOrg = null;
+
+                    // Add change handler for dropdown
+                    orgSelect.addEventListener("change", function() {
+                        const selectedOrg = this.value;
+                        
+                        // If user selects "All Organizations" (empty value)
+                        if (selectedOrg === "") {
+                            // Clear all filters to show all orgs
+                            if (currentSelectedOrg) {
+                                ORCAVisual.setFilter(currentSelectedOrg, false);
+                                currentSelectedOrg = null;
+                            }
+                        } else {
+                            // If there was a previous selection, turn it off
+                            if (currentSelectedOrg && currentSelectedOrg !== selectedOrg) {
+                                ORCAVisual.setFilter(currentSelectedOrg, false);
+                            }
+                            
+                            // Turn on the newly selected organization
+                            ORCAVisual.setFilter(selectedOrg, true);
+                            currentSelectedOrg = selectedOrg;
+                        }
+                        
+                        updateFilterStats();
+                    });
+
+                    // Function to update the filter stats display
+                    function updateFilterStats() {
+                        const statsElement = document.getElementById("filter-stats");
+                        
+                        if (currentSelectedOrg === null) {
+                            statsElement.textContent = `Showing all ${sortedOrgs.length} organizations`;
+                        } else {
+                            statsElement.textContent = `Filtered to: ${currentSelectedOrg}`;
+                        }
+                    }
+
+                    // Initialize stats display
+                    updateFilterStats();
+
+                    /////////////////////////////////////////////////
                     // It expects the four datasets of contributors (authors), repositories, links between contributors and repositories, and remaining contributors, in that order
                     ORCAVisual(values)
 
@@ -139,7 +294,14 @@
                     // However, the dataset underlying the contributors is not as up to date as the repositories. So we need to get the "most recent" commit date from the links dataset
                     // If both the repo and contribution are up to date, it's better to use the line above and not what I do here below
                     // Get all the objects from values[2] where the target is the central repository
-                    let links_to_central = values[2].filter(d => d.target.data && d.target.data.repo === REPOSITORY)
+                    // Handle both resolved (object) and unresolved (string) targets after D3 mutation
+                    let links_to_central = values[2].filter(d => {
+                        if (typeof d.target === 'object' && d.target && d.target.data) {
+                            return d.target.data.repo === REPOSITORY;
+                        }
+                        // For unresolved links, check the raw 'repo' field
+                        return d.repo === REPOSITORY;
+                    })
                     // Now get the most recent commit date from the links to the central repository
                     let most_recent_commit = d3.max(links_to_central, d => d.commit_sec_max)
                     document.getElementById("last-commit-date").innerHTML = `Including commits up to ${formatDateLong(most_recent_commit)}`

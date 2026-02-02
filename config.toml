@@ -70,6 +70,8 @@ repositories = [
     "developmentseed/geotiff-test-data",
     "GenericMappingTools/pygmt",
     "developmentseed/pixelverse",
+    "NASA-IMPACT/veda-odd",
+    "Disasters-Learning-Portal/veda-disasters",
 ]
 
 # Friends and alumni - commented out but preserved for future use
@@ -97,7 +99,7 @@ beatrizbsperes = "Beatriz Peres"
 benbovy = "Benoît Bovy"
 bitner = "David Bitner"
 botanical = "Jennifer Tran"
-briannacorremonte = "Brianna Corremonte"
+brianna-corremonte = "Brianna Corremonte"
 camillecroft = "Camille Croft"
 ceholden = "Chris Holden"
 chuckwondo = "Chuck Daniels"
