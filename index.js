@@ -2313,7 +2313,7 @@ const createORCAVisual = (
             const sourceId = l.source.id || l.source;
             if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
             return (l.source.id === d.id && l.target.id === n.id) ||
-              (l.target.id === d.id && l.source.id === n.id);
+                   (l.target.id === d.id && l.source.id === n.id);
           }
         );
       });
@@ -2471,6 +2471,11 @@ const createORCAVisual = (
     //Get the closest hovered node
     let point = delaunay.find(mx, my);
     let d = nodes_delaunay[point];
+    
+    // Safety check - if no node found, return early
+    if (!d) {
+      return [null, false];
+    }
 
     // Safety check - if no node found, return early
     if (!d) {
