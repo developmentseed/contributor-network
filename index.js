@@ -514,11 +514,44 @@ const createContributorNetworkVisual = (
   } // function chart
 
   /////////////////////////////////////////////////////////////////
+  /////////////////////// Zoom Helpers ////////////////////////////
+  /////////////////////////////////////////////////////////////////
+  // Note: applyZoomTransform is imported from src/js/interaction/zoom.js
+  // This redrawAll function uses the modular approach with interactionState
+
+  // Redraw all canvas layers (main, hover, click)
+  function redrawAll() {
+    draw();
+    if (interactionState.CLICK_ACTIVE && interactionState.CLICKED_NODE) {
+      context_click.clearRect(0, 0, WIDTH, HEIGHT);
+      context_click.save();
+      applyZoomTransform(context_click, zoomState.zoomTransform || d3.zoomIdentity, PIXEL_RATIO, WIDTH, HEIGHT);
+      drawHoverState(context_click, interactionState.CLICKED_NODE, false);
+      context_click.restore();
+    } else {
+      context_click.clearRect(0, 0, WIDTH, HEIGHT);
+    }
+    if (interactionState.HOVER_ACTIVE && interactionState.HOVERED_NODE) {
+      context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+      context_hover.save();
+      applyZoomTransform(context_hover, zoomState.zoomTransform || d3.zoomIdentity, PIXEL_RATIO, WIDTH, HEIGHT);
+      drawHoverState(context_hover, interactionState.HOVERED_NODE);
+      context_hover.restore();
+    } else {
+      context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+    }
+  } // function redrawAll
+
+  /////////////////////////////////////////////////////////////////
   //////////////////////// Draw the visual ////////////////////////
   /////////////////////////////////////////////////////////////////
 
   // Draw the visual - extracted to src/js/render/draw.js
   function draw() {
+    // Apply zoom transform before drawing
+    context.save();
+    applyZoomTransform(context, zoomState.zoomTransform || d3.zoomIdentity, PIXEL_RATIO, WIDTH, HEIGHT);
+    
     drawVisualization(
       context,
       { nodes, links, nodes_central },
@@ -530,6 +563,8 @@ const createContributorNetworkVisual = (
         drawNodeLabel: drawNodeLabelWrapper
       }
     );
+    
+    context.restore();
   } // function draw
 
   /////////////////////////////////////////////////////////////////
@@ -944,10 +979,10 @@ const createContributorNetworkVisual = (
 
   // Draw the hovered node and its links and neighbors and a tooltip
   function drawHoverState(context, d, DO_TOOLTIP = true) {
+    // Note: Zoom transform should already be applied by the caller (in redrawAll)
+    // This function assumes the context is already transformed
     // Draw the hover canvas
     context.save();
-    context.clearRect(0, 0, WIDTH, HEIGHT);
-    context.translate(WIDTH / 2, HEIGHT / 2);
 
     /////////////////////////////////////////////////
     // Get all the connected links (if not done before)
@@ -1441,6 +1476,7 @@ const createContributorNetworkVisual = (
     // Re-setup interaction handlers
     setupHover();
     setupClick();
+    setupZoom();
 
     // Redraw with new scale factors
     chart.resize();

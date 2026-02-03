@@ -129,9 +129,9 @@ export function draw(context, data, config, renderFunctions) {
   context.fillStyle = COLOR_BACKGROUND;
   context.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // Move the visual to the center
+  // Note: Translation to center is handled by the caller (via zoom transform)
+  // The context should already be translated and scaled by the time this function is called
   context.save();
-  context.translate(WIDTH / 2, HEIGHT / 2);
 
   // ============================================================
   // Layer 1: Links (bottom layer)
