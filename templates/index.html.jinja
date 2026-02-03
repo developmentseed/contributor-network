@@ -59,6 +59,17 @@
 
             <!-- The visual will be drawn here -->
             <div id="chart-container">
+                <div id="chart-zoom-controls" aria-label="Zoom controls">
+                    <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+                    <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+                    <button id="zoom-reset" type="button" aria-label="Reset zoom">
+                        <svg class="zoom-reset-icon" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                            <path d="M12 3v3M12 18v3M3 12h3M18 12h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
         </div>

@@ -99,6 +99,14 @@ const createORCAVisual = (
   let HOVERED_NODE = null;
   let CLICK_ACTIVE = false;
   let CLICKED_NODE = null;
+  let zoomTransform = d3.zoomIdentity;
+  let zoomBehavior;
+  let zoomPanning = false;
+  let zoomLastInteraction = 0;
+  let zoomMoved = false;
+  let zoomMovedAt = 0;
+  let zoomStartTransform = d3.zoomIdentity;
+  const ZOOM_CLICK_SUPPRESS_MS = 150;
 
   // Visual Settings - Based on SF = 1
   const CENTRAL_RADIUS = 35; // The radius of the central repository node (reduced for less prominence)
@@ -421,12 +429,38 @@ const createORCAVisual = (
     /////////////////////////////////////////////////////////////
     setupHover();
     setupClick();
+    setupZoom();
 
     /////////////////////////////////////////////////////////////
     ///////////// Set the Sizes and Draw the Visual /////////////
     /////////////////////////////////////////////////////////////
     chart.resize();
   } // function chart
+
+  /////////////////////////////////////////////////////////////////
+  /////////////////////// Zoom Helpers ////////////////////////////
+  /////////////////////////////////////////////////////////////////
+
+  function applyZoomTransform(context) {
+    context.translate(zoomTransform.x * PIXEL_RATIO, zoomTransform.y * PIXEL_RATIO);
+    context.scale(zoomTransform.k, zoomTransform.k);
+    context.translate(WIDTH / 2, HEIGHT / 2);
+  } // function applyZoomTransform
+
+  function redrawAll() {
+    draw();
+    if (CLICK_ACTIVE && CLICKED_NODE) {
+      context_click.clearRect(0, 0, WIDTH, HEIGHT);
+      drawHoverState(context_click, CLICKED_NODE, false);
+    } else {
+      context_click.clearRect(0, 0, WIDTH, HEIGHT);
+    }
+    if (HOVER_ACTIVE && HOVERED_NODE) {
+      drawHoverState(context_hover, HOVERED_NODE);
+    } else {
+      context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+    }
+  } // function redrawAll
 
   /////////////////////////////////////////////////////////////////
   //////////////////////// Draw the visual ////////////////////////
@@ -440,7 +474,7 @@ const createORCAVisual = (
 
     // Move the visual to the center
     context.save();
-    context.translate(WIDTH / 2, HEIGHT / 2);
+    applyZoomTransform(context);
 
     /////////////////////////////////////////////////////////////
     // Draw the remaining contributors as small circles outside the ORCA circles
@@ -548,8 +582,8 @@ const createORCAVisual = (
     // // Test to see if the delaunay works
     // testDelaunay(delaunay, context_hover)
 
-    // Draw the visual
-    draw();
+    // Draw the visual (and overlays if active)
+    redrawAll();
   }; //function resize
 
   /////////////////////////////////////////////////////////////////
@@ -2228,6 +2262,71 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   //////////////////////// Hover Functions ////////////////////////
   /////////////////////////////////////////////////////////////////
+  function setupZoom() {
+    zoomBehavior = d3
+      .zoom()
+      .filter((event) => event.type !== "wheel" && event.type !== "dblclick")
+      .scaleExtent([0.4, 6])
+      .on("start", () => {
+        zoomPanning = true;
+        zoomMoved = false;
+        zoomStartTransform = zoomTransform;
+      })
+      .on("zoom", (event) => {
+        zoomTransform = event.transform;
+        zoomLastInteraction = Date.now();
+        if (
+          zoomTransform.k !== zoomStartTransform.k ||
+          zoomTransform.x !== zoomStartTransform.x ||
+          zoomTransform.y !== zoomStartTransform.y
+        ) {
+          zoomMoved = true;
+        }
+        redrawAll();
+      })
+      .on("end", () => {
+        zoomPanning = false;
+        zoomLastInteraction = Date.now();
+        if (zoomMoved) zoomMovedAt = zoomLastInteraction;
+      });
+
+    const zoomTarget = d3.select("#canvas-hover");
+    zoomTarget.call(zoomBehavior);
+
+    const zoomInBtn = document.getElementById("zoom-in");
+    const zoomOutBtn = document.getElementById("zoom-out");
+    const zoomResetBtn = document.getElementById("zoom-reset");
+    function getZoomCenter() {
+      const rect = canvas_hover.getBoundingClientRect();
+      return [rect.width / 2, rect.height / 2];
+    }
+
+    if (zoomInBtn) {
+      zoomInBtn.onclick = () => {
+        zoomTarget
+          .transition()
+          .duration(150)
+          .call(zoomBehavior.scaleBy, 1.2, getZoomCenter());
+      };
+    }
+    if (zoomOutBtn) {
+      zoomOutBtn.onclick = () => {
+        zoomTarget
+          .transition()
+          .duration(150)
+          .call(zoomBehavior.scaleBy, 1 / 1.2, getZoomCenter());
+      };
+    }
+    if (zoomResetBtn) {
+      zoomResetBtn.onclick = () => {
+        zoomTarget
+          .transition()
+          .duration(150)
+          .call(zoomBehavior.transform, d3.zoomIdentity);
+      };
+    }
+  }
+
   // Setup the hover on the top canvas, get the mouse position and call the drawing functions
   function setupHover() {
     d3.select("#canvas-hover").on("mousemove", function (event) {
@@ -2285,7 +2384,7 @@ const createORCAVisual = (
     // Draw the hover canvas
     context.save();
     context.clearRect(0, 0, WIDTH, HEIGHT);
-    context.translate(WIDTH / 2, HEIGHT / 2);
+    applyZoomTransform(context);
 
     /////////////////////////////////////////////////
     // Get all the connected links (if not done before)
@@ -2413,6 +2512,9 @@ const createORCAVisual = (
 
   function setupClick() {
     d3.select("#canvas-hover").on("click", function (event) {
+      if (zoomPanning || (zoomMoved && Date.now() - zoomMovedAt < ZOOM_CLICK_SUPPRESS_MS)) {
+        return;
+      }
       // Get the position of the mouse on the canvas
       let [mx, my] = d3.pointer(event, this);
       let [d, FOUND] = findNode(mx, my);
@@ -2458,8 +2560,16 @@ const createORCAVisual = (
 
   // Turn the mouse position into a canvas x and y location and see if it's close enough to a node
   function findNode(mx, my) {
-    mx = (mx * PIXEL_RATIO - WIDTH / 2) / SF;
-    my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
+    const mxDevice = mx * PIXEL_RATIO;
+    const myDevice = my * PIXEL_RATIO;
+    mx =
+      ((mxDevice - zoomTransform.x * PIXEL_RATIO) / zoomTransform.k -
+        WIDTH / 2) /
+      SF;
+    my =
+      ((myDevice - zoomTransform.y * PIXEL_RATIO) / zoomTransform.k -
+        HEIGHT / 2) /
+      SF;
 
     // Check if mouse is within the visualization bounds (with some margin)
     const MAX_RADIUS = RADIUS_CONTRIBUTOR_NON_ORCA + ORCA_RING_WIDTH + 200;
@@ -2471,7 +2581,7 @@ const createORCAVisual = (
     //Get the closest hovered node
     let point = delaunay.find(mx, my);
     let d = nodes_delaunay[point];
-    
+
     // Safety check - if no node found, return early
     if (!d) {
       return [null, false];
@@ -3268,6 +3378,7 @@ const createORCAVisual = (
     // Re-setup interaction handlers
     setupHover();
     setupClick();
+    setupZoom();
 
     // Redraw with new scale factors
     chart.resize();
