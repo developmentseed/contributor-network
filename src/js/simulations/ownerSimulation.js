@@ -22,16 +22,9 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
   // First fix the nodes in the center - this is only temporarily
   nodes
     .filter((d) => d.type === "owner")
-    .forEach((d, i) => {
+    .forEach((d) => {
       d.x = d.fx = 0;
       d.y = d.fy = 0;
-
-      // // For testing
-      // // Place the contributors in a grid of 10 columns
-      // d.x = -WIDTH/4 + (i % 8) * 140
-      // d.y = -HEIGHT/4 + Math.floor(i / 8) * 150
-      // d.fx = d.x
-      // d.fy = d.y
     }); // forEach
 
   // Next run a force simulation to place all the repositories
@@ -96,18 +89,12 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
             })
             .strength(0),
         )
-        // .force("charge",
-        //     d3.forceManyBody()
-        //         .strength(-20)
-        //         // .distanceMax(WIDTH / 3)
-        // )
         // Keep the repo nodes want to stay close to the contributor node
         // so they try to spread out evenly around it
         .force("x", d3.forceX().x(d.fx).strength(0.1))
         .force("y", d3.forceY().y(d.fy).strength(0.1));
 
       simulation.nodes(nodes_connected).stop();
-      // .on("tick", ticked)
 
       simulation.force("link").links(links_connected);
 
@@ -118,8 +105,6 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
         //Ramp up collision strength to provide smooth transition
         simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.8);
       } //for i
-      // TEST - Draw the result
-      // drawContributorBubbles(nodes_connected, links_connected)
 
       // Determine the farthest distance of the nodes (including its radius) to the owner node
       d.max_radius = d3.max(nodes_connected, (n) =>

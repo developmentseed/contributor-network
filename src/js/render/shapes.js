@@ -3,6 +3,8 @@
  * @module render/shapes
  */
 
+import { TAU } from '../utils/helpers.js';
+
 /**
  * Draws a circle on the canvas
  * @param {CanvasRenderingContext2D} context - Canvas rendering context
@@ -14,7 +16,6 @@
  * @param {boolean} stroke - Whether to stroke instead of fill (default: false)
  */
 export function drawCircle(context, x, y, SF, r = 10, begin = true, stroke = false) {
-  const TAU = Math.PI * 2;
   if (begin === true) context.beginPath();
   context.moveTo((x + r) * SF, y * SF);
   context.arc(x * SF, y * SF, r * SF, 0, TAU);
@@ -82,25 +83,19 @@ export function drawLine(context, SF, line) {
 export function drawNode(context, SF, d, config, interactionState) {
   const { REPO_CENTRAL, COLOR_BACKGROUND, max } = config;
   
-  // Is this a node that is a repo that is not impacted by ORCA?
-  let REPO_NOT_ORCA = d.type === "repo" && !d.data.orca_impacted;
   // The central "team" node should be subtle/muted since it's not a real repo
   const IS_CENTRAL = d.id === REPO_CENTRAL;
-  if (IS_CENTRAL) REPO_NOT_ORCA = false;
 
   // Draw a circle for the node
   context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
   context.shadowColor = "#f7f7f7";
 
   // Central node gets reduced opacity to be less prominent
-  context.globalAlpha = IS_CENTRAL ? 0.5 : (REPO_NOT_ORCA ? 0.4 : 1);
+  context.globalAlpha = IS_CENTRAL ? 0.5 : 1;
   context.fillStyle = d.color;
   drawCircle(context, d.x, d.y, SF, d.r);
   context.globalAlpha = 1;
   context.shadowBlur = 0;
-
-  // Draw a small circle in the center for the not ORCA impacted repos
-  if (REPO_NOT_ORCA) drawCircle(context, d.x, d.y, SF, d.r * 0.3);
 
   // Also draw a stroke around the node
   if (!d.remaining_contributor) {
@@ -141,7 +136,6 @@ export function drawNodeArc(context, SF, d, interactionState, COLOR_CONTRIBUTOR,
  * @param {Object} central_repo - Central repository node
  */
 export function drawHoverRing(context, d, SF, central_repo) {
-  const TAU = Math.PI * 2;
   let r = d.r + (d.type === "contributor" ? 9 : d === central_repo ? 14 : 7);
   context.beginPath();
   context.moveTo((d.x + r) * SF, d.y * SF);
@@ -163,7 +157,6 @@ export function drawHoverRing(context, d, SF, central_repo) {
  * @param {Object} central_repo - Central repository node
  */
 export function timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo) {
-  const TAU = Math.PI * 2;
   context.save();
   context.translate(d.x * SF, d.y * SF);
 
@@ -206,7 +199,6 @@ export function timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo) 
  * @param {Function} sin - Sine function (Math.sin)
  */
 export function drawHatchPattern(context, radius, angle, SF, color, sin) {
-  const TAU = Math.PI * 2;
   context.save();
   context.beginPath();
   context.arc(0, 0, radius, 0, TAU);

@@ -7,45 +7,37 @@ import { findNode as findNodeAtPosition } from './findNode.js';
 
 /**
  * Sets up hover interaction handlers on the canvas
- * @param {Object} d3 - D3 library instance
- * @param {string} canvasSelector - CSS selector for the hover canvas element
- * @param {Object} config - Configuration object containing:
- *   - PIXEL_RATIO: Device pixel ratio
- *   - WIDTH: Canvas width
- *   - HEIGHT: Canvas height
- *   - SF: Scale factor
- *   - RADIUS_CONTRIBUTOR_NON_ORCA: Radius for non-ORCA contributors
- *   - ORCA_RING_WIDTH: Width of ORCA ring
- *   - sqrt: Square root function (Math.sqrt)
- * @param {Object} delaunayData - Delaunay triangulation data:
- *   - delaunay: Main Delaunay triangulation
- *   - nodesDelaunay: Nodes used for main Delaunay
- *   - delaunayRemaining: Optional Delaunay for remaining contributors
- * @param {Object} interactionState - Interaction state object
- * @param {string} REPO_CENTRAL - ID of the central repository
- * @param {HTMLElement} canvas - Main canvas element (for opacity control)
- * @param {CanvasRenderingContext2D} contextHover - Canvas context for hover layer
- * @param {boolean} REMAINING_PRESENT - Whether remaining contributors are present
- * @param {Array} remainingContributors - Array of remaining contributor nodes
- * @param {Function} setHovered - Function to set hovered state
- * @param {Function} clearHover - Function to clear hover state
- * @param {Function} drawHoverState - Function to draw hover state visualization
+ * @param {Object} options - Configuration options:
+ *   - d3: D3 library instance
+ *   - canvasSelector: CSS selector for the hover canvas element
+ *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
+ *   - delaunayData: Delaunay triangulation data (delaunay, nodesDelaunay, delaunayRemaining)
+ *   - interactionState: Interaction state object
+ *   - REPO_CENTRAL: ID of the central repository
+ *   - canvas: Main canvas element (for opacity control)
+ *   - contextHover: Canvas context for hover layer
+ *   - REMAINING_PRESENT: Whether remaining contributors are present
+ *   - remainingContributors: Array of remaining contributor nodes
+ *   - setHovered: Function to set hovered state
+ *   - clearHover: Function to clear hover state
+ *   - drawHoverState: Function to draw hover state visualization
  */
-export function setupHover(
-  d3,
-  canvasSelector,
-  config,
-  delaunayData,
-  interactionState,
-  REPO_CENTRAL,
-  canvas,
-  contextHover,
-  REMAINING_PRESENT,
-  remainingContributors,
-  setHovered,
-  clearHover,
-  drawHoverState
-) {
+export function setupHover(options) {
+  const {
+    d3,
+    canvasSelector,
+    config,
+    delaunayData,
+    interactionState,
+    REPO_CENTRAL,
+    canvas,
+    contextHover,
+    REMAINING_PRESENT,
+    remainingContributors,
+    setHovered,
+    clearHover,
+    drawHoverState
+  } = options;
   const { WIDTH, HEIGHT } = config;
 
   d3.select(canvasSelector).on("mousemove", function (event) {

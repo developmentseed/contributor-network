@@ -7,53 +7,45 @@ import { findNode as findNodeAtPosition } from './findNode.js';
 
 /**
  * Sets up click interaction handlers on the canvas
- * @param {Object} d3 - D3 library instance
- * @param {string} canvasSelector - CSS selector for the click canvas element
- * @param {Object} config - Configuration object containing:
- *   - PIXEL_RATIO: Device pixel ratio
- *   - WIDTH: Canvas width
- *   - HEIGHT: Canvas height
- *   - SF: Scale factor
- *   - RADIUS_CONTRIBUTOR_NON_ORCA: Radius for non-ORCA contributors
- *   - ORCA_RING_WIDTH: Width of ORCA ring
- *   - sqrt: Square root function (Math.sqrt)
- * @param {Object} delaunayData - Delaunay triangulation data (will be updated):
- *   - delaunay: Main Delaunay triangulation
- *   - nodesDelaunay: Nodes used for main Delaunay
- *   - delaunayRemaining: Optional Delaunay for remaining contributors
- * @param {Object} interactionState - Interaction state object
- * @param {string} REPO_CENTRAL - ID of the central repository
- * @param {HTMLElement} canvas - Main canvas element (for opacity control)
- * @param {CanvasRenderingContext2D} contextClick - Canvas context for click layer
- * @param {CanvasRenderingContext2D} contextHover - Canvas context for hover layer
- * @param {Array} nodes - All nodes in the visualization
- * @param {boolean} REMAINING_PRESENT - Whether remaining contributors are present
- * @param {Array} remainingContributors - Array of remaining contributor nodes
- * @param {Function} setClicked - Function to set clicked state
- * @param {Function} clearClick - Function to clear click state
- * @param {Function} clearHover - Function to clear hover state
- * @param {Function} setDelaunay - Function to update Delaunay data
- * @param {Function} drawHoverState - Function to draw hover state visualization
+ * @param {Object} options - Configuration options:
+ *   - d3: D3 library instance
+ *   - canvasSelector: CSS selector for the click canvas element
+ *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
+ *   - delaunayData: Delaunay triangulation data (will be updated: delaunay, nodesDelaunay, delaunayRemaining)
+ *   - interactionState: Interaction state object
+ *   - REPO_CENTRAL: ID of the central repository
+ *   - canvas: Main canvas element (for opacity control)
+ *   - contextClick: Canvas context for click layer
+ *   - contextHover: Canvas context for hover layer
+ *   - nodes: All nodes in the visualization
+ *   - REMAINING_PRESENT: Whether remaining contributors are present
+ *   - remainingContributors: Array of remaining contributor nodes
+ *   - setClicked: Function to set clicked state
+ *   - clearClick: Function to clear click state
+ *   - clearHover: Function to clear hover state
+ *   - setDelaunay: Function to update Delaunay data
+ *   - drawHoverState: Function to draw hover state visualization
  */
-export function setupClick(
-  d3,
-  canvasSelector,
-  config,
-  delaunayData,
-  interactionState,
-  REPO_CENTRAL,
-  canvas,
-  contextClick,
-  contextHover,
-  nodes,
-  REMAINING_PRESENT,
-  remainingContributors,
-  setClicked,
-  clearClick,
-  clearHover,
-  setDelaunay,
-  drawHoverState
-) {
+export function setupClick(options) {
+  const {
+    d3,
+    canvasSelector,
+    config,
+    delaunayData,
+    interactionState,
+    REPO_CENTRAL,
+    canvas,
+    contextClick,
+    contextHover,
+    nodes,
+    REMAINING_PRESENT,
+    remainingContributors,
+    setClicked,
+    clearClick,
+    clearHover,
+    setDelaunay,
+    drawHoverState
+  } = options;
   const { WIDTH, HEIGHT } = config;
 
   d3.select(canvasSelector).on("click", function (event) {

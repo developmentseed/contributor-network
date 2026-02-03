@@ -2,7 +2,7 @@
  * Debug Utilities
  *
  * Conditional logging and debugging helpers.
- * Debug output is controlled by localStorage flag 'debug-orca'.
+ * Debug output is controlled by localStorage flag 'debug-contributor-network'.
  *
  * @module utils/debug
  */
@@ -14,7 +14,7 @@
  */
 export function isDebugEnabled() {
   try {
-    return localStorage.getItem('debug-orca') === 'true';
+    return localStorage.getItem('debug-contributor-network') === 'true';
   } catch {
     // localStorage may not be available (SSR, etc.)
     return false;
@@ -26,7 +26,7 @@ export function isDebugEnabled() {
  */
 export function enableDebug() {
   try {
-    localStorage.setItem('debug-orca', 'true');
+    localStorage.setItem('debug-contributor-network', 'true');
     console.log('🔧 Debug mode enabled. Refresh to see debug output.');
   } catch {
     console.warn('Could not enable debug mode (localStorage unavailable)');
@@ -38,7 +38,7 @@ export function enableDebug() {
  */
 export function disableDebug() {
   try {
-    localStorage.removeItem('debug-orca');
+    localStorage.removeItem('debug-contributor-network');
     console.log('Debug mode disabled.');
   } catch {
     console.warn('Could not disable debug mode (localStorage unavailable)');

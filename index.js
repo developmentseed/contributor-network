@@ -19,7 +19,7 @@
 
 // ============================================================
 // Modular Imports (loaded via Vite bundler)
-import { COLORS, FONTS, SIZES, LAYOUT as THEME_LAYOUT } from './src/js/config/theme.js';
+import { COLORS, FONTS, SIZES } from './src/js/config/theme.js';
 import {
   isValidNode,
   isValidLink,
@@ -94,13 +94,16 @@ import {
 } from './src/js/render/shapes.js';
 import { drawTooltip as drawTooltipModule } from './src/js/render/tooltip.js';
 import { drawNodeLabel } from './src/js/render/labels.js';
-import { DEFAULT_SIZE, LAYOUT } from './src/js/layout/constants.js';
+import { LAYOUT } from './src/js/config/theme.js';
+
+// Extract commonly used constants for convenience
+const DEFAULT_SIZE = LAYOUT.defaultSize;
 import { handleResize, sizeCanvas, calculateScaleFactor } from './src/js/layout/resize.js';
 
 // ============================================================
 // Main Visualization
 // ============================================================
-const createORCAVisual = (
+const createContributorNetworkVisual = (
   container,
   initial_repo_central,
   contributor_padding,
@@ -163,7 +166,7 @@ const createORCAVisual = (
   let visibleContributors;
 
   // Datasets
-  let contributors, remainingContributors, orcaRecipients;
+  let contributors, remainingContributors;
   let repos;
   let nodes = [],
     nodes_central;
@@ -190,18 +193,16 @@ const createORCAVisual = (
   }
 
   // Visual Settings - Based on SF = 1
-  // Layout constants imported from src/js/layout/constants.js
+  // Layout constants imported from src/js/config/theme.js
   const CENTRAL_RADIUS = LAYOUT.centralRadius; // The radius of the central repository node (reduced for less prominence)
   let RADIUS_CONTRIBUTOR; // The eventual radius along which the contributor nodes are placed
-  let RADIUS_CONTRIBUTOR_NON_ORCA; // The radius along which the contributor nodes are placed that have not received ORCA
-  let ORCA_RING_WIDTH;
+  let CONTRIBUTOR_RING_WIDTH;
 
   const INNER_RADIUS_FACTOR = LAYOUT.innerRadiusFactor; // The factor of the RADIUS_CONTRIBUTOR outside of which the inner repos are not allowed to go in the force simulation
   const MAX_CONTRIBUTOR_WIDTH = LAYOUT.maxContributorWidth; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
   const CONTRIBUTOR_PADDING = contributor_padding; // The padding between the contributor nodes around the circle (at SF = 1)
 
   let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
-  let ORCA_PRESENT = false; // Is the dataset of ORCA recipients present?
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////////// Colors ////////////////////////////
@@ -292,7 +293,7 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
 
   //Sizes
-  // DEFAULT_SIZE imported from src/js/layout/constants.js
+  // DEFAULT_SIZE extracted from LAYOUT.defaultSize in theme.js
   let WIDTH = DEFAULT_SIZE;
   let HEIGHT = DEFAULT_SIZE;
   let width = DEFAULT_SIZE;
@@ -344,15 +345,7 @@ const createORCAVisual = (
       if (values[3][0].author_name !== undefined) {
         remainingContributors = values[3];
         REMAINING_PRESENT = true;
-        if (values[4]) {
-          orcaRecipients = values[4];
-          ORCA_PRESENT = true;
         } // if
-        // Otherwise check if there is a column called "name", because then this is the ORCA recipient dataset
-      } else if (values[3][0].name !== undefined) {
-        orcaRecipients = values[3];
-        ORCA_PRESENT = true;
-      } // else if
     } // if
     prepareData();
     // console.log("Data prepared")
@@ -396,12 +389,14 @@ const createORCAVisual = (
       getLinkNodeId,
       sqrt,
       max,
-      context,
-      REPO_CENTRAL,
-      central_repo,
-      scale_link_distance,
-      RADIUS_CONTRIBUTOR,
-      INNER_RADIUS_FACTOR
+      {
+        context,
+        REPO_CENTRAL,
+        central_repo,
+        scale_link_distance,
+        RADIUS_CONTRIBUTOR,
+        INNER_RADIUS_FACTOR
+      }
     );
     // console.log("Central force simulation done")
 
@@ -418,8 +413,7 @@ const createORCAVisual = (
         sin,
         max,
         RADIUS_CONTRIBUTOR,
-        RADIUS_CONTRIBUTOR_NON_ORCA,
-        ORCA_RING_WIDTH,
+        CONTRIBUTOR_RING_WIDTH,
         DEFAULT_SIZE,
         scale_remaining_contributor_radius
       );
@@ -471,20 +465,6 @@ const createORCAVisual = (
     context.save();
     context.translate(WIDTH / 2, HEIGHT / 2);
 
-    /////////////////////////////////////////////////////////////
-    // Draw the remaining contributors as small circles outside the ORCA circles
-    if (REMAINING_PRESENT) {
-      context.fillStyle = COLOR_CONTRIBUTOR;
-      context.globalAlpha = 0.4;
-      remainingContributors.forEach((d) => {
-        drawCircle(context, d.x, d.y, SF, d.r);
-      }); // forEach
-      context.globalAlpha = 1;
-    } // if
-
-    /////////////////////////////////////////////////////////////
-    // Draw two rings that show the placement of the ORCA receiving contributors versus the non-ORCA receiving contributors
-    drawBigRings(context, SF);
 
     /////////////////////////////////////////////////////////////
     // Draw all the links as lines (skip links to/from the central pseudo-node)
@@ -555,8 +535,8 @@ const createORCAVisual = (
       width,
       height,
       DEFAULT_SIZE,
-      RADIUS_CONTRIBUTOR_NON_ORCA,
-      ORCA_RING_WIDTH,
+      RADIUS_CONTRIBUTOR,
+      CONTRIBUTOR_RING_WIDTH,
       round
     };
     const state = {
@@ -600,11 +580,13 @@ const createORCAVisual = (
       config,
       state,
       data,
-      REMAINING_PRESENT,
-      d3,
-      setDelaunay,
-      interactionState,
-      drawWithUpdatedState
+      {
+        REMAINING_PRESENT,
+        d3,
+        setDelaunay,
+        interactionState,
+        draw: drawWithUpdatedState
+      }
     );
     
     // Update local variables from state object after resize (in case they changed)
@@ -687,7 +669,7 @@ const createORCAVisual = (
     links = visibleLinks;
 
     // Debug: Log filtering results (enable via localStorage)
-    if (localStorage.getItem('debug-orca') === 'true') {
+    if (localStorage.getItem('debug-contributor-network') === 'true') {
       console.debug('=== APPLY FILTERS ===');
       console.debug(`Filters applied: ${activeFilters.organizations.join(", ") || "none"}`);
       console.debug(`Data before: ${originalContributors.length} contributors, ${originalRepos.length} repos, ${originalLinks.length} links`);
@@ -707,14 +689,10 @@ const createORCAVisual = (
     contributors.forEach((d) => {
       d.contributor_name = d.author_name;
 
-      // If the ORCA dataset is present, check if this contributor is in it
-      if (ORCA_PRESENT)
-        d.orca_received = orcaRecipients.find((o) => o.name === d.author_name)
-          ? true
-          : false;
-      else d.orca_received = false;
-
       d.color = COLOR_CONTRIBUTOR;
+
+      // Mark DevSeed contributors for visual highlighting
+      d.highlighted = isValidContributor(d.author_name);
 
       // Determine across how many lines to split the contributor name
       setContributorFont(context);
@@ -873,22 +851,6 @@ const createORCAVisual = (
         .filter((c) => c !== undefined);
     }); // forEach
 
-    /////////////////////////////////////////////////////////////
-    // Mark all the repositories that have a link to at least one contributor that has received ORCA
-    repos.forEach((d) => {
-      d.orca_impacted = false;
-      d.links_original.forEach((l) => {
-        if (
-          contributors.find(
-            (c) =>
-              c.contributor_name === l.contributor_name &&
-              c.orca_received === true,
-          )
-        ) {
-          d.orca_impacted = true;
-        } // if
-      }); // forEach
-    }); // forEach
 
     /////////////////////////////////////////////////////////////
     // Which is the central repo, the one that connects everyone (the one with the highest degree)
@@ -939,12 +901,12 @@ const createORCAVisual = (
       }
       return true;
     });
-    if (localStorage.getItem('debug-orca') === 'true' && beforeOwnerCount !== owners.length) {
+    if (localStorage.getItem('debug-contributor-network') === 'true' && beforeOwnerCount !== owners.length) {
       console.debug(`Removed ${beforeOwnerCount - owners.length} owners with no repos`);
     }
 
-    // Debug logging (enable via: localStorage.setItem('debug-orca', 'true'))
-    if (localStorage.getItem('debug-orca') === 'true') {
+    // Debug logging (enable via: localStorage.setItem('debug-contributor-network', 'true'))
+    if (localStorage.getItem('debug-contributor-network') === 'true') {
       console.log("Owners:", owners);
       console.log("Contributors:", contributors);
     }
@@ -1061,13 +1023,13 @@ const createORCAVisual = (
     links = links.filter(link => {
       // Check for empty strings or missing values
       if (!link.source || typeof link.source !== 'string' || link.source.trim() === '') {
-        if (localStorage.getItem('debug-orca') === 'true') {
+        if (localStorage.getItem('debug-contributor-network') === 'true') {
           console.warn(`Filtered link with empty source: → "${link.target}"`);
         }
         return false;
       }
       if (!link.target || typeof link.target !== 'string' || link.target.trim() === '') {
-        if (localStorage.getItem('debug-orca') === 'true') {
+        if (localStorage.getItem('debug-contributor-network') === 'true') {
           console.warn(`Filtered link with empty target: "${link.source}" →`);
         }
         return false;
@@ -1082,7 +1044,7 @@ const createORCAVisual = (
       const sourceExists = nodeIds.has(link.source);
       const targetExists = nodeIds.has(link.target);
       if (!sourceExists || !targetExists) {
-        if (localStorage.getItem('debug-orca') === 'true') {
+        if (localStorage.getItem('debug-contributor-network') === 'true') {
           console.warn(`Filtered invalid link: "${link.source}" → "${link.target}"`, {
             sourceNodeExists: sourceExists,
             targetNodeExists: targetExists
@@ -1115,8 +1077,8 @@ const createORCAVisual = (
       });
     }
 
-    // Debug logging (enable via: localStorage.setItem('debug-orca', 'true'))
-    if (localStorage.getItem('debug-orca') === 'true') {
+    // Debug logging (enable via: localStorage.setItem('debug-contributor-network', 'true'))
+    if (localStorage.getItem('debug-contributor-network') === 'true') {
       console.log("Links:", links);
     }
 
@@ -1279,8 +1241,7 @@ const createORCAVisual = (
       useEvenSpacing = true; // When using minimum, distribute evenly
     }
 
-    RADIUS_CONTRIBUTOR_NON_ORCA = RADIUS_CONTRIBUTOR * (ORCA_PRESENT ? 1.3 : 1);
-    ORCA_RING_WIDTH = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2; // Not too sure about this in how well it holds up for other data
+    CONTRIBUTOR_RING_WIDTH = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2; // Width of the contributor ring
 
     // Calculate even angle increment for when we need to override spacing
     const evenAngleIncrement = TAU / contributorNodes.length;
@@ -1319,9 +1280,7 @@ const createORCAVisual = (
         contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
       }
 
-      let radius_drawn = d.data.orca_received
-        ? RADIUS_CONTRIBUTOR
-        : RADIUS_CONTRIBUTOR_NON_ORCA;
+      let radius_drawn = RADIUS_CONTRIBUTOR;
       d.x =
         central_repo.fx +
         radius_drawn * cos(angle + contributor_angle - PI / 2);
@@ -1360,80 +1319,6 @@ const createORCAVisual = (
   /////////////////////////////////////////////////////////////////
   // Extracted to src/js/simulations/remainingSimulation.js
 
-  /////////////////////////////////////////////////////////////////
-  ////////////////////// Background Elements //////////////////////
-  /////////////////////////////////////////////////////////////////
-  // Draw two rings around the central node to show those that receive ORCA (if present) vs the other top contributors
-  /////////////////////////////////////////////////////////////////
-  ////////////////////// Background Elements //////////////////////
-  /////////////////////////////////////////////////////////////////
-  // Draw two rings around the central node to show those that receive ORCA (if present) vs the other top contributors
-  function drawBigRings(context, SF) {
-    // Draw the ORCA rings
-    context.fillStyle = context.strokeStyle = COLOR_PURPLE; //COLOR_REPO_MAIN //spectral.mix("#e3e3e3", COLOR_REPO_MAIN, 0.75)
-    let LW = ORCA_RING_WIDTH;
-    let O = 4;
-    context.lineWidth = 1.5 * SF;
-    // context.lineWidth = LW * SF
-
-    if (ORCA_PRESENT) {
-      // Inner ring of those receiving ORCA
-      context.beginPath();
-      context.moveTo(0 + (RADIUS_CONTRIBUTOR + LW / 2 - O) * SF, 0);
-      context.arc(0, 0, (RADIUS_CONTRIBUTOR + LW / 2 - O) * SF, 0, TAU);
-      context.moveTo(0 + (RADIUS_CONTRIBUTOR - LW / 2) * SF, 0);
-      context.arc(0, 0, (RADIUS_CONTRIBUTOR - LW / 2) * SF, 0, TAU, true);
-      context.globalAlpha = 0.06;
-      context.fill();
-      context.globalAlpha = 0.2;
-      // context.stroke()
-    } // if
-
-    // Second ring of those not receiving ORCA
-    context.beginPath();
-    context.moveTo(0 + (RADIUS_CONTRIBUTOR_NON_ORCA + LW / 2) * SF, 0);
-    context.arc(0, 0, (RADIUS_CONTRIBUTOR_NON_ORCA + LW / 2) * SF, 0, TAU);
-    context.moveTo(0 + (RADIUS_CONTRIBUTOR_NON_ORCA - LW / 2 + O) * SF, 0);
-    context.arc(
-      0,
-      0,
-      (RADIUS_CONTRIBUTOR_NON_ORCA - LW / 2 + O) * SF,
-      0,
-      TAU,
-      true,
-    );
-    context.globalAlpha = ORCA_PRESENT ? 0.03 : 0.05;
-    context.fill();
-    context.globalAlpha = 0.1;
-    // context.stroke()
-
-    // Add the title along the two bands
-    if (ORCA_PRESENT) {
-      context.textAlign = "center";
-      setFont(context, 16 * SF, 700, "italic");
-      context.globalAlpha = 0.5;
-      context.textBaseline = "bottom";
-      drawTextAlongArc(
-        context,
-        "contributors supported through ORCA",
-        TAU * 0.9,
-        (RADIUS_CONTRIBUTOR - (LW / 2 - O - 2)) * SF,
-        "up",
-        1.5 * SF,
-      );
-
-      context.textBaseline = "top";
-      drawTextAlongArc(
-        context,
-        `other top contributors`,
-        TAU * 0.9,
-        (RADIUS_CONTRIBUTOR_NON_ORCA + (LW / 2 - O - 2)) * SF,
-        "up",
-        1.5 * SF,
-      );
-    } // if
-    context.globalAlpha = 1;
-  } // function drawBigRings
 
   /////////////////////////////////////////////////////////////////
   ///////////////////// Node Drawing Functions ////////////////////
@@ -1588,14 +1473,14 @@ const createORCAVisual = (
           l.gradient.addColorStop(1, color_rgb_target);
         } catch (e) {
           // If gradient creation fails for any reason, fall back to solid color
-          if (localStorage.getItem('debug-orca') === 'true') {
+          if (localStorage.getItem('debug-contributor-network') === 'true') {
             console.warn('Gradient creation error:', e, { link: l, sf: SF });
           }
           l.gradient = COLOR_LINK;
         }
       } else {
         // Gradient can't be created - invalid coordinates
-        if (localStorage.getItem('debug-orca') === 'true') {
+        if (localStorage.getItem('debug-contributor-network') === 'true') {
           console.warn('Invalid coordinates for gradient', {
             sourceX: l.source?.x,
             sourceY: l.source?.y,
@@ -1618,8 +1503,8 @@ const createORCAVisual = (
       WIDTH,
       HEIGHT,
       SF,
-      RADIUS_CONTRIBUTOR_NON_ORCA,
-      ORCA_RING_WIDTH,
+      RADIUS_CONTRIBUTOR,
+      CONTRIBUTOR_RING_WIDTH,
       sqrt
     };
     // Create delaunayData object that will be kept in sync
@@ -1632,21 +1517,21 @@ const createORCAVisual = (
       set delaunayRemaining(val) { delaunay_remaining = val; }
     };
     
-    setupHoverInteraction(
+    setupHoverInteraction({
       d3,
-      "#canvas-hover",
+      canvasSelector: "#canvas-hover",
       config,
       delaunayData,
       interactionState,
       REPO_CENTRAL,
       canvas,
-      context_hover,
+      contextHover: context_hover,
       REMAINING_PRESENT,
       remainingContributors,
       setHovered,
       clearHover,
       drawHoverState
-    );
+    });
   } // function setupHover
 
   // Draw the hovered node and its links and neighbors and a tooltip
@@ -1786,8 +1671,8 @@ const createORCAVisual = (
       WIDTH,
       HEIGHT,
       SF,
-      RADIUS_CONTRIBUTOR_NON_ORCA,
-      ORCA_RING_WIDTH,
+      RADIUS_CONTRIBUTOR,
+      CONTRIBUTOR_RING_WIDTH,
       sqrt
     };
     // Create delaunayData object that will be kept in sync
@@ -1800,16 +1685,16 @@ const createORCAVisual = (
       set delaunayRemaining(val) { delaunay_remaining = val; }
     };
     
-    setupClickInteraction(
+    setupClickInteraction({
       d3,
-      "#canvas-hover", // Use hover canvas for clicks too since it's on top
+      canvasSelector: "#canvas-hover", // Use hover canvas for clicks too since it's on top
       config,
       delaunayData,
       interactionState,
       REPO_CENTRAL,
       canvas,
-      context_click,
-      context_hover,
+      contextClick: context_click,
+      contextHover: context_hover,
       nodes,
       REMAINING_PRESENT,
       remainingContributors,
@@ -1818,7 +1703,7 @@ const createORCAVisual = (
       clearHover,
       setDelaunay,
       drawHoverState
-    );
+    });
   } // function setupClick
 
   /////////////////////////////////////////////////////////////////
@@ -1982,12 +1867,14 @@ const createORCAVisual = (
       getLinkNodeId,
       sqrt,
       max,
-      context,
-      REPO_CENTRAL,
-      central_repo,
-      scale_link_distance,
-      RADIUS_CONTRIBUTOR,
-      INNER_RADIUS_FACTOR
+      {
+        context,
+        REPO_CENTRAL,
+        central_repo,
+        scale_link_distance,
+        RADIUS_CONTRIBUTOR,
+        INNER_RADIUS_FACTOR
+      }
     );
     if (REMAINING_PRESENT) {
       runRemainingSimulation(
@@ -1998,8 +1885,7 @@ const createORCAVisual = (
         sin,
         max,
         RADIUS_CONTRIBUTOR,
-        RADIUS_CONTRIBUTOR_NON_ORCA,
-        ORCA_RING_WIDTH,
+        CONTRIBUTOR_RING_WIDTH,
         DEFAULT_SIZE,
         scale_remaining_contributor_radius
       );
@@ -2052,7 +1938,7 @@ const createORCAVisual = (
         }
       });
 
-      if (localStorage.getItem('debug-orca') === 'true') {
+      if (localStorage.getItem('debug-contributor-network') === 'true') {
         console.debug(`Positioned ${unpositionedNodes.length} unpositioned nodes in rings by type`);
       }
     }
@@ -2160,14 +2046,14 @@ const createORCAVisual = (
   };
 
   return chart;
-}; // function createORCAVisual
+}; // function createContributorNetworkVisual
 
 // ============================================================
 // Exports (for ES module bundling)
 // ============================================================
-export { createORCAVisual };
+export { createContributorNetworkVisual };
 
 // Also expose globally for non-module usage during transition
 if (typeof window !== 'undefined') {
-  window.createORCAVisual = createORCAVisual;
+  window.createContributorNetworkVisual = createContributorNetworkVisual;
 }

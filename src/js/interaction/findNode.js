@@ -12,8 +12,8 @@
  *   - WIDTH: Canvas width
  *   - HEIGHT: Canvas height
  *   - SF: Scale factor
- *   - RADIUS_CONTRIBUTOR_NON_ORCA: Radius for non-ORCA contributors
- *   - ORCA_RING_WIDTH: Width of ORCA ring
+ *   - RADIUS_CONTRIBUTOR: Radius for contributor positioning
+ *   - CONTRIBUTOR_RING_WIDTH: Width of contributor ring
  *   - sqrt: Square root function (Math.sqrt)
  * @param {Object} delaunayData - Delaunay triangulation data:
  *   - delaunay: Main Delaunay triangulation
@@ -25,7 +25,7 @@
  * @returns {Array} [node, found] - The found node (or null) and whether it was found
  */
 export function findNode(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors) {
-  const { PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR_NON_ORCA, ORCA_RING_WIDTH, sqrt } = config;
+  const { PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt } = config;
   const { delaunay, nodesDelaunay, delaunayRemaining } = delaunayData;
 
   // Convert mouse coordinates to visualization coordinates
@@ -33,7 +33,7 @@ export function findNode(mx, my, config, delaunayData, interactionState, REMAINI
   my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
 
   // Check if mouse is within the visualization bounds (with some margin)
-  const MAX_RADIUS = RADIUS_CONTRIBUTOR_NON_ORCA + ORCA_RING_WIDTH + 200;
+  const MAX_RADIUS = RADIUS_CONTRIBUTOR + CONTRIBUTOR_RING_WIDTH + 200;
   const distFromCenter = sqrt(mx * mx + my * my);
   if (distFromCenter > MAX_RADIUS) {
     return [null, false];

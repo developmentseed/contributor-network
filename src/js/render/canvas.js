@@ -205,14 +205,3 @@ export function resizeCanvasStack(canvasStack, width, height, pixelRatio = windo
 export function getPixelRatio() {
   return window.devicePixelRatio || 1;
 }
-
-/**
- * Calculate scale factor based on container width.
- *
- * @param {number} containerWidth - The container width
- * @param {number} defaultSize - The default/reference size
- * @returns {number} Scale factor
- */
-export function calculateScaleFactor(containerWidth, defaultSize = CANVAS_DEFAULTS.defaultSize) {
-  return containerWidth / defaultSize;
-}

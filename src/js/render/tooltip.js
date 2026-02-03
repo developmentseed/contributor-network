@@ -265,8 +265,8 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   let H, W;
 
   if (d.type === "contributor") {
-    // Contributor tooltip - keep existing logic for now
-    H = d.data && d.data.orca_received ? 134 : 80;
+    // Contributor tooltip
+    H = 80;
     W = 280;
   } else if (d.type === "owner") {
     // Owner tooltip - keep existing logic for now

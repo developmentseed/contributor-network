@@ -182,8 +182,7 @@
 
             ///////////////////// Start Drawing /////////////////////
             // Set-up the visual - Doesn't draw anything yet
-            // NOTE: This visual still uses a random "ORCA_LEVEL" variable for now
-            let ORCAVisual = createORCAVisual(
+            let contributorNetworkVisual = createContributorNetworkVisual(
                 container, 
                 REPOSITORY, 
                 {{ contributor_padding }},
@@ -208,17 +207,6 @@
 
                     /////////////////////////////////////////////////
                     // Very specific to this example, but get some statistics on the data and put this in the intro text
-                    // First check that the values[3] belongs to the remaining contributors and not the orca recipients
-                    const remainingContributorsPresent = values[3] && values[3][0].author_name !== undefined
-                    let orcaPresent = false
-                    if(remainingContributorsPresent && (values[4] && values[4][0].name !== undefined)) orcaPresent = true
-                    else if(!remainingContributorsPresent && (values[3] && values[3][0].name !== undefined)) orcaPresent = true
-
-                    if(!orcaPresent) {
-                        // Hide all those with a class of orca-note
-                        document.querySelectorAll(".orca-note").forEach(d => d.style.display = `none`)
-                    }// if
-
                     /////////////////////////////////////////////////
                     if(remainingContributorsPresent) {
                         let num_contributors = values[0].length + values[3].length
@@ -262,17 +250,17 @@
                         if (selectedOrg === "") {
                             // Clear all filters to show all orgs
                             if (currentSelectedOrg) {
-                                ORCAVisual.setFilter(currentSelectedOrg, false);
+                                contributorNetworkVisual.setFilter(currentSelectedOrg, false);
                                 currentSelectedOrg = null;
                             }
                         } else {
                             // If there was a previous selection, turn it off
                             if (currentSelectedOrg && currentSelectedOrg !== selectedOrg) {
-                                ORCAVisual.setFilter(currentSelectedOrg, false);
+                                contributorNetworkVisual.setFilter(currentSelectedOrg, false);
                             }
                             
                             // Turn on the newly selected organization
-                            ORCAVisual.setFilter(selectedOrg, true);
+                            contributorNetworkVisual.setFilter(selectedOrg, true);
                             currentSelectedOrg = selectedOrg;
                         }
                         
@@ -295,7 +283,7 @@
 
                     /////////////////////////////////////////////////
                     // It expects the four datasets of contributors (authors), repositories, links between contributors and repositories, and remaining contributors, in that order
-                    ORCAVisual(values)
+                    contributorNetworkVisual(values)
 
                     /////////////////////////////////////////////////
                     // Get the start date of the central repository & the most recent commit date in this repository
@@ -344,7 +332,7 @@
                         let height = width
 
                         //Update the visual
-                        ORCAVisual
+                        contributorNetworkVisual
                             .width(width)
                             .height(height)
                             .resize()

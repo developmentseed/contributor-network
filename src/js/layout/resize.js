@@ -10,13 +10,14 @@
  * @param {number} WIDTH - Canvas width in pixels
  * @param {number} HEIGHT - Canvas height in pixels
  * @param {number} width - Display width in CSS pixels
+ * @param {number} height - Display height in CSS pixels
  * @param {number} PIXEL_RATIO - Device pixel ratio
  */
-export function sizeCanvas(canvas, context, WIDTH, HEIGHT, width, PIXEL_RATIO) {
+export function sizeCanvas(canvas, context, WIDTH, HEIGHT, width, height, PIXEL_RATIO) {
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
   canvas.style.width = `${width}px`;
-  canvas.style.height = `${HEIGHT / PIXEL_RATIO}px`;
+  canvas.style.height = `${height}px`;
 
   // Some canvas settings
   context.lineJoin = "round";
@@ -27,15 +28,15 @@ export function sizeCanvas(canvas, context, WIDTH, HEIGHT, width, PIXEL_RATIO) {
  * Calculates the scale factor based on width and outer ring radius
  * @param {number} WIDTH - Canvas width
  * @param {number} DEFAULT_SIZE - Default canvas size
- * @param {number} RADIUS_CONTRIBUTOR_NON_ORCA - Radius for non-ORCA contributors
- * @param {number} ORCA_RING_WIDTH - Width of ORCA ring
+ * @param {number} RADIUS_CONTRIBUTOR - Radius for contributor positioning
+ * @param {number} CONTRIBUTOR_RING_WIDTH - Width of contributor ring
  * @returns {number} Scale factor
  */
-export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR_NON_ORCA, ORCA_RING_WIDTH) {
+export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH) {
   // Set the scale factor
   let SF = WIDTH / DEFAULT_SIZE;
   // If this means that the ring won't fit, make the SF smaller
-  let OUTER_RING = RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2;
+  let OUTER_RING = RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2;
   if (WIDTH / 2 < OUTER_RING * SF) SF = WIDTH / (2 * OUTER_RING);
   return SF;
 }
@@ -54,8 +55,8 @@ export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR_NON
  *   - width: Display width
  *   - height: Display height
  *   - DEFAULT_SIZE: Default canvas size
- *   - RADIUS_CONTRIBUTOR_NON_ORCA: Radius for non-ORCA contributors
- *   - ORCA_RING_WIDTH: Width of ORCA ring
+ *   - RADIUS_CONTRIBUTOR: Radius for contributor positioning
+ *   - CONTRIBUTOR_RING_WIDTH: Width of contributor ring
  *   - round: Round function (Math.round)
  * @param {Object} state - State objects to update:
  *   - WIDTH: Canvas width (will be updated)
@@ -68,11 +69,12 @@ export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR_NON
  * @param {Object} data - Data arrays:
  *   - nodes: All nodes
  *   - remainingContributors: Remaining contributor nodes
- * @param {boolean} REMAINING_PRESENT - Whether remaining contributors are present
- * @param {Object} d3 - D3 library instance
- * @param {Function} setDelaunay - Function to update Delaunay in interaction state
- * @param {Object} interactionState - Interaction state object
- * @param {Function} draw - Function to redraw the visualization
+ * @param {Object} options - Additional options:
+ *   - REMAINING_PRESENT: Whether remaining contributors are present
+ *   - d3: D3 library instance
+ *   - setDelaunay: Function to update Delaunay in interaction state
+ *   - interactionState: Interaction state object
+ *   - draw: Function to redraw the visualization
  */
 export function handleResize(
   canvases,
@@ -80,13 +82,10 @@ export function handleResize(
   config,
   state,
   data,
-  REMAINING_PRESENT,
-  d3,
-  setDelaunay,
-  interactionState,
-  draw
+  options
 ) {
-  const { width, height, DEFAULT_SIZE, RADIUS_CONTRIBUTOR_NON_ORCA, ORCA_RING_WIDTH, round } = config;
+  const { REMAINING_PRESENT, d3, setDelaunay, interactionState, draw } = options;
+  const { width, height, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, round } = config;
   const { nodes, remainingContributors } = data;
 
   // Screen pixel ratio
@@ -97,14 +96,14 @@ export function handleResize(
   state.HEIGHT = round(height * state.PIXEL_RATIO);
 
   // Size all canvases
-  sizeCanvas(canvases.canvas, contexts.context, state.WIDTH, state.HEIGHT, width, state.PIXEL_RATIO);
-  sizeCanvas(canvases.canvas_click, contexts.context_click, state.WIDTH, state.HEIGHT, width, state.PIXEL_RATIO);
-  sizeCanvas(canvases.canvas_hover, contexts.context_hover, state.WIDTH, state.HEIGHT, width, state.PIXEL_RATIO);
+  sizeCanvas(canvases.canvas, contexts.context, state.WIDTH, state.HEIGHT, width, height, state.PIXEL_RATIO);
+  sizeCanvas(canvases.canvas_click, contexts.context_click, state.WIDTH, state.HEIGHT, width, height, state.PIXEL_RATIO);
+  sizeCanvas(canvases.canvas_hover, contexts.context_hover, state.WIDTH, state.HEIGHT, width, height, state.PIXEL_RATIO);
 
   // Set the scale factor
   state.SF = state.WIDTH / DEFAULT_SIZE;
   // If this means that the ring won't fit, make the SF smaller
-  let OUTER_RING = RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2;
+  let OUTER_RING = RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2;
   if (state.WIDTH / 2 < OUTER_RING * state.SF) state.SF = state.WIDTH / (2 * OUTER_RING);
 
   // Reset the delaunay for the mouse events

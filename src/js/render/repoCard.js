@@ -197,47 +197,6 @@ export function renderCommunityMetrics(context, data, x, y, SF) {
 }
 
 /**
- * Render the contributor commit info when a contributor is clicked
- * @param {CanvasRenderingContext2D} context - Canvas context
- * @param {Object} link - Link data between contributor and repo
- * @param {string} contributorName - Name of the clicked contributor
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {number} SF - Scale factor
- * @param {function} formatDate - Date format function
- * @returns {number} New Y position after rendering
- */
-export function renderContributorCommitInfo(context, link, contributorName, x, y, SF, formatDate) {
-  const config = REPO_CARD_CONFIG;
-
-  if (!link) return y;
-
-  y += 28;
-
-  // Commit count label
-  context.globalAlpha = config.labelOpacity;
-  setFont(context, config.labelFontSize * SF, 400, 'italic');
-  const commitText = link.commit_count === 1 ? '1 commit by' : `${link.commit_count} commits by`;
-  renderText(context, commitText, x * SF, y * SF, 2 * SF);
-
-  // Contributor name
-  y += 16;
-  context.globalAlpha = config.valueOpacity;
-  setFont(context, config.valueFontSize * SF, 700, 'normal');
-  renderText(context, contributorName, x * SF, y * SF, 1.25 * SF);
-
-  // Date range
-  y += config.valueFontSize * config.lineHeight;
-  setFont(context, config.valueFontSize * SF, 400, 'normal');
-
-  const firstDate = formatDate(link.commit_sec_min);
-  const lastDate = formatDate(link.commit_sec_max);
-  renderText(context, `${firstDate} — ${lastDate}`, x * SF, y * SF, 1.25 * SF);
-
-  return y;
-}
-
-/**
  * Render license badge if available
  * @param {CanvasRenderingContext2D} context - Canvas context
  * @param {Object} data - Repository data

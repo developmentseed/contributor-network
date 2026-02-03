@@ -54,7 +54,7 @@ export const FONTS = {
  * Size configuration for nodes and layout
  */
 export const SIZES = {
-  // Canvas dimensions
+  // Canvas dimensions (use LAYOUT.defaultSize instead)
   defaultCanvas: 1500,
 
   // Node radius ranges [min, max]
@@ -68,15 +68,19 @@ export const SIZES = {
 };
 
 /**
- * Layout configuration for force simulation
+ * Layout configuration for force simulation and visualization
  */
 export const LAYOUT = {
   // Central node positioning
-  centralRadius: 100,
-  innerRadiusFactor: 1.5,
+  centralRadius: 35,  // The radius of the central repository node
+  innerRadiusFactor: 0.7,  // The factor of RADIUS_CONTRIBUTOR outside of which inner repos are not allowed to go
 
   // Contributor ring positioning
   contributorPadding: 20,  // Default, overridden by config
+  maxContributorWidth: 55,  // The maximum width (at SF = 1) of the contributor name before it gets wrapped
+
+  // Canvas sizing
+  defaultSize: 1500,  // Default canvas size
 
   // Force simulation parameters
   linkDistanceDomain: [1, 50],
@@ -102,34 +106,6 @@ export const TIMING = {
 };
 
 /**
- * Create D3 scales based on theme configuration
- * Call this after D3 is loaded
- *
- * @param {Object} d3 - D3 library reference
- * @returns {Object} Object containing configured scales
- */
-export function createScales(d3) {
-  return {
-    repoRadius: d3.scaleSqrt()
-      .range([SIZES.repoRadius.min, SIZES.repoRadius.max]),
-
-    contributorRadius: d3.scaleSqrt()
-      .range([SIZES.contributorRadius.min, SIZES.contributorRadius.max]),
-
-    remainingContributorRadius: d3.scaleSqrt()
-      .range([SIZES.remainingContributorRadius.min, SIZES.remainingContributorRadius.max]),
-
-    linkDistance: d3.scaleLinear()
-      .domain(LAYOUT.linkDistanceDomain)
-      .range([SIZES.linkDistance.min, SIZES.linkDistance.max]),
-
-    linkWidth: d3.scalePow()
-      .exponent(LAYOUT.linkWidthExponent)
-      .range([SIZES.linkWidth.min, SIZES.linkWidth.mid, SIZES.linkWidth.max])
-  };
-}
-
-/**
  * Export a single theme object for convenience
  */
 export const THEME = {
@@ -137,8 +113,7 @@ export const THEME = {
   fonts: FONTS,
   sizes: SIZES,
   layout: LAYOUT,
-  timing: TIMING,
-  createScales
+  timing: TIMING
 };
 
 export default THEME;

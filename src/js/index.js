@@ -17,8 +17,7 @@ export {
   FONTS,
   SIZES,
   LAYOUT,
-  TIMING,
-  createScales
+  TIMING
 } from './config/theme.js';
 
 export {
@@ -122,8 +121,7 @@ export {
   fillCanvas,
   createCanvasStack,
   resizeCanvasStack,
-  getPixelRatio,
-  calculateScaleFactor
+  getPixelRatio
 } from './render/canvas.js';
 
 export {
@@ -146,7 +144,6 @@ export {
   renderStatsLine,
   renderLanguages,
   renderCommunityMetrics,
-  renderContributorCommitInfo,
   renderLicense,
   renderArchivedBadge
 } from './render/repoCard.js';

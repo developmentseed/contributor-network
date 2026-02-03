@@ -1,8 +1,8 @@
 /**
  * Force simulation for contributors outside the main circle
  * 
- * Runs a force simulation to position remaining contributors (those not in the main ORCA ring)
- * outside the outer NON-ORCA ring.
+ * Runs a force simulation to position remaining contributors (those not in the main contributor ring)
+ * outside the contributor ring.
  * 
  * @module simulations/remainingSimulation
  */
@@ -17,8 +17,7 @@
  * @param {Function} sin - Math.sin function
  * @param {Function} max - Math.max function
  * @param {number} RADIUS_CONTRIBUTOR - Radius for contributor positioning
- * @param {number} RADIUS_CONTRIBUTOR_NON_ORCA - Radius for non-ORCA contributors
- * @param {number} ORCA_RING_WIDTH - Width of the ORCA ring
+ * @param {number} CONTRIBUTOR_RING_WIDTH - Width of the contributor ring
  * @param {number} DEFAULT_SIZE - Default canvas size
  * @param {Function} scale_remaining_contributor_radius - Scale function for remaining contributor radius
  */
@@ -30,15 +29,14 @@ export function runRemainingSimulation(
   sin,
   max,
   RADIUS_CONTRIBUTOR,
-  RADIUS_CONTRIBUTOR_NON_ORCA,
-  ORCA_RING_WIDTH,
+  CONTRIBUTOR_RING_WIDTH,
   DEFAULT_SIZE,
   scale_remaining_contributor_radius
 ) {
-  let LW = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2;
-  let R = RADIUS_CONTRIBUTOR_NON_ORCA + LW * 2;
+  let LW = CONTRIBUTOR_RING_WIDTH;
+  let R = RADIUS_CONTRIBUTOR + LW * 2;
 
-  // Initial random position, but outside of the ORCA ring
+  // Initial random position, but outside of the contributor ring
   remainingContributors.forEach((d) => {
     let angle = Math.random() * TAU;
     d.x = (R + Math.random() * 50) * cos(angle);
@@ -62,13 +60,13 @@ export function runRemainingSimulation(
     .force("x", d3.forceX().x(0).strength(0.01)) //0.1
     .force("y", d3.forceY().y(0).strength(0.01)); //0.1
 
-  // Add a dummy node to the dataset that is fixed in the center that is as big as the NON-ORCA circle
+  // Add a dummy node to the dataset that is fixed in the center that is as big as the contributor circle
   remainingContributors.push({
     x: 0,
     y: 0,
     fx: 0,
     fy: 0,
-    r: RADIUS_CONTRIBUTOR_NON_ORCA + LW * 0.75,
+    r: RADIUS_CONTRIBUTOR + LW * 0.75,
     id: "dummy",
   });
 
@@ -79,30 +77,8 @@ export function runRemainingSimulation(
   let n_ticks = 30;
   for (let i = 0; i < n_ticks; ++i) {
     simulation.tick();
-    // Make sure that the nodes remain within the canvas
-    // simulationPlacementConstraints(remainingContributors)
   } //for i
 
   // Remove the dummy node from the dataset again
   remainingContributors.pop();
-
-  /////////////////////////////////////////////////////////////
-  function simulationPlacementConstraints(nodes) {
-    let OUTER_AREA = max(
-      DEFAULT_SIZE / 2,
-      RADIUS_CONTRIBUTOR_NON_ORCA + (ORCA_RING_WIDTH / 2) * 2,
-    );
-    let O = 30;
-    // Make sure the nodes remain within the canvas
-    nodes.forEach((d) => {
-      if (d.x < -OUTER_AREA + d.r)
-        d.x = -OUTER_AREA + d.r * 2 + Math.random() * O;
-      else if (d.x > OUTER_AREA - d.r)
-        d.x = OUTER_AREA - d.r * 2 + Math.random() * O;
-      if (d.y < -OUTER_AREA + d.r)
-        d.y = -OUTER_AREA + d.r * 2 + Math.random() * O;
-      else if (d.y > OUTER_AREA - d.r)
-        d.y = OUTER_AREA - d.r * 2 + Math.random() * O;
-    }); // forEach
-  } // simulationPlacementConstraints
 } // function runRemainingSimulation

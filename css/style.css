@@ -362,7 +362,7 @@ li#item-remaining::before {
 /*************** CHART ***************/
 /*************************************/
 
-/* This is all done within the createORCAVisual function */
+/* This is all done within the createContributorNetworkVisual function */
 
 #chart-container {
     position: relative;
@@ -370,16 +370,18 @@ li#item-remaining::before {
     width: 100%;
     min-height: 800px;
     padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 #chart-container canvas {
     display: block;
-    margin: 0;
 }
 
 #canvas, #canvas-click {
     position: absolute;
     top: 0;
+    left: 0;
     pointer-events: none;
     z-index: 0;
     transition: opacity 200ms ease-in;

@@ -18,12 +18,13 @@ import { setCentralRepoFont, setOwnerFont, setRepoFont } from '../render/text.js
  * @param {Function} getLinkNodeId - Helper to extract node ID from link source/target
  * @param {Function} sqrt - Math.sqrt function
  * @param {Function} max - Math.max function
- * @param {Object} context - Canvas 2D context for text measurement
- * @param {string} REPO_CENTRAL - ID of the central repository
- * @param {Object} central_repo - Central repository node object
- * @param {Function} scale_link_distance - Scale function for link distances
- * @param {number} RADIUS_CONTRIBUTOR - Radius for contributor positioning
- * @param {number} INNER_RADIUS_FACTOR - Factor for inner radius constraint
+ * @param {Object} config - Configuration object:
+ *   - context: Canvas 2D context for text measurement
+ *   - REPO_CENTRAL: ID of the central repository
+ *   - central_repo: Central repository node object
+ *   - scale_link_distance: Scale function for link distances
+ *   - RADIUS_CONTRIBUTOR: Radius for contributor positioning
+ *   - INNER_RADIUS_FACTOR: Factor for inner radius constraint
  * @returns {Array} nodes_central - Array of central nodes used in the simulation
  */
 export function runCollaborationSimulation(
@@ -33,13 +34,9 @@ export function runCollaborationSimulation(
   getLinkNodeId,
   sqrt,
   max,
-  context,
-  REPO_CENTRAL,
-  central_repo,
-  scale_link_distance,
-  RADIUS_CONTRIBUTOR,
-  INNER_RADIUS_FACTOR
+  config
 ) {
+  const { context, REPO_CENTRAL, central_repo, scale_link_distance, RADIUS_CONTRIBUTOR, INNER_RADIUS_FACTOR } = config;
   let nodes_central;
   
   let simulation = d3
@@ -51,14 +48,6 @@ export function runCollaborationSimulation(
         .id((d) => d.id)
         .distance((d) => scale_link_distance(d.target.degree) * 5),
     )
-    // .force("collide",
-    //     d3.forceCollide()
-    //         .radius(d => {
-    //             let r = d.max_radius ? d.max_radius : d.r
-    //             return r + (d.padding ? d.padding : max(r/2, 15))
-    //         })
-    //         .strength(0)
-    // )
     .force(
       "collide",
       //Make sure that the words don't overlap
@@ -70,16 +59,10 @@ export function runCollaborationSimulation(
     )
     .force(
       "charge",
-      d3.forceManyBody(),
-      // .strength(d => scale_node_charge(d.id))
-      // .distanceMax(WIDTH / 3)
+      d3.forceManyBody()
     );
-  // .force("x", d3.forceX().x(d => d.focusX).strength(0.08)) //0.1
-  // .force("y", d3.forceY().y(d => d.focusY).strength(0.08)) //0.1
-  // .force("center", d3.forceCenter(0,0))
 
   // Keep the nodes that are an "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
-  // nodes_central = nodes.filter(d => d.type === "contributor" || d.type === "owner")
   nodes_central = nodes.filter(
     (d) =>
       d.type === "contributor" ||
@@ -156,25 +139,8 @@ export function runCollaborationSimulation(
 
   // Perform the simulation
   simulation.nodes(nodes_central).stop();
-  // .on("tick", ticked)
 
-  // function ticked() {
-  //     simulationPlacementConstraints()
-  //     drawQuick()
-  // }
-
-  // // ramp up collision strength to provide smooth transition
-  // let transitionTime = 3000
-  // let t = d3.timer(function (elapsed) {
-  //     let dt = elapsed / transitionTime
-  //     simulation.force("collide").strength(0.1 + dt ** 2 * 0.6)
-  //     if (dt >= 1.0) t.stop()
-  // })
-
-  // Only use the links that are not going to the central node
   simulation.force("link").links(links_central);
-  // .links(links_central.filter(d => d.target !== central_repo.id))
-  // simulation.force("link").links(links)
 
   //Manually "tick" through the network
   let n_ticks = 300;
@@ -186,12 +152,10 @@ export function runCollaborationSimulation(
   } //for i
 
   // Once it's done, fix the positions of the nodes used in the simulation
-  // simulation.on("end", () => {
   nodes_central.forEach((d) => {
     d.fx = d.x;
     d.fy = d.y;
   }); // forEach
-  // })
 
   // Update the position of the repositories connected to an "owner" node
   nodes

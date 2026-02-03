@@ -3,6 +3,7 @@
  * @module render/labels
  */
 
+import { COLORS } from '../config/theme.js';
 import { setFont, setCentralRepoFont, setContributorFont, setOwnerFont, setRepoFont, renderText } from './text.js';
 
 /**
@@ -66,12 +67,12 @@ export function drawNodeLabel(context, d, config, central_repo, DO_CENTRAL_OUTSI
           i * font_size * label_line_height) *
         SF;
 
-      // Draw a background colored rectangle for those receiving ORCA
-      if (d.data.orca_received) {
+      // Draw a background colored rectangle for highlighted contributors
+      if (d.data.highlighted) {
         let W = context.measureText(l).width * 1.25 + 8 * SF;
         let x_rect = x - 6 * SF;
         if (d.contributor_angle > PI / 2) x_rect = x + 4 * SF - W;
-        context.fillStyle = "#CF3F0230";  // Grenadier at ~20% opacity
+        context.fillStyle = COLORS.highlightFill;
         context.fillRect(x_rect, -10 * SF + y, W, 20 * SF);
         context.globalAlpha = 1;
         context.fillStyle = COLOR_TEXT;
