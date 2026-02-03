@@ -12,6 +12,57 @@ import { createDateFormatters } from '../utils/formatters.js';
 import { getLinkNodeId } from '../utils/validation.js';
 import { debugWarn, isDebugEnabled } from '../utils/debug.js';
 
+// ============================================================
+// Helper Functions
+// ============================================================
+
+/**
+ * Safely parse a date with validation
+ * @param {*} value - The value to parse
+ * @param {Function} parser - The date parsing function
+ * @param {string} fieldName - Name of the field (for error messages)
+ * @param {string} itemId - Identifier for the item (for error messages)
+ * @returns {Date} - Parsed date or epoch fallback
+ */
+function safeParsDate(value, parser, fieldName, itemId) {
+  if (value === null || value === undefined || value === '') {
+    debugWarn(`Missing ${fieldName} for ${itemId}, using epoch fallback`);
+    return new Date(0);
+  }
+  const parsed = parser(value);
+  if (!parsed || isNaN(parsed.getTime())) {
+    debugWarn(`Failed to parse ${fieldName} "${value}" for ${itemId}, using epoch fallback`);
+    return new Date(0);
+  }
+  return parsed;
+}
+
+/**
+ * Parse owner and name from repo string with validation
+ * @param {string} repoString - Repository string in "owner/name" format
+ * @returns {{ owner: string, name: string }} - Parsed owner and name
+ * @throws {Error} - If format is invalid
+ */
+function parseRepoString(repoString) {
+  if (!repoString || typeof repoString !== 'string') {
+    throw new Error(`Invalid repo string: "${repoString}" (expected "owner/name" format)`);
+  }
+  const slashIdx = repoString.indexOf('/');
+  if (slashIdx === -1) {
+    throw new Error(`Invalid repo format: "${repoString}" (expected "owner/name" format, missing "/")`);
+  }
+  if (slashIdx === 0) {
+    throw new Error(`Invalid repo format: "${repoString}" (owner cannot be empty)`);
+  }
+  if (slashIdx === repoString.length - 1) {
+    throw new Error(`Invalid repo format: "${repoString}" (name cannot be empty)`);
+  }
+  return {
+    owner: repoString.substring(0, slashIdx),
+    name: repoString.substring(slashIdx + 1)
+  };
+}
+
 /**
  * Prepare data for visualization
  *
@@ -136,18 +187,19 @@ export function prepareData(data, config, scales) {
     d.externalContributors = +d.repo_external_contributors || 0;
     d.communityRatio = +d.repo_community_ratio || 0;
 
-    // Parse dates (check if unix time or ISO format)
+    // Parse dates with validation (check if unix time or ISO format)
     if (isInteger(d.createdAt)) {
-      d.createdAt = parseDateUnix(d.createdAt);
-      d.updatedAt = parseDateUnix(d.repo_updatedAt);
+      d.createdAt = safeParsDate(d.createdAt, parseDateUnix, 'createdAt', d.repo);
+      d.updatedAt = safeParsDate(d.repo_updatedAt, parseDateUnix, 'updatedAt', d.repo);
     } else {
-      d.createdAt = parseDate(d.repo_createdAt);
-      d.updatedAt = parseDate(d.repo_updatedAt);
+      d.createdAt = safeParsDate(d.repo_createdAt, parseDate, 'createdAt', d.repo);
+      d.updatedAt = safeParsDate(d.repo_updatedAt, parseDate, 'updatedAt', d.repo);
     }
 
     // Extract owner and name from repo string (format: "owner/name")
-    d.owner = d.repo.substring(0, d.repo.indexOf("/"));
-    d.name = d.repo.substring(d.repo.indexOf("/") + 1);
+    const repoParsed = parseRepoString(d.repo);
+    d.owner = repoParsed.owner;
+    d.name = repoParsed.name;
 
     // Parse languages
     d.languages = d.repo_languages.split(",");
@@ -179,18 +231,20 @@ export function prepareData(data, config, scales) {
     d.contributor_name = d.author_name;
     d.commit_count = +d.commit_count;
 
-    // Parse dates (check if unix time or ISO format)
+    // Parse dates with validation (check if unix time or ISO format)
+    const linkId = `${d.author_name} → ${d.repo}`;
     if (isInteger(d.commit_sec_min)) {
-      d.commit_sec_min = parseDateUnix(d.commit_sec_min);
-      d.commit_sec_max = parseDateUnix(d.commit_sec_max);
+      d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDateUnix, 'commit_sec_min', linkId);
+      d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDateUnix, 'commit_sec_max', linkId);
     } else {
-      d.commit_sec_min = parseDate(d.commit_sec_min);
-      d.commit_sec_max = parseDate(d.commit_sec_max);
+      d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDate, 'commit_sec_min', linkId);
+      d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDate, 'commit_sec_max', linkId);
     }
 
     // Extract owner and name from repo string
-    d.owner = d.repo.substring(0, d.repo.indexOf("/"));
-    d.name = d.repo.substring(d.repo.indexOf("/") + 1);
+    const linkRepoParsed = parseRepoString(d.repo);
+    d.owner = linkRepoParsed.owner;
+    d.name = linkRepoParsed.name;
 
     // Set up initial source and target
     d.source = d.contributor_name;
@@ -202,23 +256,27 @@ export function prepareData(data, config, scales) {
   // ============================================================
   // Prepare Remaining Contributors
   // ============================================================
-  if (REMAINING_PRESENT) {
-    remainingContributors.forEach((d) => {
+  // Guard against undefined remainingContributors array
+  if (REMAINING_PRESENT && Array.isArray(remainingContributors) && remainingContributors.length > 0) {
+    remainingContributors.forEach((d, idx) => {
       d.commit_count = +d.commit_count;
 
-      // Parse dates
+      // Parse dates with validation
+      const remainingId = d.author_name || `remaining_contributor_${idx}`;
       if (isInteger(d.commit_sec_min)) {
-        d.commit_sec_min = parseDateUnix(d.commit_sec_min);
-        d.commit_sec_max = parseDateUnix(d.commit_sec_max);
+        d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDateUnix, 'commit_sec_min', remainingId);
+        d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDateUnix, 'commit_sec_max', remainingId);
       } else {
-        d.commit_sec_min = parseDate(d.commit_sec_min);
-        d.commit_sec_max = parseDate(d.commit_sec_max);
+        d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDate, 'commit_sec_min', remainingId);
+        d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDate, 'commit_sec_max', remainingId);
       }
 
       d.type = "contributor";
       d.remaining_contributor = true;
       d.color = COLOR_CONTRIBUTOR;
     });
+  } else if (REMAINING_PRESENT && (!Array.isArray(remainingContributors) || remainingContributors.length === 0)) {
+    debugWarn('REMAINING_PRESENT is true but remainingContributors array is empty or invalid');
   }
 
   // ============================================================

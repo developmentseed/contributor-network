@@ -69,6 +69,8 @@ import {
   hasActiveFilters
 } from './src/js/state/filterState.js';
 import { prepareData } from './src/js/data/prepare.js';
+import { positionContributorNodes } from './src/js/layout/positioning.js';
+import { draw as drawVisualization } from './src/js/render/draw.js';
 import {
   createInteractionState,
   setHovered,
@@ -380,6 +382,20 @@ const createContributorNetworkVisual = (
       }
     );
 
+    // Validate prepareData return structure
+    if (!prepared || typeof prepared !== 'object') {
+      throw new Error('prepareData returned invalid result: expected object');
+    }
+    if (!Array.isArray(prepared.nodes) || prepared.nodes.length === 0) {
+      throw new Error('prepareData returned invalid nodes: expected non-empty array');
+    }
+    if (!prepared.central_repo) {
+      throw new Error(`prepareData: central repository "${REPO_CENTRAL}" not found in prepared data`);
+    }
+    if (!Array.isArray(prepared.links)) {
+      throw new Error('prepareData returned invalid links: expected array');
+    }
+
     // Update local variables from prepared data
     nodes = prepared.nodes;
     nodes_central = prepared.nodes_central;
@@ -412,7 +428,12 @@ const createContributorNetworkVisual = (
 
     // Place the contributor nodes in a circle around the central repo
     // Taking into account the max_radius of single-degree repos around them
-    positionContributorNodes();
+    const positioningResult = positionContributorNodes(
+      { nodes, contributors, central_repo },
+      { CONTRIBUTOR_PADDING }
+    );
+    RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
+    CONTRIBUTOR_RING_WIDTH = positioningResult.CONTRIBUTOR_RING_WIDTH;
     // console.log("Contributor nodes positioned")
 
     /////////////////////////////////////////////////////////////
@@ -482,72 +503,19 @@ const createContributorNetworkVisual = (
   //////////////////////// Draw the visual ////////////////////////
   /////////////////////////////////////////////////////////////////
 
+  // Draw the visual - extracted to src/js/render/draw.js
   function draw() {
-    // Debug: Check if canvas is properly sized
-    if (WIDTH === 0 || HEIGHT === 0) {
-      console.warn('draw() called with invalid canvas size:', { WIDTH, HEIGHT, width, height, SF });
-      return;
-    }
-    if (nodes.length === 0) {
-      console.warn('draw() called with no nodes');
-      return;
-    }
-    console.log('draw() called', { WIDTH, HEIGHT, SF, nodesCount: nodes.length, canvasWidth: canvas.width, canvasHeight: canvas.height });
-    /////////////////////////////////////////////////////////////
-    // Fill the background with a color
-    context.fillStyle = COLOR_BACKGROUND;
-    context.fillRect(0, 0, WIDTH, HEIGHT);
-
-    // Move the visual to the center
-    context.save();
-    context.translate(WIDTH / 2, HEIGHT / 2);
-
-
-    /////////////////////////////////////////////////////////////
-    // Draw all the links as lines (skip links to/from the central pseudo-node)
-    // Also validate that nodes exist and are positioned to prevent rendering errors
-    links.forEach((l) => {
-      // Skip drawing links that connect directly to the central "team" node
-      // These are artificial links that don't represent real contributions
-      const targetId = l.target.id || l.target;
-      const sourceId = l.source.id || l.source;
-      if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return;
-
-      // Validate that both nodes exist and have finite coordinates
-      if (
-        l.source && l.target &&
-        typeof l.source.x === 'number' && typeof l.source.y === 'number' &&
-        typeof l.target.x === 'number' && typeof l.target.y === 'number' &&
-        isFinite(l.source.x) && isFinite(l.source.y) &&
-        isFinite(l.target.x) && isFinite(l.target.y)
-      ) {
-        drawLinkWrapper(context, SF, l);
+    drawVisualization(
+      context,
+      { nodes, links, nodes_central },
+      { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL },
+      {
+        drawLink: drawLinkWrapper,
+        drawNodeArc: drawNodeArcWrapper,
+        drawNode: drawNodeWrapper,
+        drawNodeLabel: drawNodeLabelWrapper
       }
-    });
-
-    /////////////////////////////////////////////////////////////
-    // Draw all the nodes as circles (skip the central pseudo-node)
-    nodes.forEach((d) => {
-      if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
-      drawNodeArcWrapper(context, SF, d);
-    });
-    nodes.forEach((d) => {
-      if (d.id === REPO_CENTRAL) return; // Skip central pseudo-node
-      drawNodeWrapper(context, SF, d);
-    });
-
-    /////////////////////////////////////////////////////////////
-    // Draw the labels (skip central pseudo-node)
-    nodes_central.forEach((d) => {
-      if (d.id === REPO_CENTRAL) return;
-      drawNodeLabelWrapper(context, d);
-    });
-
-    // Test to see how the bbox of the nodes look
-    // drawBbox(context, nodes)
-
-    /////////////////////////////////////////////////////////////
-    context.restore();
+    );
   } // function draw
 
   /////////////////////////////////////////////////////////////////
@@ -732,105 +700,7 @@ const createContributorNetworkVisual = (
 
   // Place the contributor nodes in a circle around the central repo
   // Taking into account the max_radius of single-degree repos around them
-  function positionContributorNodes() {
-    // Ensure all contributors have a valid max_radius before calculating ring size
-    const contributorNodes = nodes.filter((d) => d.type === "contributor");
-    contributorNodes.forEach((d) => {
-      // Ensure max_radius is set - fallback to contributor's own radius
-      if (!d.max_radius || !isFinite(d.max_radius) || d.max_radius <= 0) {
-        d.max_radius = d.r || 20; // Minimum fallback radius
-      }
-      // Ensure connected_single_repo array exists
-      if (!d.connected_single_repo) {
-        d.connected_single_repo = [];
-      }
-    });
-
-    // Get the sum of all the contributor nodes' max_radius
-    let sum_radius = contributorNodes
-      .reduce((acc, curr) => acc + curr.max_radius * 2, 0);
-    // Take padding into account between the contributor nodes
-    sum_radius += contributors.length * CONTRIBUTOR_PADDING;
-    // This sum should be the circumference of the circle around the central node, what radius belongs to this -> 2*pi*R
-    RADIUS_CONTRIBUTOR = sum_radius / TAU;
-
-    // Ensure minimum radius so contributors don't collapse to center
-    // Use a larger minimum that scales with the number of contributors
-    const MIN_RADIUS = Math.max(200, contributorNodes.length * 15);
-    let useEvenSpacing = false;
-    if (!isFinite(RADIUS_CONTRIBUTOR) || RADIUS_CONTRIBUTOR < MIN_RADIUS) {
-      console.warn(`RADIUS_CONTRIBUTOR too small (${RADIUS_CONTRIBUTOR}), using minimum ${MIN_RADIUS}`);
-      RADIUS_CONTRIBUTOR = MIN_RADIUS;
-      useEvenSpacing = true; // When using minimum, distribute evenly
-    }
-
-    CONTRIBUTOR_RING_WIDTH = ((RADIUS_CONTRIBUTOR * 2.3) / 2 - RADIUS_CONTRIBUTOR) * 2; // Width of the contributor ring
-
-    // Calculate even angle increment for when we need to override spacing
-    const evenAngleIncrement = TAU / contributorNodes.length;
-
-    // Always log positioning info for debugging
-    console.log(`positionContributorNodes: ${contributorNodes.length} contributors, sum_radius=${sum_radius}, RADIUS_CONTRIBUTOR=${RADIUS_CONTRIBUTOR}, useEvenSpacing=${useEvenSpacing}`);
-
-    // Fix the contributor nodes in a ring around the central node
-    // const angle = TAU / (nodes.filter(d => d.type === "contributor").length)
-    let angle = 0;
-    contributorNodes.forEach((d, i) => {
-      // Subtract the contributor node position from all it's connected single-degree repos
-      // (this converts their positions from absolute to relative to the contributor)
-      if (d.connected_single_repo && d.connected_single_repo.length > 0) {
-        d.connected_single_repo.forEach((repo) => {
-          repo.x -= d.x;
-          repo.y -= d.y;
-        }); // forEach
-      }
-
-      // Find the new position of the contributor node in a ring around the central node
-      // max_radius should already be set from the validation above
-
-      // Debug: log first few contributor positions
-      if (i < 3) {
-        console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, central_repo=(${central_repo.fx}, ${central_repo.fy})`);
-      }
-
-      let contributor_arc = d.max_radius * 2 + CONTRIBUTOR_PADDING;
-      // translate this distance to an angle
-      let contributor_angle;
-      if (useEvenSpacing) {
-        // When using minimum radius, distribute evenly around the circle
-        contributor_angle = evenAngleIncrement / 2;
-      } else {
-        contributor_angle = contributor_arc / RADIUS_CONTRIBUTOR / 2;
-      }
-
-      let radius_drawn = RADIUS_CONTRIBUTOR;
-      d.x =
-        central_repo.fx +
-        radius_drawn * cos(angle + contributor_angle - PI / 2);
-      d.y =
-        central_repo.fy +
-        radius_drawn * sin(angle + contributor_angle - PI / 2);
-      d.contributor_angle = angle + contributor_angle - PI / 2;
-      angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;
-
-      // Fix the contributors for the force simulation
-      d.fx = d.x;
-      d.fy = d.y;
-
-      // Add the new contributor position to all it's connected single-degree repos
-      // (converting their positions back from relative to absolute)
-      if (d.connected_single_repo && d.connected_single_repo.length > 0) {
-        d.connected_single_repo.forEach((repo) => {
-          repo.x += d.x;
-          repo.y += d.y;
-
-          // Fix position for force simulation
-          repo.fx = repo.x;
-          repo.fy = repo.y;
-        }); // forEach
-      }
-    }); // forEach
-  } // function positionContributorNodes
+  // Extracted to src/js/layout/positioning.js
 
   /////////////////////////////////////////////////////////////////
   ///////////// Force Simulation | Collaboration Repos ////////////
@@ -1404,6 +1274,20 @@ const createContributorNetworkVisual = (
       }
     );
 
+    // Validate prepareData return structure
+    if (!prepared || typeof prepared !== 'object') {
+      console.error('rebuild: prepareData returned invalid result');
+      return chart;
+    }
+    if (!Array.isArray(prepared.nodes) || prepared.nodes.length === 0) {
+      console.error('rebuild: prepareData returned empty nodes - filters may be too restrictive');
+      return chart;
+    }
+    if (!prepared.central_repo) {
+      console.error(`rebuild: central repository "${REPO_CENTRAL}" not found`);
+      return chart;
+    }
+
     // Update local variables from prepared data
     nodes = prepared.nodes;
     nodes_central = prepared.nodes_central;
@@ -1416,7 +1300,12 @@ const createContributorNetworkVisual = (
 
     runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, min);
     runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max);
-    positionContributorNodes();
+    const positioningResult = positionContributorNodes(
+      { nodes, contributors, central_repo },
+      { CONTRIBUTOR_PADDING }
+    );
+    RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
+    CONTRIBUTOR_RING_WIDTH = positioningResult.CONTRIBUTOR_RING_WIDTH;
     nodes_central = runCollaborationSimulation(
       nodes,
       links,
