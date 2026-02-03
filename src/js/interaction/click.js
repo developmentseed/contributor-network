@@ -25,6 +25,8 @@ import { findNode as findNodeAtPosition } from './findNode.js';
  *   - clearHover: Function to clear hover state
  *   - setDelaunay: Function to update Delaunay data
  *   - drawHoverState: Function to draw hover state visualization
+ *   - zoomState: Optional zoom state object (for click suppression)
+ *   - ZOOM_CLICK_SUPPRESS_MS: Optional milliseconds to suppress clicks after zoom/pan
  */
 export function setupClick(options) {
   const {
@@ -49,9 +51,15 @@ export function setupClick(options) {
   const { WIDTH, HEIGHT } = config;
 
   d3.select(canvasSelector).on("click", function (event) {
+    // Suppress clicks during zoom/pan
+    if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
+      return;
+    }
+    
     // Get the position of the mouse on the canvas
     let [mx, my] = d3.pointer(event, this);
-    let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors);
+    const zoomTransform = options.zoomState?.zoomTransform || null;
+    let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform);
 
     // Clear the "clicked" canvas
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);

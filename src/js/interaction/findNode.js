@@ -22,15 +22,23 @@
  * @param {Object} interactionState - Interaction state object
  * @param {boolean} REMAINING_PRESENT - Whether remaining contributors are present
  * @param {Array} remainingContributors - Array of remaining contributor nodes
+ * @param {Object} zoomTransform - Optional D3 zoom transform object (defaults to identity)
  * @returns {Array} [node, found] - The found node (or null) and whether it was found
  */
-export function findNode(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors) {
+export function findNode(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform = null) {
   const { PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt } = config;
   const { delaunay, nodesDelaunay, delaunayRemaining } = delaunayData;
 
-  // Convert mouse coordinates to visualization coordinates
-  mx = (mx * PIXEL_RATIO - WIDTH / 2) / SF;
-  my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
+  // Convert mouse coordinates to visualization coordinates, accounting for zoom
+  if (zoomTransform && zoomTransform.k !== 1) {
+    const mxDevice = mx * PIXEL_RATIO;
+    const myDevice = my * PIXEL_RATIO;
+    mx = ((mxDevice - zoomTransform.x * PIXEL_RATIO) / zoomTransform.k - WIDTH / 2) / SF;
+    my = ((myDevice - zoomTransform.y * PIXEL_RATIO) / zoomTransform.k - HEIGHT / 2) / SF;
+  } else {
+    mx = (mx * PIXEL_RATIO - WIDTH / 2) / SF;
+    my = (my * PIXEL_RATIO - HEIGHT / 2) / SF;
+  }
 
   // Check if mouse is within the visualization bounds (with some margin)
   const MAX_RADIUS = RADIUS_CONTRIBUTOR + CONTRIBUTOR_RING_WIDTH + 200;

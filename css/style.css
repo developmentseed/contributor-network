@@ -374,6 +374,53 @@ li#item-remaining::before {
     overflow: hidden;
 }
 
+#chart-zoom-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 2;
+}
+
+#chart-zoom-controls button {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #443F3F;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: transform 120ms ease, border-color 120ms ease;
+}
+
+#chart-zoom-controls svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+}
+
+#zoom-reset {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+}
+
+#chart-zoom-controls button:hover {
+    border-color: #CF3F02;
+    transform: translateY(-1px);
+}
+
+#chart-zoom-controls button:active {
+    transform: translateY(0);
+}
+
 #chart-container canvas {
     display: block;
 }

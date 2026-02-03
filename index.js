@@ -85,6 +85,12 @@ import { findNode as findNodeAtPosition } from './src/js/interaction/findNode.js
 import { setupHover as setupHoverInteraction } from './src/js/interaction/hover.js';
 import { setupClick as setupClickInteraction } from './src/js/interaction/click.js';
 import {
+  setupZoom as setupZoomModule,
+  applyZoomTransform,
+  shouldSuppressClick,
+  transformMouseCoordinates
+} from './src/js/interaction/zoom.js';
+import {
   drawCircle,
   drawCircleArc,
   drawLine,
@@ -194,6 +200,13 @@ const createContributorNetworkVisual = (
     nodes_delaunay = delaunayData.nodesDelaunay;
     delaunay_remaining = delaunayData.delaunayRemaining;
   }
+
+  /////////////////////////////////////////////////////////////////
+  // Zoom State Management
+  /////////////////////////////////////////////////////////////////
+  // Zoom state object (will be mutated by setupZoom)
+  const zoomState = {};
+  const ZOOM_CLICK_SUPPRESS_MS = 150;
 
   // Visual Settings - Based on SF = 1
   // Layout constants imported from src/js/config/theme.js
@@ -492,11 +505,12 @@ const createContributorNetworkVisual = (
     chart.resize();
 
     /////////////////////////////////////////////////////////////
-    ////////////////////// Setup the Hover //////////////////////
+    ////////////////////// Setup Interactions ////////////////////
     /////////////////////////////////////////////////////////////
     // Setup interactions AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
+    setupZoom();
   } // function chart
 
   /////////////////////////////////////////////////////////////////
@@ -923,7 +937,8 @@ const createContributorNetworkVisual = (
       remainingContributors,
       setHovered,
       clearHover,
-      drawHoverState
+      drawHoverState,
+      zoomState
     });
   } // function setupHover
 
@@ -1095,9 +1110,25 @@ const createContributorNetworkVisual = (
       clearClick,
       clearHover,
       setDelaunay,
-      drawHoverState
+      drawHoverState,
+      zoomState,
+      ZOOM_CLICK_SUPPRESS_MS
     });
   } // function setupClick
+
+  /////////////////////////////////////////////////////////////////
+  //////////////////////// Zoom Functions /////////////////////////
+  /////////////////////////////////////////////////////////////////
+  // Extracted to src/js/interaction/zoom.js
+  function setupZoom() {
+    setupZoomModule({
+      d3,
+      canvasSelector: "#canvas-hover",
+      state: zoomState,
+      redrawAll,
+      ZOOM_CLICK_SUPPRESS_MS
+    });
+  } // function setupZoom
 
   /////////////////////////////////////////////////////////////////
   ///////////////// General Interaction Functions /////////////////

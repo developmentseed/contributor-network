@@ -44,7 +44,8 @@ export function setupHover(options) {
     try {
       // Get the position of the mouse on the canvas
       let [mx, my] = d3.pointer(event, this);
-      let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors);
+      const zoomTransform = options.zoomState?.zoomTransform || null;
+      let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform);
 
       // Draw the hover state on the top canvas
       // Skip hover on the central pseudo-node (it's not a real entity)
