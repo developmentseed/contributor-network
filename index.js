@@ -508,7 +508,7 @@ const createContributorNetworkVisual = (
     drawVisualization(
       context,
       { nodes, links, nodes_central },
-      { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL },
+      { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH },
       {
         drawLink: drawLinkWrapper,
         drawNodeArc: drawNodeArcWrapper,

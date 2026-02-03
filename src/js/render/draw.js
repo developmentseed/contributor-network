@@ -7,6 +7,8 @@
  * @module render/draw
  */
 
+import { drawContributorRing } from './shapes.js';
+
 /**
  * Safely execute a render function with error handling
  * @param {Function} renderFn - The render function to execute
@@ -75,7 +77,7 @@ function hasValidCoordinates(node) {
  */
 export function draw(context, data, config, renderFunctions) {
   const { nodes, links, nodes_central } = data;
-  const { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL } = config;
+  const { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH } = config;
   const { drawLink, drawNodeArc, drawNode, drawNodeLabel } = renderFunctions;
 
   // ============================================================
@@ -146,6 +148,25 @@ export function draw(context, data, config, renderFunctions) {
       safeRender(drawLink, 'drawLink', context, SF, l);
     }
   });
+
+  // ============================================================
+  // Layer 1.5: Contributor Ring (filled ring band)
+  // ============================================================
+  // Draw the contributor ring as a semi-transparent orange band
+  // where contributor nodes are positioned (matches original ORCA visualization)
+  const central_repo = nodes.find(d => d.id === REPO_CENTRAL);
+  if (central_repo && RADIUS_CONTRIBUTOR && CONTRIBUTOR_RING_WIDTH) {
+    safeRender(
+      drawContributorRing,
+      'drawContributorRing',
+      context,
+      SF,
+      RADIUS_CONTRIBUTOR,
+      CONTRIBUTOR_RING_WIDTH,
+      central_repo
+      // Uses default color: Grenadier orange (#CF3F02) at 5% opacity
+    );
+  }
 
   // ============================================================
   // Layer 2: Node Arcs (time range indicators)

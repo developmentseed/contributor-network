@@ -26,21 +26,24 @@
         <script src="./d3.v7.js"></script>
         <script src="./d3-delaunay.js"></script>
         <script src="./d3-bboxCollide.min.js"></script>
-        <script src="./index.js"></script>
 
         <!-- ES6 Module exports for programmatic access (blog pages, testing, etc.) -->
         <script type="module">
-            // Import the new modular filter and theme utilities
-            // These can be used for blog page composition and testing
+            // Import the main visualization function and utilities
+            import { createContributorNetworkVisual } from './index.js';
             import { applyFilters, createFilterManager, COLORS, THEME } from './src/js/index.js';
 
-            // Expose to window for console debugging and external scripts
+            // Expose to window for global access and console debugging
+            window.createContributorNetworkVisual = createContributorNetworkVisual;
             window.ContributorNetwork = {
                 applyFilters,
                 createFilterManager,
                 COLORS,
                 THEME
             };
+            
+            // Dispatch event to signal that modules are loaded
+            window.dispatchEvent(new Event('contributorNetworkModulesLoaded'));
         </script>
 	</head>
 	<body>
@@ -80,6 +83,8 @@
 
 
         <script>
+            // Wait for ES modules to load before initializing
+            function initializeVisualization() {
             let params = new URLSearchParams(window.location.search)
             const REPOSITORY = "{{ central_repository }}"
 
@@ -340,6 +345,16 @@
 
                 }, 300)
             })//on resize
+            } // initializeVisualization
+
+            // Wait for modules to load, then initialize
+            if (window.createContributorNetworkVisual) {
+                // Already loaded
+                initializeVisualization();
+            } else {
+                // Wait for module load event
+                window.addEventListener('contributorNetworkModulesLoaded', initializeVisualization, { once: true });
+            }
         </script>
 	</body>
 </html>

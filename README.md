@@ -16,11 +16,10 @@ This visual is derived from the excellent [ORCA top-contributor-network](https:/
 ### View Locally
 
 ```shell
-cd dist
 python -m http.server 8000
 ```
 
-Then open <http://localhost:8000/>.
+Then open <http://localhost:8000/> (the root index.html)
 
 ## CLI Commands
 
@@ -146,7 +145,7 @@ Tests use Vitest and cover filtering, validation, and utility functions.
 When modifying the visualization:
 1. Edit files in `src/js/`
 2. Changes are immediately available in the browser (no build step needed)
-3. Refresh `http://localhost:8000/dist/` to see updates
+3. Refresh `http://localhost:8000/` to see updates
 4. Run `npm test` to verify changes don't break tests
 
 ### Code Quality

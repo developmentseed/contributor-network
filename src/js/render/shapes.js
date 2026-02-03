@@ -275,3 +275,45 @@ export function drawLink(context, SF, l, config, interactionState, calculateLink
   context.lineWidth = line_width * SF;
   drawLine(context, SF, l);
 }
+
+/**
+ * Draws the contributor ring - a filled ring band where contributors are positioned
+ * Uses the "winding rule" technique: outer arc clockwise + inner arc counterclockwise
+ * to create a filled ring shape (not just outlines).
+ *
+ * @param {CanvasRenderingContext2D} context - Canvas rendering context
+ * @param {number} SF - Scale factor
+ * @param {number} RADIUS_CONTRIBUTOR - Radius of the contributor ring
+ * @param {number} CONTRIBUTOR_RING_WIDTH - Width of the contributor ring
+ * @param {Object} central_repo - Central repository node
+ * @param {string} COLOR_RING - Ring fill color (default: Grenadier orange)
+ */
+export function drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, central_repo, COLOR_RING = '#CF3F02') {
+  const center_x = central_repo.x * SF;
+  const center_y = central_repo.y * SF;
+
+  // Small offset for visual refinement (matches original ORCA implementation)
+  const O = 4;
+  const LW = CONTRIBUTOR_RING_WIDTH;
+
+  const radius_inner = (RADIUS_CONTRIBUTOR - LW / 2 + O) * SF;
+  const radius_outer = (RADIUS_CONTRIBUTOR + LW / 2) * SF;
+
+  context.save();
+
+  // Draw filled ring using winding rule:
+  // - Outer arc drawn clockwise (default)
+  // - Inner arc drawn counterclockwise (true) creates the "hole"
+  context.beginPath();
+  context.moveTo(center_x + radius_outer, center_y);
+  context.arc(center_x, center_y, radius_outer, 0, TAU);        // Outer boundary (clockwise)
+  context.moveTo(center_x + radius_inner, center_y);
+  context.arc(center_x, center_y, radius_inner, 0, TAU, true);  // Inner boundary (counterclockwise = hole)
+
+  // Fill with semi-transparent orange (matches original implementation)
+  context.fillStyle = COLOR_RING;
+  context.globalAlpha = 0.05;
+  context.fill();
+
+  context.restore();
+}

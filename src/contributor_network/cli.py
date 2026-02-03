@@ -149,13 +149,22 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     if bundled_js.exists():
         shutil.copy(bundled_js, destination / "index.js")
     else:
-        print("Warning: Bundled JS not found, using source. Run 'npm run build' first.")
+        print("Warning: Bundled JS not found, using source.")
         shutil.copy(ROOT / "index.js", destination / "index.js")
     shutil.copy(ROOT / "css" / "style.css", destination / "style.css")
     for path in (ROOT / "lib").glob("**/*.js"):
         shutil.copy(path, destination / path.name)
     for path in (ROOT / "img").glob("**/*.*"):
         shutil.copy(path, destination / path.name)
+    # Copy src/js directory for ES module imports
+    src_js_dest = destination / "src" / "js"
+    src_js_dest.mkdir(parents=True, exist_ok=True)
+    src_js_source = ROOT / "src" / "js"
+    if src_js_source.exists():
+        shutil.copytree(src_js_source, src_js_dest, dirs_exist_ok=True)
+        print(f"Copied src/js modules to {src_js_dest}")
+    else:
+        print("Warning: src/js directory not found")
 
     environment = Environment(loader=FileSystemLoader(ROOT / "templates"))
     template = environment.get_template("index.html.jinja")

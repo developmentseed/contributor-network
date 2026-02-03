@@ -151,9 +151,6 @@ export function prepareData(data, config, scales) {
     d.contributor_name = d.author_name;
     d.color = COLOR_CONTRIBUTOR;
 
-    // Mark DevSeed contributors for visual highlighting
-    d.highlighted = isValidContributor(d.author_name);
-
     // Determine across how many lines to split the contributor name
     setContributorFont(context);
     [d.contributor_lines, d.contributor_max_width] = getLines(
@@ -611,7 +608,13 @@ export function prepareData(data, config, scales) {
         (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === central_repo.id,
       );
       d.data.link_central = link_to_central;
-      d.r = scale_contributor_radius(d.data.link_central.commit_count);
+      // Only calculate radius if contributor has a link to central repo
+      if (link_to_central && link_to_central.commit_count) {
+        d.r = scale_contributor_radius(link_to_central.commit_count);
+      } else {
+        // Fallback for contributors without central repo links
+        d.r = scale_contributor_radius.range()[0]; // Use minimum radius
+      }
     } else if (d.type === "repo") {
       d.r = scale_repo_radius(d.data.stars);
     } else {

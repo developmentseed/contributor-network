@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributor Network</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="d3.v7.js"></script>
+    <script src="d3-delaunay.js"></script>
+    <script src="d3-bboxCollide.min.js"></script>
+</head>
+<body>
+    <div id="chart-wrapper">
+        <div id="chart-introduction">
+            <div id="chart-title">
+                <h1>The Contributor Network of</h1>
+                <h1><span id="title-repo-name" class="central-repo">NASA-IMPACT/veda-config</span></h1>
+                <p id="last-commit-date"></p>
+            </div>
+            <div id="chart-intro-text">
+                <p>Explore the network of contributors and repositories.</p>
+                <p>This visualization is based off of the excellent <a href="https://nbremer.github.io/ORCA/top-contributor-network/">Top Contributor Network</a> from <a href="https://github.com/nbremer">Nadieh Bremer</a>, and is licensed the same (MPL).</p>
+            </div>
+        </div>
+
+        <div id="chart-filters">
+            <div id="filter-header">
+                <label for="org-select">Filter by Organization:</label>
+                <select id="org-select">
+                    <option value="">-- All Organizations --</option>
+                </select>
+                <p id="filter-stats"></p>
+            </div>
+        </div>
+
+        <div id="chart-container">
+        </div>
+
+    </div>
+
+    <script type="module">
+        // Load the main visualization module and handle all initialization
+        import { createContributorNetworkVisual } from './index.js';
+
+        const REPOSITORY = "NASA-IMPACT/veda-config";
+        const contributor_padding = 20;
+
+        // Master contributor list - simplified for testing
+        const mainContributors = new Set([
+            "Angela Camacho",
+            "Alice Rühl",
+            "Lane Goodman",
+            "Aimee Barciauskas",
+            "Anthony Boyd"
+        ]);
+
+        // For compatibility with isValidContributor function
+        const masterContributors = {};
+        const displayNameToUsername = {};
+        mainContributors.forEach(name => {
+            masterContributors[name] = true;
+            displayNameToUsername[name] = name;
+        });
+
+        // Load data
+        const promises = [
+            d3.csv('top_contributors.csv'),
+            d3.csv('repositories.csv'),
+            d3.csv('links.csv')
+        ];
+
+        let container = document.getElementById("chart-container");
+        let wrapper = document.getElementById("chart-wrapper");
+        let contributorNetworkVisual;
+
+        // Get chart dimensions based on available container space
+        function getChartDimensions() {
+            let wrapperRect = wrapper.getBoundingClientRect();
+            let availableWidth = wrapperRect.width - 40;
+
+            if (availableWidth < 400) {
+                availableWidth = Math.min(window.innerWidth - 40, 1400 - 40);
+            }
+
+            return Math.max(availableWidth, 600);
+        }
+
+        // Initialize visualization
+        function initVisualization() {
+            let size = getChartDimensions();
+            container.style.height = size + 'px';
+
+            contributorNetworkVisual = createContributorNetworkVisual(
+                container,
+                REPOSITORY,
+                contributor_padding,
+                masterContributors,
+                displayNameToUsername
+            )
+                .width(size)
+                .height(size)
+                .repository(REPOSITORY);
+
+            return size;
+        }
+
+        let size = initVisualization();
+
+        document.fonts.ready.then(() => {
+            Promise.all(promises).then(values => {
+                let formatDigit = d3.format(",.2r");
+
+                // Deep copy data
+                let data_raw = [];
+                data_raw.push(JSON.parse(JSON.stringify(values[0])));
+                data_raw.push(JSON.parse(JSON.stringify(values[1])));
+                data_raw.push(JSON.parse(JSON.stringify(values[2])));
+
+                // Generate organization options
+                const uniqueOrgs = new Set();
+                values[1].forEach(repo => {
+                    const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
+                    if (owner) uniqueOrgs.add(owner);
+                });
+
+                const sortedOrgs = Array.from(uniqueOrgs).sort();
+                const orgSelect = document.getElementById("org-select");
+                sortedOrgs.forEach(org => {
+                    const option = document.createElement("option");
+                    option.value = org;
+                    option.textContent = org;
+                    orgSelect.appendChild(option);
+                });
+
+                let currentSelectedOrg = null;
+                orgSelect.addEventListener("change", function() {
+                    const selectedOrg = this.value;
+                    if (selectedOrg === "") {
+                        if (currentSelectedOrg) {
+                            contributorNetworkVisual.setFilter(currentSelectedOrg, false);
+                            currentSelectedOrg = null;
+                        }
+                    } else {
+                        if (currentSelectedOrg && currentSelectedOrg !== selectedOrg) {
+                            contributorNetworkVisual.setFilter(currentSelectedOrg, false);
+                        }
+                        contributorNetworkVisual.setFilter(selectedOrg, true);
+                        currentSelectedOrg = selectedOrg;
+                    }
+                    updateFilterStats();
+                });
+
+                function updateFilterStats() {
+                    const statsElement = document.getElementById("filter-stats");
+                    if (currentSelectedOrg === null) {
+                        statsElement.textContent = `Showing all ${sortedOrgs.length} organizations`;
+                    } else {
+                        statsElement.textContent = `Filtered to: ${currentSelectedOrg}`;
+                    }
+                }
+
+                updateFilterStats();
+
+                // Render the visualization
+                contributorNetworkVisual(values);
+
+                // Get dates
+                let central_repo = values[1].find(d => d.repo === REPOSITORY);
+                let formatDateLong = d3.utcFormat("%B %-e, %Y");
+                let links_to_central = values[2].filter(d => {
+                    if (typeof d.target === 'object' && d.target && d.target.data) {
+                        return d.target.data.repo === REPOSITORY;
+                    }
+                    return d.repo === REPOSITORY;
+                });
+                let most_recent_commit = d3.max(links_to_central, d => +d.commit_sec_max);
+                if (most_recent_commit) {
+                    // Convert Unix timestamp (seconds) to Date object (milliseconds)
+                    let commitDate = new Date(most_recent_commit * 1000);
+                    document.getElementById("last-commit-date").innerHTML = `Including commits up to ${formatDateLong(commitDate)}`;
+                }
+            }).catch(err => {
+                console.error('Error loading data:', err);
+                document.getElementById("chart-container").innerHTML = '<p style="color: red; padding: 20px;">Error loading data files. Make sure CSV files exist.</p>';
+            });
+        });
+
+        // Handle resize
+        let resizeTimer = null;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (contributorNetworkVisual) {
+                    let newSize = getChartDimensions();
+                    container.style.height = newSize + 'px';
+                    contributorNetworkVisual.width(newSize).height(newSize).resize();
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>
