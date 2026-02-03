@@ -109,6 +109,46 @@ Edit `config.toml` to configure:
 
 ## Development
 
+### Architecture
+
+The visualization code is organized into modular ES6 modules in `src/js/`:
+
+```
+src/js/
+├── config/          # Configuration (theme, scales)
+├── data/            # Data filtering and utilities
+├── interaction/     # Mouse hover and click handling
+├── layout/          # Canvas sizing and layout
+├── render/          # Drawing functions (shapes, text, labels)
+├── simulations/     # D3 force simulations
+├── state/           # State management
+├── utils/           # Utilities (helpers, validation, formatters, debug)
+└── __tests__/       # Unit tests
+```
+
+The main entry point is `index.js` which:
+1. Loads dependencies (D3, etc.)
+2. Imports all modular components
+3. Exports `createContributorNetworkVisual` function
+
+The visualization is used in `dist/index.html` to render the interactive network.
+
+### Running Tests
+
+```shell
+npm test
+```
+
+Tests use Vitest and cover filtering, validation, and utility functions.
+
+### Making Changes
+
+When modifying the visualization:
+1. Edit files in `src/js/`
+2. Changes are immediately available in the browser (no build step needed)
+3. Refresh `http://localhost:8000/dist/` to see updates
+4. Run `npm test` to verify changes don't break tests
+
 ### Code Quality
 
 ```shell

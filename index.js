@@ -68,6 +68,7 @@ import {
   hasOrganization,
   hasActiveFilters
 } from './src/js/state/filterState.js';
+import { prepareData } from './src/js/data/prepare.js';
 import {
   createInteractionState,
   setHovered,
@@ -347,7 +348,43 @@ const createContributorNetworkVisual = (
         REMAINING_PRESENT = true;
         } // if
     } // if
-    prepareData();
+
+    // Prepare data using extracted module
+    const prepared = prepareData(
+      {
+        contributors,
+        repos,
+        links,
+        remainingContributors: REMAINING_PRESENT ? remainingContributors : []
+      },
+      {
+        d3,
+        REPO_CENTRAL,
+        REMAINING_PRESENT,
+        COLOR_CONTRIBUTOR,
+        COLOR_REPO,
+        COLOR_OWNER,
+        COLOR_REPO_MAIN,
+        MAX_CONTRIBUTOR_WIDTH,
+        CENTRAL_RADIUS,
+        context,
+        isValidContributor,
+        setContributorFont,
+        getLines
+      },
+      {
+        scale_repo_radius,
+        scale_contributor_radius,
+        scale_link_width,
+        scale_remaining_contributor_radius
+      }
+    );
+
+    // Update local variables from prepared data
+    nodes = prepared.nodes;
+    nodes_central = prepared.nodes_central;
+    links = prepared.links;
+    central_repo = prepared.central_repo;
     // console.log("Data prepared")
 
     /////////////////////////////////////////////////////////////
@@ -680,522 +717,8 @@ const createContributorNetworkVisual = (
   }
 
   //////////////// Prepare the data for the visual ////////////////
-  function prepareData() {
-    /////////////////////////////////////////////////////////////
-    ///////////////////// Initial Data Prep /////////////////////
-    /////////////////////////////////////////////////////////////
+  // Extracted to src/js/data/prepare.js
 
-    ////////////////////////// CONTRIBUTORS /////////////////////////
-    contributors.forEach((d) => {
-      d.contributor_name = d.author_name;
-
-      d.color = COLOR_CONTRIBUTOR;
-
-      // Mark DevSeed contributors for visual highlighting
-      d.highlighted = isValidContributor(d.author_name);
-
-      // Determine across how many lines to split the contributor name
-      setContributorFont(context);
-      [d.contributor_lines, d.contributor_max_width] = getLines(
-        context,
-        d.contributor_name,
-        MAX_CONTRIBUTOR_WIDTH,
-      );
-
-      delete d.contributor_name_top;
-    }); // forEach
-
-    //////////////////////// REPOSITORIES ///////////////////////
-    repos.forEach((d) => {
-      // d.repo
-      d.forks = +d.repo_forks;
-      d.stars = +d.repo_stars;
-      // Phase 1: Additional metadata
-      d.watchers = +d.repo_watchers || 0;
-      d.openIssues = +d.repo_open_issues || 0;
-      d.license = d.repo_license || null;
-      d.topics = d.repo_topics ? d.repo_topics.split(",").filter(t => t !== "") : [];
-      d.hasDiscussions = d.repo_has_discussions === "true" || d.repo_has_discussions === true;
-      d.archived = d.repo_archived === "true" || d.repo_archived === true;
-      // Phase 2: Community metrics
-      d.totalContributors = +d.repo_total_contributors || 0;
-      d.devseedContributors = +d.repo_devseed_contributors || 0;
-      d.externalContributors = +d.repo_external_contributors || 0;
-      d.communityRatio = +d.repo_community_ratio || 0;
-
-      // Check if the dates are in unix time or not
-      if (isInteger(d.createdAt)) {
-        d.createdAt = parseDateUnix(d.createdAt);
-        d.updatedAt = parseDateUnix(d.repo_updatedAt);
-      } else {
-        d.createdAt = parseDate(d.repo_createdAt);
-        d.updatedAt = parseDate(d.repo_updatedAt);
-      } // else
-
-      // Get the substring until the slash
-      d.owner = d.repo.substring(0, d.repo.indexOf("/"));
-      // Get the substring after the slash
-      d.name = d.repo.substring(d.repo.indexOf("/") + 1);
-
-      // d.repo = d.owner
-
-      // Split the string of languages into an array
-      d.languages = d.repo_languages.split(",");
-      // Remove languages that are empty or ""
-      d.languages = d.languages.filter((l) => l !== "" && l !== " ");
-
-      d.color = COLOR_REPO;
-
-      delete d.repo_forks;
-      delete d.repo_stars;
-      delete d.repo_watchers;
-      delete d.repo_open_issues;
-      delete d.repo_license;
-      delete d.repo_topics;
-      delete d.repo_has_discussions;
-      delete d.repo_archived;
-      delete d.repo_total_contributors;
-      delete d.repo_devseed_contributors;
-      delete d.repo_external_contributors;
-      delete d.repo_community_ratio;
-      delete d.repo_createdAt;
-      delete d.repo_updatedAt;
-    }); // forEach
-
-    /////////////////////////// LINKS ///////////////////////////
-    links.forEach((d) => {
-      // Source
-      d.contributor_name = d.author_name;
-      // Target
-      // d.repo
-
-      // Metadata of the "link"
-      d.commit_count = +d.commit_count;
-
-      // Check if the dates are in unix time or not
-      if (isInteger(d.commit_sec_min)) {
-        d.commit_sec_min = parseDateUnix(d.commit_sec_min);
-        d.commit_sec_max = parseDateUnix(d.commit_sec_max);
-      } else {
-        d.commit_sec_min = parseDate(d.commit_sec_min);
-        d.commit_sec_max = parseDate(d.commit_sec_max);
-      } // else
-
-      // Get the substring until the slash
-      d.owner = d.repo.substring(0, d.repo.indexOf("/"));
-      // Get the substring after the slash
-      d.name = d.repo.substring(d.repo.indexOf("/") + 1);
-
-      // d.repo = d.owner
-
-      // Set-up initial source and target
-      d.source = d.contributor_name;
-      d.target = d.repo;
-
-      delete d.author_name;
-    }); // forEach
-
-    ///////////////////// OTHER CONTRIBUTORS ////////////////////
-    if (REMAINING_PRESENT) {
-      remainingContributors.forEach((d) => {
-        d.commit_count = +d.commit_count;
-
-        // Check if the dates are in unix time or not
-        if (isInteger(d.commit_sec_min)) {
-          d.commit_sec_min = parseDateUnix(d.commit_sec_min);
-          d.commit_sec_max = parseDateUnix(d.commit_sec_max);
-        } else {
-          d.commit_sec_min = parseDate(d.commit_sec_min);
-          d.commit_sec_max = parseDate(d.commit_sec_max);
-        } // else
-
-        d.type = "contributor";
-        d.remaining_contributor = true;
-        d.color = COLOR_CONTRIBUTOR;
-      }); // forEach
-    } // if
-
-    //////////////////////// Create Nodes ///////////////////////
-    // Combine the contributors and repos into one variable to become the nodes
-    contributors.forEach((d, i) => {
-      nodes.push({
-        id: d.contributor_name,
-        type: "contributor",
-        label: d.contributor_name,
-        data: d,
-      });
-    }); // forEach
-    repos.forEach((d, i) => {
-      nodes.push({
-        id: d.repo,
-        type: "repo",
-        label: d.name,
-        data: d,
-      });
-    }); // forEach
-
-    // Save all the original links
-    // Note: Use getLinkNodeId() for consistency - handles both string and object refs
-    contributors.forEach((d) => {
-      d.links_original = links.filter((l) => getLinkNodeId(l.source) === d.contributor_name);
-      // To which repositories did this contributor contribute
-      d.repos = d.links_original.map((l) =>
-        repos.find((r) => r.repo === l.repo),
-      );
-    }); // forEach
-    repos.forEach((d) => {
-      d.links_original = links.filter((l) => getLinkNodeId(l.target) === d.repo);
-      // Who contributed to this repository (filter out undefined for contributors not in the visualization)
-      d.contributors = d.links_original
-        .map((l) => contributors.find((r) => r.contributor_name === l.contributor_name))
-        .filter((c) => c !== undefined);
-    }); // forEach
-
-
-    /////////////////////////////////////////////////////////////
-    // Which is the central repo, the one that connects everyone (the one with the highest degree)
-    central_repo = nodes.find(
-      (d) => d.type === "repo" && d.id === REPO_CENTRAL,
-    );
-
-    /////////////////////////// OWNERS //////////////////////////
-    // Create a dataset for all the repos that have an owner that occurs more than once
-    let owners = nodes
-      .filter(
-        (d) =>
-          d.type === "repo" &&
-          nodes.filter(
-            (n) =>
-              n.id !== d.id &&
-              n.type === "repo" &&
-              n.data.owner === d.data.owner,
-          ).length > 1,
-      )
-      .map((d) => d.data);
-
-    // Create a unique entry per owner
-    owners = d3.group(owners, (d) => d.owner);
-    owners = Array.from(owners, ([key, value]) => ({
-      owner: key,
-      repos: value.map((n) => n.name),
-      color: COLOR_OWNER,
-      stars: d3.sum(value, (d) => d.stars),
-      forks: d3.sum(value, (d) => d.forks),
-    }));
-
-    // Sort by the owner name
-    owners.sort((a, b) => {
-      if (a.owner.toLowerCase() < b.owner.toLowerCase()) return -1;
-      else if (a.owner.toLowerCase() > b.owner.toLowerCase()) return 1;
-      else return 0;
-    }); // sort
-
-    // Validate owners have repos (prevents positioning issues during filtering)
-    // After filtering, some owners might have no visible repos left
-    const beforeOwnerCount = owners.length;
-    owners = owners.filter(owner => {
-      const ownerRepos = nodes.filter(n => n.type === 'repo' && n.data.owner === owner.owner);
-      if (ownerRepos.length === 0) {
-        debugWarn(`Filtering out owner with no repos: ${owner.owner}`);
-        return false;
-      }
-      return true;
-    });
-    if (localStorage.getItem('debug-contributor-network') === 'true' && beforeOwnerCount !== owners.length) {
-      console.debug(`Removed ${beforeOwnerCount - owners.length} owners with no repos`);
-    }
-
-    // Debug logging (enable via: localStorage.setItem('debug-contributor-network', 'true'))
-    if (localStorage.getItem('debug-contributor-network') === 'true') {
-      console.log("Owners:", owners);
-      console.log("Contributors:", contributors);
-    }
-
-    // Check which of the repos are owned by those in the "owners" dataset
-    nodes
-      .filter((d) => d.type === "repo")
-      .forEach((d) => {
-        d.data.multi_repo_owner = owners.find((o) => o.owner === d.data.owner)
-          ? true
-          : false;
-      }); // forEach
-
-    // Add the owners to the nodes dataset
-    owners.forEach((d, i) => {
-      nodes.push({
-        id: d.owner,
-        type: "owner",
-        label: d.owner,
-        data: d,
-      });
-    }); // forEach
-
-    /////////////////////////////////////////////////////////////
-    // Redo Links to take owners into account as a grouping node
-
-    // Also for the links where the target is also in the owner dataset replace the link to the owner and make a new link from the owner to the repo
-    let new_links_owner_repo = [];
-    let new_links_contributor_owner = [];
-    links.forEach((d) => {
-      // If the target's owner is also in the owners dataset, replace the link to the owner and make a new link from the owner to the repo
-      // Except if the target is the central repo
-      if (d.repo !== REPO_CENTRAL && owners.find((o) => o.owner === d.owner)) {
-        // Add a new link from the owner to the repo
-        new_links_owner_repo.push({
-          source: d.owner,
-          target: d.repo,
-          owner: d.owner,
-          // name: d.name,
-          // repo: d.repo,
-
-          commit_count: d.commit_count,
-          commit_sec_min: d.commit_sec_min,
-          commit_sec_max: d.commit_sec_max,
-        }); // push
-
-        // Add a new link from the contributor to the owner
-        new_links_contributor_owner.push({
-          source: d.contributor_name,
-          target: d.owner,
-          owner: d.owner,
-
-          commit_count: d.commit_count,
-          commit_sec_min: d.commit_sec_min,
-          commit_sec_max: d.commit_sec_max,
-        }); // push
-
-        // delete d.commit_count
-        // delete d.commit_sec_min
-        // delete d.commit_sec_max
-
-        // Delete this link
-        d.to_remove = true;
-      }
-    }); // forEach
-    links = links.filter((d) => !(d.to_remove === true));
-
-    /////////////////////////////////////////////////////////////
-    // Get the unique set of new_links
-
-    // Group all the new_links_contributor_owner by their source and target and add the commit counts, and take the min and max of the commit_sec_min and commit_sec_max
-    // new_links_contributor_owner = Array.from(new Set(new_links_contributor_owner.map(d => JSON.stringify(d)))).map(d => JSON.parse(d))
-    new_links_contributor_owner = d3.group(
-      new_links_contributor_owner,
-      (d) => d.source + "~" + d.target,
-    );
-    new_links_contributor_owner = Array.from(
-      new_links_contributor_owner,
-      ([key, value]) => {
-        let [source, target] = key.split("~");
-        return {
-          source: source,
-          target: target,
-          owner: value[0].owner,
-          commit_count: d3.sum(value, (d) => d.commit_count),
-          commit_sec_min: d3.min(value, (d) => d.commit_sec_min),
-          commit_sec_max: d3.max(value, (d) => d.commit_sec_max),
-        };
-      },
-    ); // map
-
-    // new_links_owner_repo = Array.from(new Set(new_links_owner_repo.map(d => JSON.stringify(d)))).map(d => JSON.parse(d))
-    new_links_owner_repo = d3.group(
-      new_links_owner_repo,
-      (d) => d.source + "~" + d.target,
-    );
-    new_links_owner_repo = Array.from(new_links_owner_repo, ([key, value]) => {
-      let [source, target] = key.split("~");
-      return {
-        source: source,
-        target: target,
-        owner: value[0].owner,
-        commit_count: d3.sum(value, (d) => d.commit_count),
-        commit_sec_min: d3.min(value, (d) => d.commit_sec_min),
-        commit_sec_max: d3.max(value, (d) => d.commit_sec_max),
-      };
-    }); // map
-
-    // Set-up the new links dataset
-    links = [...links, ...new_links_owner_repo, ...new_links_contributor_owner];
-
-    // Filter out links with empty or invalid source/target IDs
-    // These can occur if contributor names or owner names are empty strings
-    links = links.filter(link => {
-      // Check for empty strings or missing values
-      if (!link.source || typeof link.source !== 'string' || link.source.trim() === '') {
-        if (localStorage.getItem('debug-contributor-network') === 'true') {
-          console.warn(`Filtered link with empty source: → "${link.target}"`);
-        }
-        return false;
-      }
-      if (!link.target || typeof link.target !== 'string' || link.target.trim() === '') {
-        if (localStorage.getItem('debug-contributor-network') === 'true') {
-          console.warn(`Filtered link with empty target: "${link.source}" →`);
-        }
-        return false;
-      }
-      return true;
-    });
-
-    // Validate all links reference nodes that exist (fixes filtering crash)
-    // This prevents "non-finite" gradient errors when filtered links reference missing nodes
-    const nodeIds = new Set(nodes.map(n => n.id));
-    links = links.filter(link => {
-      const sourceExists = nodeIds.has(link.source);
-      const targetExists = nodeIds.has(link.target);
-      if (!sourceExists || !targetExists) {
-        if (localStorage.getItem('debug-contributor-network') === 'true') {
-          console.warn(`Filtered invalid link: "${link.source}" → "${link.target}"`, {
-            sourceNodeExists: sourceExists,
-            targetNodeExists: targetExists
-          });
-        }
-        return false;
-      }
-      return true;
-    });
-
-    // Add a link between the owner of the central repo and the central repo
-    // Only add if owner is not empty (prevent empty string source)
-    if (central_repo.data.owner && central_repo.data.owner.trim() !== '') {
-      links.push({
-        source: central_repo.data.owner,
-        target: central_repo.id,
-        owner: central_repo.data.owner,
-        commit_count: d3.sum(
-          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
-          (d) => d.commit_count,
-        ),
-        commit_sec_min: d3.min(
-          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
-          (d) => d.commit_sec_min,
-        ),
-        commit_sec_max: d3.max(
-          links.filter((l) => getLinkNodeId(l.target) === central_repo.id),
-          (d) => d.commit_sec_max,
-        ),
-      });
-    }
-
-    // Debug logging (enable via: localStorage.setItem('debug-contributor-network', 'true'))
-    if (localStorage.getItem('debug-contributor-network') === 'true') {
-      console.log("Links:", links);
-    }
-
-    /////////////////////////////////////////////////////////////
-    // Which of these owner types have links that are all to the same contributor node
-    // If so, mark them as "single-contributor"
-    owners.forEach((d) => {
-      // Get all the links that are connected to this owner, where the owner is the target (and the source is a contributor)
-      let links_owner = links.filter((l) => getLinkNodeId(l.target) === d.owner);
-      // If the length is 1, it means that this owner is only connected to one contributor
-      d.single_contributor = links_owner.length === 1 ? true : false;
-
-      // Get all the repos that are connected to this owner
-      d.repos = nodes
-        .filter((n) => n.type === "repo" && n.data.owner === d.owner)
-        .map((n) => n.data);
-    }); // forEach
-
-    /////////////////////////////////////////////////////////////
-    // Set scales with guards against empty filtered data
-    const repoStars = repos.map((d) => d.stars);
-    if (repoStars.length > 0) {
-      scale_repo_radius.domain(d3.extent(repoStars));
-    } else {
-      scale_repo_radius.domain([0, 10]); // fallback for empty dataset
-    }
-
-    const linksToCentral = links.filter((l) => getLinkNodeId(l.target) === central_repo.id);
-    if (linksToCentral.length > 0) {
-      scale_contributor_radius.domain(
-        d3.extent(linksToCentral, (d) => d.commit_count),
-      );
-    } else {
-      scale_contributor_radius.domain([1, 10]); // fallback for empty dataset
-    }
-
-    if (links.length > 0) {
-      scale_link_width.domain([1, 10, d3.max(links, (d) => d.commit_count)]);
-    } else {
-      scale_link_width.domain([1, 10, 60]); // fallback
-    }
-
-    scale_remaining_contributor_radius.domain([
-      0,
-      scale_contributor_radius.domain()[0],
-    ]);
-
-    /////////////////////////////////////////////////////////////
-    // Determine some visual settings for the nodes
-    nodes.forEach((d, i) => {
-      d.index = i;
-      d.data.index = i;
-
-      // Find the degree of each node
-      d.degree = links.filter(
-        (l) => getLinkNodeId(l.source) === d.id || getLinkNodeId(l.target) === d.id,
-      ).length;
-      // d.in_degree = links.filter(l => l.target === d.id).length
-      // d.out_degree = links.filter(l => l.source === d.id).length
-
-      // Get all the connected nodes
-      // Takes too long, done on hover
-      // d.neighbors = nodes.filter(n => links.find(l => l.source === d.id && l.target === n.id || l.target === d.id && l.source === n.id))
-
-      // TEST - set initial placement
-      d.x = 0;
-      d.y = 0;
-
-      // If this node is an "contributor", find the number of commits they have on the central repo node
-      if (d.type === "contributor") {
-        let link_to_central = links.find(
-          (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === central_repo.id,
-        );
-        d.data.link_central = link_to_central;
-        // d.data.commit_count_central = link_to_central.commit_count
-        d.r = scale_contributor_radius(d.data.link_central.commit_count);
-      } else if (d.type === "repo") {
-        d.r = scale_repo_radius(d.data.stars);
-      } else {
-        // "owner"
-        d.r = scale_repo_radius(d.data.stars);
-      } // else
-
-      d.color = d.data.color;
-    }); // forEach
-
-    // Sort the nodes by their type and for the contributor nodes, by their min commit date to the central repo
-    nodes.sort((a, b) => {
-      if (a.type === b.type) {
-        // if(a.id.toLowerCase() < b.id.toLowerCase()) return -1
-        // else if(a.id.toLowerCase() > b.id.toLowerCase()) return 1
-        if (a.data.link_central && b.data.link_central) {
-          if (
-            a.data.link_central.commit_sec_min <
-            b.data.link_central.commit_sec_min
-          )
-            return -1;
-          else if (
-            a.data.link_central.commit_sec_min >
-            b.data.link_central.commit_sec_min
-          )
-            return 1;
-          else return 0;
-        } else return 0;
-      } else {
-        if (a.type < b.type) return -1;
-        else if (a.type > b.type) return 1;
-        else return 0;
-      } // else
-    }); // sort
-
-    // Replace some values for the central repository
-    central_repo.r = CENTRAL_RADIUS;
-    central_repo.padding = CENTRAL_RADIUS;
-    central_repo.special_type = "central";
-    central_repo.color = COLOR_REPO_MAIN;
-  } // function prepareData
 
   /////////////////////////////////////////////////////////////////
   ///////////////// Force Simulation | Per Owner //////////////////
@@ -1851,7 +1374,41 @@ const createContributorNetworkVisual = (
     applyFilters();
 
     // Re-run the full initialization pipeline
-    prepareData();
+    const prepared = prepareData(
+      {
+        contributors,
+        repos,
+        links,
+        remainingContributors: REMAINING_PRESENT ? remainingContributors : []
+      },
+      {
+        d3,
+        REPO_CENTRAL,
+        REMAINING_PRESENT,
+        COLOR_CONTRIBUTOR,
+        COLOR_REPO,
+        COLOR_OWNER,
+        COLOR_REPO_MAIN,
+        MAX_CONTRIBUTOR_WIDTH,
+        CENTRAL_RADIUS,
+        context,
+        isValidContributor,
+        setContributorFont,
+        getLines
+      },
+      {
+        scale_repo_radius,
+        scale_contributor_radius,
+        scale_link_width,
+        scale_remaining_contributor_radius
+      }
+    );
+
+    // Update local variables from prepared data
+    nodes = prepared.nodes;
+    nodes_central = prepared.nodes_central;
+    links = prepared.links;
+    central_repo = prepared.central_repo;
 
     // Place the central repo in the middle (critical for positioning contributors)
     central_repo.x = central_repo.fx = 0;

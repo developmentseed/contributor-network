@@ -4,14 +4,9 @@
   "description": "Frontend visualization for the Contributor Network",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest"
+    "test": "node --experimental-vm-modules node_modules/vitest/vitest.mjs"
   },
   "devDependencies": {
-    "esbuild": "^0.27.2",
-    "vite": "^4.5.3",
     "vitest": "^1.6.0"
   }
 }
