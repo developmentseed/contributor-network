@@ -304,7 +304,7 @@
                     })
                     // Now get the most recent commit date from the links to the central repository
                     let most_recent_commit = d3.max(links_to_central, d => d.commit_sec_max)
-                    document.getElementById("last-commit-date").innerHTML = `Including commits up to ${formatDateLong(most_recent_commit)}`
+                    document.getElementById("last-commit-date").innerHTML = `Including commits up to ${formatDateLong(most_recent_commit * 1000)}`
                 })//promises
             })//fonts.ready
 
