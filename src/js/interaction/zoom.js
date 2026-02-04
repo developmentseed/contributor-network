@@ -149,3 +149,24 @@ export function transformMouseCoordinates(mx, my, PIXEL_RATIO, zoomTransform, WI
     ((myDevice - zoomTransform.y * PIXEL_RATIO) / zoomTransform.k - HEIGHT / 2) / SF;
   return [mxTransformed, myTransformed];
 }
+
+/**
+ * Draws to a canvas context with zoom transform applied.
+ * Centralizes the clear-save-transform-draw-restore cycle used by interaction layers.
+ *
+ * @param {CanvasRenderingContext2D} context - Canvas 2D context to draw on
+ * @param {Object} config - Configuration containing PIXEL_RATIO, WIDTH, HEIGHT
+ * @param {Object} zoomState - Zoom state object (may be null)
+ * @param {Object} d3 - D3 library instance (for zoomIdentity fallback)
+ * @param {Function} drawFn - Drawing function to execute within the transformed context
+ */
+export function drawWithZoomTransform(context, config, zoomState, d3, drawFn) {
+  const { PIXEL_RATIO, WIDTH, HEIGHT } = config;
+  const transform = zoomState?.zoomTransform || d3.zoomIdentity;
+
+  context.clearRect(0, 0, WIDTH, HEIGHT);
+  context.save();
+  applyZoomTransform(context, transform, PIXEL_RATIO, WIDTH, HEIGHT);
+  drawFn();
+  context.restore();
+}

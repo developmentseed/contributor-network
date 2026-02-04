@@ -548,8 +548,10 @@ const createContributorNetworkVisual = (
 
   // Draw the visual - extracted to src/js/render/draw.js
   function draw() {
-    // Clear the entire canvas BEFORE applying zoom transform
-    // This ensures the whole canvas is cleared, not just the transformed area
+    // IMPORTANT: Background clearing is intentionally handled here, NOT in draw.js
+    // Clear must happen BEFORE zoom transform is applied - otherwise only the
+    // transformed (zoomed/panned) area gets cleared, causing ghost images.
+    // See src/js/render/draw.js for the corresponding NOTE comment.
     context.fillStyle = COLOR_BACKGROUND;
     context.fillRect(0, 0, WIDTH, HEIGHT);
 

@@ -11,6 +11,11 @@ html {
     --color-text: #443F3F;           /* Base dark gray */
     --color-background: #f7f7f7;
     --color-gradient: linear-gradient(to right, var(--color-repo), var(--color-repo-main)) 1;
+
+    /* UI Colors */
+    --color-surface: #fff;           /* Button/card backgrounds */
+    --color-border: #ddd;            /* Default border color */
+    --color-shadow: rgba(0, 0, 0, 0.12); /* Shadow color */
 }
 
 body {
@@ -375,10 +380,9 @@ li#item-remaining::before {
 }
 
 #chart-zoom-controls {
-    position: absolute !important;
-    top: 16px !important;
-    right: 16px !important;
-    left: auto !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -390,14 +394,14 @@ li#item-remaining::before {
     width: 36px;
     height: 36px;
     border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #443F3F;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 6px var(--color-shadow);
     transition: transform 120ms ease, border-color 120ms ease;
     pointer-events: auto;
     display: flex;
@@ -419,7 +423,7 @@ li#item-remaining::before {
 }
 
 #chart-zoom-controls button:hover {
-    border-color: #CF3F02;
+    border-color: var(--color-repo-main);
     transform: translateY(-1px);
 }
 
