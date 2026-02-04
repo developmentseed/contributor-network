@@ -27,7 +27,9 @@ class Link(BaseModel):
 
         # Compute derived fields
         contribution_span_days = (commit_sec_max - commit_sec_min) // 86400
-        ninety_days_ago = int((datetime.datetime.now() - datetime.timedelta(days=90)).timestamp())
+        ninety_days_ago = int(
+            (datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()
+        )
         is_recent = commit_sec_max > ninety_days_ago
 
         return cls(
@@ -47,8 +49,12 @@ class Link(BaseModel):
         self.commit_sec_max = int(last_commit.commit.author.date.timestamp())
 
         # Recompute derived fields
-        self.contribution_span_days = (self.commit_sec_max - self.commit_sec_min) // 86400
-        ninety_days_ago = int((datetime.datetime.now() - datetime.timedelta(days=90)).timestamp())
+        self.contribution_span_days = (
+            (self.commit_sec_max - self.commit_sec_min) // 86400
+        )
+        ninety_days_ago = int(
+            (datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()
+        )
         self.is_recent_contributor = self.commit_sec_max > ninety_days_ago
 
 
