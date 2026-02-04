@@ -4,6 +4,7 @@
  */
 
 import { findNode as findNodeAtPosition } from './findNode.js';
+import { applyZoomTransform } from './zoom.js';
 
 /**
  * Sets up hover interaction handlers on the canvas
@@ -57,7 +58,14 @@ export function setupHover(options) {
           canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
 
         // Draw the hovered node and its neighbors and links
+        // Must apply zoom transform for proper positioning
+        const { PIXEL_RATIO, WIDTH, HEIGHT } = config;
+        const transform = options.zoomState?.zoomTransform || d3.zoomIdentity;
+        contextHover.clearRect(0, 0, WIDTH, HEIGHT);
+        contextHover.save();
+        applyZoomTransform(contextHover, transform, PIXEL_RATIO, WIDTH, HEIGHT);
         drawHoverState(contextHover, d);
+        contextHover.restore();
       } else {
         contextHover.clearRect(0, 0, WIDTH, HEIGHT);
         clearHover(interactionState);

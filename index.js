@@ -548,10 +548,15 @@ const createContributorNetworkVisual = (
 
   // Draw the visual - extracted to src/js/render/draw.js
   function draw() {
+    // Clear the entire canvas BEFORE applying zoom transform
+    // This ensures the whole canvas is cleared, not just the transformed area
+    context.fillStyle = COLOR_BACKGROUND;
+    context.fillRect(0, 0, WIDTH, HEIGHT);
+
     // Apply zoom transform before drawing
     context.save();
     applyZoomTransform(context, zoomState.zoomTransform || d3.zoomIdentity, PIXEL_RATIO, WIDTH, HEIGHT);
-    
+
     drawVisualization(
       context,
       { nodes, links, nodes_central },

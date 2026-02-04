@@ -4,6 +4,7 @@
  */
 
 import { findNode as findNodeAtPosition } from './findNode.js';
+import { shouldSuppressClick, applyZoomTransform } from './zoom.js';
 
 /**
  * Sets up click interaction handlers on the canvas
@@ -74,7 +75,13 @@ export function setupClick(options) {
       setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay, delaunayData.delaunayRemaining);
 
       // Copy the context_hovered to the context_click without the tooltip
+      // Must apply zoom transform for proper positioning
+      const { PIXEL_RATIO } = config;
+      const transform = options.zoomState?.zoomTransform || d3.zoomIdentity;
+      contextClick.save();
+      applyZoomTransform(contextClick, transform, PIXEL_RATIO, WIDTH, HEIGHT);
       drawHoverState(contextClick, d, false);
+      contextClick.restore();
       // Empty the hovered canvas
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
     } else {

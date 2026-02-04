@@ -124,10 +124,9 @@ export function draw(context, data, config, renderFunctions) {
   });
 
   // ============================================================
-  // Background
+  // Background - NOTE: Handled by caller BEFORE zoom transform is applied
+  // This ensures the entire canvas is cleared, not just the transformed area
   // ============================================================
-  context.fillStyle = COLOR_BACKGROUND;
-  context.fillRect(0, 0, WIDTH, HEIGHT);
 
   // Note: Translation to center is handled by the caller (via zoom transform)
   // The context should already be translated and scaled by the time this function is called
