@@ -50,8 +50,8 @@ class Link(BaseModel):
 
         # Recompute derived fields
         self.contribution_span_days = (
-            (self.commit_sec_max - self.commit_sec_min) // 86400
-        )
+            self.commit_sec_max - self.commit_sec_min
+        ) // 86400
         ninety_days_ago = int(
             (datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()
         )
