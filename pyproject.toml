@@ -22,10 +22,16 @@ dev = [
 ]
 
 [tool.mypy]
-files = ["src"]
+files = ["python"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/contributor_network"]
 
 [build-system]
 requires = ["hatchling"]

@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contributor Network</title>
-    <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
-    <link rel="stylesheet" href="css/style.css">
-    <script src="lib/d3.v7.js"></script>
-    <script src="lib/d3-delaunay.js"></script>
-    <script src="lib/d3-bboxCollide.min.js"></script>
+    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png" />
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/lib/d3.v7.js"></script>
+    <script src="assets/lib/d3-delaunay.js"></script>
+    <script src="assets/lib/d3-bboxCollide.min.js"></script>
 </head>
 <body>
     <div id="chart-wrapper">
@@ -52,7 +52,7 @@
 
     <script type="module">
         // Load the main visualization module and handle all initialization
-        import { createContributorNetworkVisual } from './index.js';
+        import { createContributorNetworkVisual } from './js/chart.js';
 
         const REPOSITORY = "NASA-IMPACT/veda-config";
         const contributor_padding = 20;
@@ -76,9 +76,9 @@
 
         // Load data
         const promises = [
-            d3.csv('data/top_contributors.csv'),
-            d3.csv('data/repositories.csv'),
-            d3.csv('data/links.csv')
+            d3.csv('assets/data/top_contributors.csv'),
+            d3.csv('assets/data/repositories.csv'),
+            d3.csv('assets/data/links.csv')
         ];
 
         let container = document.getElementById("chart-container");

@@ -19,20 +19,20 @@
 
 // ============================================================
 // Modular Imports (loaded via Vite bundler)
-import { COLORS, FONTS, SIZES } from './src/js/config/theme.js';
+import { COLORS, FONTS, SIZES } from './config/theme.js';
 import {
   isValidNode,
   isValidLink,
   getLinkNodeId,
   resolveLinkReferences
-} from './src/js/utils/validation.js';
+} from './utils/validation.js';
 import {
   createRepoRadiusScale,
   createContributorRadiusScale,
   createRemainingContributorRadiusScale,
   createLinkDistanceScale,
   createLinkWidthScale
-} from './src/js/config/scales.js';
+} from './config/scales.js';
 import {
   setFont,
   setRepoFont,
@@ -43,7 +43,7 @@ import {
   getLines,
   splitString,
   drawTextAlongArc
-} from './src/js/render/text.js';
+} from './render/text.js';
 
 // ============================================================
 import {
@@ -53,13 +53,13 @@ import {
   renderLicense,
   renderArchivedBadge,
   REPO_CARD_CONFIG
-} from './src/js/render/repoCard.js';
+} from './render/repoCard.js';
 import {
   runOwnerSimulation,
   runContributorSimulation,
   runCollaborationSimulation,
   runRemainingSimulation
-} from './src/js/simulations/index.js';
+} from './simulations/index.js';
 import {
   createFilterState,
   addOrganization,
@@ -67,10 +67,10 @@ import {
   clearFilters,
   hasOrganization,
   hasActiveFilters
-} from './src/js/state/filterState.js';
-import { prepareData } from './src/js/data/prepare.js';
-import { positionContributorNodes } from './src/js/layout/positioning.js';
-import { draw as drawVisualization } from './src/js/render/draw.js';
+} from './state/filterState.js';
+import { prepareData } from './data/prepare.js';
+import { positionContributorNodes } from './layout/positioning.js';
+import { draw as drawVisualization } from './render/draw.js';
 import {
   createInteractionState,
   setHovered,
@@ -80,16 +80,16 @@ import {
   clearAll,
   setDelaunay,
   clearDelaunay
-} from './src/js/state/interactionState.js';
-import { findNode as findNodeAtPosition } from './src/js/interaction/findNode.js';
-import { setupHover as setupHoverInteraction } from './src/js/interaction/hover.js';
-import { setupClick as setupClickInteraction } from './src/js/interaction/click.js';
+} from './state/interactionState.js';
+import { findNode as findNodeAtPosition } from './interaction/findNode.js';
+import { setupHover as setupHoverInteraction } from './interaction/hover.js';
+import { setupClick as setupClickInteraction } from './interaction/click.js';
 import {
   setupZoom as setupZoomModule,
   applyZoomTransform,
   shouldSuppressClick,
   transformMouseCoordinates
-} from './src/js/interaction/zoom.js';
+} from './interaction/zoom.js';
 import {
   drawCircle,
   drawCircleArc,
@@ -100,14 +100,14 @@ import {
   timeRangeArc,
   drawHatchPattern,
   drawLink
-} from './src/js/render/shapes.js';
-import { drawTooltip as drawTooltipModule } from './src/js/render/tooltip.js';
-import { drawNodeLabel } from './src/js/render/labels.js';
-import { LAYOUT } from './src/js/config/theme.js';
+} from './render/shapes.js';
+import { drawTooltip as drawTooltipModule } from './render/tooltip.js';
+import { drawNodeLabel } from './render/labels.js';
+import { LAYOUT } from './config/theme.js';
 
 // Extract commonly used constants for convenience
 const DEFAULT_SIZE = LAYOUT.defaultSize;
-import { handleResize, sizeCanvas, calculateScaleFactor } from './src/js/layout/resize.js';
+import { handleResize, sizeCanvas, calculateScaleFactor } from './layout/resize.js';
 
 // ============================================================
 // Main Visualization
@@ -670,7 +670,7 @@ const createContributorNetworkVisual = (
   //////////////// Apply filters to the data ////////////////
   // NOTE: Pure filter logic has been extracted to src/js/data/filter.js
   // This function handles integration with the visualization's mutable state.
-  // For new features (e.g., blog charts), import { applyFilters } from './src/js/data/filter.js'
+  // For new features (e.g., blog charts), import { applyFilters } from './data/filter.js'
   // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
   function applyFilters() {
     // Guard against uninitialized data

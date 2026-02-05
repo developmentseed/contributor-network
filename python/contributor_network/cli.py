@@ -142,31 +142,45 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
     destination.mkdir(parents=True, exist_ok=True)
-    for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
-        shutil.copy(directory / file_name, destination / file_name)
-    # Use bundled JS if available, otherwise fall back to source
-    bundled_js = ROOT / "build" / "contributor-network.iife.js"
-    if bundled_js.exists():
-        shutil.copy(bundled_js, destination / "index.js")
-    else:
-        print("Warning: Bundled JS not found, using source.")
-        shutil.copy(ROOT / "index.js", destination / "index.js")
-    shutil.copy(ROOT / "css" / "style.css", destination / "style.css")
-    for path in (ROOT / "lib").glob("**/*.js"):
-        shutil.copy(path, destination / path.name)
-    for path in (ROOT / "img").glob("**/*.*"):
-        shutil.copy(path, destination / path.name)
-    # Copy src/js directory for ES module imports
-    src_js_dest = destination / "src" / "js"
-    src_js_dest.mkdir(parents=True, exist_ok=True)
-    src_js_source = ROOT / "src" / "js"
-    if src_js_source.exists():
-        shutil.copytree(src_js_source, src_js_dest, dirs_exist_ok=True)
-        print(f"Copied src/js modules to {src_js_dest}")
-    else:
-        print("Warning: src/js directory not found")
 
-    environment = Environment(loader=FileSystemLoader(ROOT / "templates"))
+    # Copy assets directory structure
+    assets_dest = destination / "assets"
+    assets_dest.mkdir(parents=True, exist_ok=True)
+
+    # Copy CSS
+    css_dest = assets_dest / "css"
+    css_dest.mkdir(parents=True, exist_ok=True)
+    shutil.copy(ROOT / "assets" / "css" / "style.css", css_dest / "style.css")
+
+    # Copy lib (D3 libraries)
+    lib_dest = assets_dest / "lib"
+    lib_dest.mkdir(parents=True, exist_ok=True)
+    for path in (ROOT / "assets" / "lib").glob("**/*.js"):
+        shutil.copy(path, lib_dest / path.name)
+
+    # Copy images
+    img_dest = assets_dest / "img"
+    img_dest.mkdir(parents=True, exist_ok=True)
+    for path in (ROOT / "assets" / "img").glob("**/*.*"):
+        shutil.copy(path, img_dest / path.name)
+
+    # Copy data files
+    data_dest = assets_dest / "data"
+    data_dest.mkdir(parents=True, exist_ok=True)
+    for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
+        shutil.copy(directory / file_name, data_dest / file_name)
+
+    # Copy JS modules
+    js_dest = destination / "js"
+    js_dest.mkdir(parents=True, exist_ok=True)
+    js_source = ROOT / "js"
+    if js_source.exists():
+        shutil.copytree(js_source, js_dest, dirs_exist_ok=True)
+        print(f"Copied js modules to {js_dest}")
+    else:
+        print("Warning: js directory not found")
+
+    environment = Environment(loader=FileSystemLoader(ROOT / "python" / "templates"))
     template = environment.get_template("index.html.jinja")
     (destination / "index.html").write_text(
         template.render(
