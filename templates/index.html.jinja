@@ -18,14 +18,14 @@
         <meta property="og:image:height" content="800">
 
         <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
-        <link rel="stylesheet" href="./style.css">
+        <link rel="stylesheet" href="./css/style.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Roboto+Condensed:wght@400;700&family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
 
-        <script src="./d3.v7.js"></script>
-        <script src="./d3-delaunay.js"></script>
-        <script src="./d3-bboxCollide.min.js"></script>
+        <script src="./lib/d3.v7.js"></script>
+        <script src="./lib/d3-delaunay.js"></script>
+        <script src="./lib/d3-bboxCollide.min.js"></script>
 
         <!-- ES6 Module exports for programmatic access (blog pages, testing, etc.) -->
         <script type="module">
@@ -105,9 +105,9 @@
 
             ////////////////// Datasets to Read in //////////////////
             let promises = []
-            promises.push(d3.csv(`top_contributors.csv`))
-            promises.push(d3.csv(`repositories.csv`))
-            promises.push(d3.csv(`links.csv`))
+            promises.push(d3.csv(`data/top_contributors.csv`))
+            promises.push(d3.csv(`data/repositories.csv`))
+            promises.push(d3.csv(`data/links.csv`))
 
             ////////////////// Master Data //////////////////
             // Master contributor list from config.toml

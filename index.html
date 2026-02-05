@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contributor Network</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="d3.v7.js"></script>
-    <script src="d3-delaunay.js"></script>
-    <script src="d3-bboxCollide.min.js"></script>
+    <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
+    <link rel="stylesheet" href="css/style.css">
+    <script src="lib/d3.v7.js"></script>
+    <script src="lib/d3-delaunay.js"></script>
+    <script src="lib/d3-bboxCollide.min.js"></script>
 </head>
 <body>
     <div id="chart-wrapper">
@@ -75,9 +76,9 @@
 
         // Load data
         const promises = [
-            d3.csv('top_contributors.csv'),
-            d3.csv('repositories.csv'),
-            d3.csv('links.csv')
+            d3.csv('data/top_contributors.csv'),
+            d3.csv('data/repositories.csv'),
+            d3.csv('data/links.csv')
         ];
 
         let container = document.getElementById("chart-container");
