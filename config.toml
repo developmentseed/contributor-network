@@ -1,7 +1,7 @@
 title = "The Development Seed Contributor Network"
 author = "Pete Gadomski"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
-central_repository = "DevSeed Team"
+central_repository = "developmentseed/DevSeed Team"
 repositories = [
     "developmentseed/titiler",
     "developmentseed/lonboard",
