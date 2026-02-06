@@ -15,7 +15,6 @@ export function createInteractionState() {
     clickedNode: null,
     delaunay: null,
     nodesDelaunay: null,
-    delaunayRemaining: null,
   };
 }
 
@@ -83,13 +82,11 @@ export function clearAll(state) {
  * @param {Object} state - The interaction state object
  * @param {Object} delaunay - The Delaunay triangulation object
  * @param {Array} nodesDelaunay - The nodes used for Delaunay triangulation
- * @param {Object|null} delaunayRemaining - Optional Delaunay for remaining contributors
  * @returns {Object} Updated interaction state
  */
-export function setDelaunay(state, delaunay, nodesDelaunay, delaunayRemaining = null) {
+export function setDelaunay(state, delaunay, nodesDelaunay) {
   state.delaunay = delaunay;
   state.nodesDelaunay = nodesDelaunay;
-  state.delaunayRemaining = delaunayRemaining;
   return state;
 }
 
@@ -101,6 +98,5 @@ export function setDelaunay(state, delaunay, nodesDelaunay, delaunayRemaining = 
 export function clearDelaunay(state) {
   state.delaunay = null;
   state.nodesDelaunay = null;
-  state.delaunayRemaining = null;
   return state;
 }

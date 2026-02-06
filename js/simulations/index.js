@@ -9,4 +9,3 @@
 export { runOwnerSimulation } from './ownerSimulation.js';
 export { runContributorSimulation } from './contributorSimulation.js';
 export { runCollaborationSimulation } from './collaborationSimulation.js';
-export { runRemainingSimulation } from './remainingSimulation.js';

@@ -1,11 +1,11 @@
 import datetime
+import json
 import shutil
 from csv import DictWriter
 from pathlib import Path
 
 import click
 from github import Auth
-from jinja2 import Environment, FileSystemLoader
 
 from .client import Client
 from .config import Config
@@ -180,17 +180,23 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     else:
         print("Warning: js directory not found")
 
-    environment = Environment(loader=FileSystemLoader(ROOT / "python" / "templates"))
-    template = environment.get_template("index.html.jinja")
-    (destination / "index.html").write_text(
-        template.render(
-            title=config.title,
-            author=config.author,
-            description=config.description,
-            central_repository=config.central_repository,
-            contributor_padding=config.contributor_padding,
-        )
+    # Generate config.json from config.toml for runtime loading
+    config_json = {
+        "title": config.title,
+        "author": config.author,
+        "description": config.description,
+        "central_repository": config.central_repository,
+        "contributor_padding": config.contributor_padding,
+        "contributors": config.all_contributors,
+    }
+    (data_dest / "config.json").write_text(
+        json.dumps(config_json, indent=2, ensure_ascii=False)
     )
+    print(f"Generated config.json in {data_dest}")
+
+    # Copy the single index.html (no more Jinja template rendering)
+    shutil.copy(ROOT / "index.html", destination / "index.html")
+    print(f"Copied index.html to {destination}")
 
 
 @main.command()

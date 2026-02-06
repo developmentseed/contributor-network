@@ -12,15 +12,13 @@ import { shouldSuppressClick, drawWithZoomTransform } from './zoom.js';
  *   - d3: D3 library instance
  *   - canvasSelector: CSS selector for the click canvas element
  *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
- *   - delaunayData: Delaunay triangulation data (will be updated: delaunay, nodesDelaunay, delaunayRemaining)
+ *   - delaunayData: Delaunay triangulation data (will be updated: delaunay, nodesDelaunay)
  *   - interactionState: Interaction state object
  *   - REPO_CENTRAL: ID of the central repository
  *   - canvas: Main canvas element (for opacity control)
  *   - contextClick: Canvas context for click layer
  *   - contextHover: Canvas context for hover layer
  *   - nodes: All nodes in the visualization
- *   - REMAINING_PRESENT: Whether remaining contributors are present
- *   - remainingContributors: Array of remaining contributor nodes
  *   - setClicked: Function to set clicked state
  *   - clearClick: Function to clear click state
  *   - clearHover: Function to clear hover state
@@ -41,8 +39,6 @@ export function setupClick(options) {
     contextClick,
     contextHover,
     nodes,
-    REMAINING_PRESENT,
-    remainingContributors,
     setClicked,
     clearClick,
     clearHover,
@@ -60,7 +56,7 @@ export function setupClick(options) {
     // Get the position of the mouse on the canvas
     let [mx, my] = d3.pointer(event, this);
     const zoomTransform = options.zoomState?.zoomTransform || null;
-    let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform);
+    let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, zoomTransform);
 
     // Clear the "clicked" canvas
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
@@ -72,7 +68,7 @@ export function setupClick(options) {
       // Reset the delaunay for the hover, taking only the neighbors into account of the clicked node
       delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
       delaunayData.delaunay = d3.Delaunay.from(delaunayData.nodesDelaunay.map((n) => [n.x, n.y]));
-      setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay, delaunayData.delaunayRemaining);
+      setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
 
       // Copy the context_hovered to the context_click without the tooltip
       // Uses centralized helper for zoom-transformed drawing
@@ -88,7 +84,7 @@ export function setupClick(options) {
       // Reset the delaunay to all the nodes
       delaunayData.nodesDelaunay = nodes;
       delaunayData.delaunay = d3.Delaunay.from(delaunayData.nodesDelaunay.map((d) => [d.x, d.y]));
-      setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay, delaunayData.delaunayRemaining);
+      setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
 
       // Fade the main canvas back in
       canvas.style.opacity = "1";
