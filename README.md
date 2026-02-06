@@ -2,7 +2,7 @@
 
 The code behind <https://developmentseed.org/contributor-network>.
 
-<img src="./img/site-image.jpg" height="600px" />
+<img src="./assets/img/site-image.jpg" height="600px" />
 
 This visual is derived from the excellent [ORCA top-contributor-network](https://github.com/nbremer/ORCA/tree/main/top-contributor-network) by Nadieh Bremer.
 
