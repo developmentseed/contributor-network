@@ -221,14 +221,6 @@
                     data_raw.push(JSON.parse(JSON.stringify(values[1]))) // repositories
                     data_raw.push(JSON.parse(JSON.stringify(values[2]))) // links
 
-                    /////////////////////////////////////////////////
-                    // Very specific to this example, but get some statistics on the data and put this in the intro text
-                    /////////////////////////////////////////////////
-                    if(remainingContributorsPresent) {
-                        let num_contributors = values[0].length + values[3].length
-                        document.getElementById("repo-num-contributors").innerHTML = `~${formatDigit(num_contributors)} `
-                    }// if
-
                     // How many contributors are there in the inner two rings
                     document.querySelectorAll(".top-contributor-num").forEach(d => d.innerHTML = `${formatDigit(values[0].length)} `)
 
