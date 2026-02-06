@@ -50,7 +50,7 @@ Fetch contribution data from GitHub for all configured repositories:
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network data data
+uv run contributor-network assets/data assets/data
 ```
 
 Options:
@@ -61,7 +61,7 @@ Options:
 Generate CSV files from the fetched JSON data:
 
 ```shell
-uv run contributor-network csvs data
+uv run contributor-network csvs assets/data
 ```
 
 ### `build`
@@ -69,7 +69,7 @@ uv run contributor-network csvs data
 Build the static site to the `dist/` folder:
 
 ```shell
-uv run contributor-network build data dist
+uv run contributor-network build assets/data dist
 ```
 
 ## Full Workflow
@@ -86,13 +86,13 @@ uv run contributor-network discover --min-contributors 2
 # 3. Edit config.toml to add/remove repos or contributors
 
 # 4. Fetch data from GitHub
-uv run contributor-network data data
+uv run contributor-network assets/data assets/data
 
 # 5. Generate CSVs
-uv run contributor-network csvs data
+uv run contributor-network csvs assets/data
 
 # 6. Build the site
-uv run contributor-network build data dist
+uv run contributor-network build assets/data dist
 
 # 7. Preview locally
 cd dist && python -m http.server 8000
