@@ -20,3 +20,5 @@ jobs:
         run: uv run mypy
       - name: Test
         run: uv run pytest
+      - name: Build
+        run: uv run contributor-network build data dist
