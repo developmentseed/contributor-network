@@ -34,18 +34,6 @@ export function createContributorRadiusScale(d3) {
 }
 
 /**
- * Create the remaining contributor radius scale.
- * Used for contributors outside the main ring.
- *
- * @param {Object} d3 - D3 library reference
- * @returns {Function} D3 scale function
- */
-export function createRemainingContributorRadiusScale(d3) {
-  return d3.scaleSqrt()
-    .range([SIZES.remainingContributorRadius.min, SIZES.remainingContributorRadius.max]);
-}
-
-/**
  * Create the link distance scale.
  * Maps connection strength to link length.
  *
@@ -81,7 +69,6 @@ export function createAllScales(d3) {
   return {
     repoRadius: createRepoRadiusScale(d3),
     contributorRadius: createContributorRadiusScale(d3),
-    remainingContributorRadius: createRemainingContributorRadiusScale(d3),
     linkDistance: createLinkDistanceScale(d3),
     linkWidth: createLinkWidthScale(d3)
   };

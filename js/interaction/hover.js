@@ -12,13 +12,11 @@ import { drawWithZoomTransform } from './zoom.js';
  *   - d3: D3 library instance
  *   - canvasSelector: CSS selector for the hover canvas element
  *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
- *   - delaunayData: Delaunay triangulation data (delaunay, nodesDelaunay, delaunayRemaining)
+ *   - delaunayData: Delaunay triangulation data (delaunay, nodesDelaunay)
  *   - interactionState: Interaction state object
  *   - REPO_CENTRAL: ID of the central repository
  *   - canvas: Main canvas element (for opacity control)
  *   - contextHover: Canvas context for hover layer
- *   - REMAINING_PRESENT: Whether remaining contributors are present
- *   - remainingContributors: Array of remaining contributor nodes
  *   - setHovered: Function to set hovered state
  *   - clearHover: Function to clear hover state
  *   - drawHoverState: Function to draw hover state visualization
@@ -33,8 +31,6 @@ export function setupHover(options) {
     REPO_CENTRAL,
     canvas,
     contextHover,
-    REMAINING_PRESENT,
-    remainingContributors,
     setHovered,
     clearHover,
     drawHoverState
@@ -46,7 +42,7 @@ export function setupHover(options) {
       // Get the position of the mouse on the canvas
       let [mx, my] = d3.pointer(event, this);
       const zoomTransform = options.zoomState?.zoomTransform || null;
-      let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform);
+      let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, zoomTransform);
 
       // Draw the hover state on the top canvas
       // Skip hover on the central pseudo-node (it's not a real entity)
@@ -54,8 +50,7 @@ export function setupHover(options) {
         setHovered(interactionState, d);
 
         // Fade out the main canvas, using CSS
-        if (!d.remaining_contributor)
-          canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
+        canvas.style.opacity = d.type === "contributor" ? "0.15" : "0.3";
 
         // Draw the hovered node and its neighbors and links
         // Uses centralized helper for zoom-transformed drawing

@@ -84,11 +84,9 @@ function parseRepoString(repoString) {
  *   - contributors: Array of contributor objects
  *   - repos: Array of repository objects
  *   - links: Array of link objects
- *   - remainingContributors: Array of remaining contributor objects (optional)
  * @param {Object} config - Configuration:
  *   - d3: D3 library instance
  *   - REPO_CENTRAL: Central repository identifier
- *   - REMAINING_PRESENT: Whether remaining contributors are present
  *   - COLOR_CONTRIBUTOR: Color for contributor nodes
  *   - COLOR_REPO: Color for repository nodes
  *   - COLOR_OWNER: Color for owner nodes
@@ -103,7 +101,6 @@ function parseRepoString(repoString) {
  *   - scale_repo_radius: Scale for repository node radius
  *   - scale_contributor_radius: Scale for contributor node radius
  *   - scale_link_width: Scale for link width
- *   - scale_remaining_contributor_radius: Scale for remaining contributor radius
  * @returns {Object} Prepared data:
  *   - nodes: Array of node objects
  *   - central_repo: Central repository node
@@ -114,14 +111,12 @@ export function prepareData(data, config, scales) {
   const {
     contributors,
     repos,
-    links,
-    remainingContributors = []
+    links
   } = data;
 
   const {
     d3,
     REPO_CENTRAL,
-    REMAINING_PRESENT,
     COLOR_CONTRIBUTOR,
     COLOR_REPO,
     COLOR_OWNER,
@@ -137,8 +132,7 @@ export function prepareData(data, config, scales) {
   const {
     scale_repo_radius,
     scale_contributor_radius,
-    scale_link_width,
-    scale_remaining_contributor_radius
+    scale_link_width
   } = scales;
 
   // Create date formatters
@@ -249,32 +243,6 @@ export function prepareData(data, config, scales) {
 
     delete d.author_name;
   });
-
-  // ============================================================
-  // Prepare Remaining Contributors
-  // ============================================================
-  // Guard against undefined remainingContributors array
-  if (REMAINING_PRESENT && Array.isArray(remainingContributors) && remainingContributors.length > 0) {
-    remainingContributors.forEach((d, idx) => {
-      d.commit_count = +d.commit_count;
-
-      // Parse dates with validation
-      const remainingId = d.author_name || `remaining_contributor_${idx}`;
-      if (isInteger(d.commit_sec_min)) {
-        d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDateUnix, 'commit_sec_min', remainingId);
-        d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDateUnix, 'commit_sec_max', remainingId);
-      } else {
-        d.commit_sec_min = safeParsDate(d.commit_sec_min, parseDate, 'commit_sec_min', remainingId);
-        d.commit_sec_max = safeParsDate(d.commit_sec_max, parseDate, 'commit_sec_max', remainingId);
-      }
-
-      d.type = "contributor";
-      d.remaining_contributor = true;
-      d.color = COLOR_CONTRIBUTOR;
-    });
-  } else if (REMAINING_PRESENT && (!Array.isArray(remainingContributors) || remainingContributors.length === 0)) {
-    debugWarn('REMAINING_PRESENT is true but remainingContributors array is empty or invalid');
-  }
 
   // ============================================================
   // Create Nodes
@@ -580,11 +548,6 @@ export function prepareData(data, config, scales) {
   } else {
     scale_link_width.domain([1, 10, 60]); // fallback
   }
-
-  scale_remaining_contributor_radius.domain([
-    0,
-    scale_contributor_radius.domain()[0],
-  ]);
 
   // ============================================================
   // Calculate Node Properties

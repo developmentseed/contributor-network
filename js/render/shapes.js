@@ -98,12 +98,10 @@ export function drawNode(context, SF, d, config, interactionState) {
   context.shadowBlur = 0;
 
   // Also draw a stroke around the node
-  if (!d.remaining_contributor) {
-    context.strokeStyle = COLOR_BACKGROUND;
-    context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
-    drawCircle(context, d.x, d.y, SF, d.r, true, true);
-    context.stroke();
-  } // if
+  context.strokeStyle = COLOR_BACKGROUND;
+  context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
+  drawCircle(context, d.x, d.y, SF, d.r, true, true);
+  context.stroke();
 }
 
 /**
