@@ -348,8 +348,6 @@ const createContributorNetworkVisual = (
     // Initialize filters to show all
     applyFilters();
 
-    // contributors, repos, links are now set by applyFilters
-
     // Prepare data using extracted module
     const prepared = prepareData(
       {
@@ -616,7 +614,7 @@ const createContributorNetworkVisual = (
     SF = state.SF;
     nodes_delaunay = state.nodes_delaunay;
     delaunay = state.delaunay;
-    
+
     // Debug: Log after resize
     console.log('chart.resize() completed', { WIDTH, HEIGHT, SF, nodesCount: nodes.length });
   }; //function resize
@@ -720,6 +718,7 @@ const createContributorNetworkVisual = (
   ///////////// Force Simulation | Collaboration Repos ////////////
   /////////////////////////////////////////////////////////////////
   // Extracted to src/js/simulations/collaborationSimulation.js
+
 
   /////////////////////////////////////////////////////////////////
   ///////////////////// Node Drawing Functions ////////////////////

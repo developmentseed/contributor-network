@@ -52,7 +52,7 @@ export function setupClick(options) {
     if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
       return;
     }
-    
+
     // Get the position of the mouse on the canvas
     let [mx, my] = d3.pointer(event, this);
     const zoomTransform = options.zoomState?.zoomTransform || null;

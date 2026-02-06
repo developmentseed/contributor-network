@@ -111,7 +111,7 @@ export function prepareData(data, config, scales) {
   const {
     contributors,
     repos,
-    links,
+    links
   } = data;
 
   const {
@@ -132,7 +132,7 @@ export function prepareData(data, config, scales) {
   const {
     scale_repo_radius,
     scale_contributor_radius,
-    scale_link_width,
+    scale_link_width
   } = scales;
 
   // Create date formatters
