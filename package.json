@@ -1,0 +1,12 @@
+{
+  "name": "contributor-network-frontend",
+  "version": "1.0.0",
+  "description": "Frontend visualization for the Contributor Network",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/vitest/vitest.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}

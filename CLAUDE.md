@@ -36,19 +36,42 @@ uv run ruff check --fix .
 
 # Run tests
 uv run pytest
-uv run pytest tests/test_config.py::test_function_name  # Single test
+uv run pytest python/tests/test_config.py::test_function_name  # Single test
 ```
 
 ## Architecture
 
 **Data flow**: GitHub API → Python CLI → JSON files → CSV files → D3.js visualization
 
-- `src/contributor_network/cli.py` - Click-based CLI with 5 subcommands
-- `src/contributor_network/config.py` - Pydantic models for TOML configuration
-- `src/contributor_network/models.py` - Data models (Link, Repository)
-- `src/contributor_network/client.py` - GitHub API client wrapper
-- `index.js` - D3.js visualization (vanilla JS, no build step)
-- `templates/` - Jinja2 HTML templates
+### Folder Structure
+
+```
+python/                    # Python backend
+  contributor_network/     # CLI package
+  tests/                   # Python tests
+  templates/               # Jinja2 HTML templates
+js/                        # JavaScript frontend
+  chart.js                 # Main D3.js visualization
+  config/                  # Theme and scale configuration
+  data/                    # Data preparation and filtering
+  render/                  # Canvas rendering modules
+  simulations/             # D3 force simulations
+  ...
+assets/                    # Static assets
+  css/                     # Stylesheets
+  data/                    # CSV data files
+  img/                     # Images
+  lib/                     # Vendored D3 libraries
+```
+
+### Key Files
+
+- `python/contributor_network/cli.py` - Click-based CLI with 5 subcommands
+- `python/contributor_network/config.py` - Pydantic models for TOML configuration
+- `python/contributor_network/models.py` - Data models (Link, Repository)
+- `python/contributor_network/client.py` - GitHub API client wrapper
+- `js/chart.js` - D3.js visualization entry point
+- `python/templates/` - Jinja2 HTML templates
 - `config.toml`, `veda.toml` - Repository and contributor configuration
 
 ## Code Style

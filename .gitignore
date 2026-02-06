@@ -215,3 +215,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Node.js
+node_modules/
+
+# macOS
+.DS_Store

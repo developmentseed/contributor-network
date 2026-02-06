@@ -16,11 +16,10 @@ This visual is derived from the excellent [ORCA top-contributor-network](https:/
 ### View Locally
 
 ```shell
-cd dist
 python -m http.server 8000
 ```
 
-Then open <http://localhost:8000/>.
+Then open <http://localhost:8000/> (the root index.html)
 
 ## CLI Commands
 
@@ -51,7 +50,7 @@ Fetch contribution data from GitHub for all configured repositories:
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network data data
+uv run contributor-network assets/data assets/data
 ```
 
 Options:
@@ -62,7 +61,7 @@ Options:
 Generate CSV files from the fetched JSON data:
 
 ```shell
-uv run contributor-network csvs data
+uv run contributor-network csvs assets/data
 ```
 
 ### `build`
@@ -70,7 +69,7 @@ uv run contributor-network csvs data
 Build the static site to the `dist/` folder:
 
 ```shell
-uv run contributor-network build data dist
+uv run contributor-network build assets/data dist
 ```
 
 ## Full Workflow
@@ -87,13 +86,13 @@ uv run contributor-network discover --min-contributors 2
 # 3. Edit config.toml to add/remove repos or contributors
 
 # 4. Fetch data from GitHub
-uv run contributor-network data data
+uv run contributor-network assets/data assets/data
 
 # 5. Generate CSVs
-uv run contributor-network csvs data
+uv run contributor-network csvs assets/data
 
 # 6. Build the site
-uv run contributor-network build data dist
+uv run contributor-network build assets/data dist
 
 # 7. Preview locally
 cd dist && python -m http.server 8000
@@ -108,6 +107,46 @@ Edit `config.toml` to configure:
 - **contributors.alumni**: Friends and alumni (commented out by default)
 
 ## Development
+
+### Architecture
+
+The visualization code is organized into modular ES6 modules in `src/js/`:
+
+```
+src/js/
+├── config/          # Configuration (theme, scales)
+├── data/            # Data filtering and utilities
+├── interaction/     # Mouse hover and click handling
+├── layout/          # Canvas sizing and layout
+├── render/          # Drawing functions (shapes, text, labels)
+├── simulations/     # D3 force simulations
+├── state/           # State management
+├── utils/           # Utilities (helpers, validation, formatters, debug)
+└── __tests__/       # Unit tests
+```
+
+The main entry point is `index.js` which:
+1. Loads dependencies (D3, etc.)
+2. Imports all modular components
+3. Exports `createContributorNetworkVisual` function
+
+The visualization is used in `dist/index.html` to render the interactive network.
+
+### Running Tests
+
+```shell
+npm test
+```
+
+Tests use Vitest and cover filtering, validation, and utility functions.
+
+### Making Changes
+
+When modifying the visualization:
+1. Edit files in `src/js/`
+2. Changes are immediately available in the browser (no build step needed)
+3. Refresh `http://localhost:8000/` to see updates
+4. Run `npm test` to verify changes don't break tests
 
 ### Code Quality
 
