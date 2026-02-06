@@ -29,7 +29,6 @@ import {
 import {
   createRepoRadiusScale,
   createContributorRadiusScale,
-  createRemainingContributorRadiusScale,
   createLinkDistanceScale,
   createLinkWidthScale
 } from './config/scales.js';
@@ -57,8 +56,7 @@ import {
 import {
   runOwnerSimulation,
   runContributorSimulation,
-  runCollaborationSimulation,
-  runRemainingSimulation
+  runCollaborationSimulation
 } from './simulations/index.js';
 import {
   createFilterState,
@@ -175,7 +173,7 @@ const createContributorNetworkVisual = (
   let visibleContributors;
 
   // Datasets
-  let contributors, remainingContributors;
+  let contributors;
   let repos;
   let nodes = [],
     nodes_central;
@@ -192,13 +190,11 @@ const createContributorNetworkVisual = (
   // These are kept in sync with interactionState and delaunayData object
   let delaunay;
   let nodes_delaunay;
-  let delaunay_remaining;
-  
+
   // Helper to sync local variables with delaunayData
   function syncDelaunayVars(delaunayData) {
     delaunay = delaunayData.delaunay;
     nodes_delaunay = delaunayData.nodesDelaunay;
-    delaunay_remaining = delaunayData.delaunayRemaining;
   }
 
   /////////////////////////////////////////////////////////////////
@@ -218,7 +214,6 @@ const createContributorNetworkVisual = (
   const MAX_CONTRIBUTOR_WIDTH = LAYOUT.maxContributorWidth; // The maximum width (at SF = 1) of the contributor name before it gets wrapped
   const CONTRIBUTOR_PADDING = contributor_padding; // The padding between the contributor nodes around the circle (at SF = 1)
 
-  let REMAINING_PRESENT = false; // Is the dataset of remaining contributors present?
 
   /////////////////////////////////////////////////////////////////
   ///////////////////////////// Colors ////////////////////////////
@@ -332,7 +327,6 @@ const createContributorNetworkVisual = (
 
   // Based on the number of commits to the central repo
   const scale_contributor_radius = createContributorRadiusScale(d3);
-  const scale_remaining_contributor_radius = createRemainingContributorRadiusScale(d3);
 
   const scale_link_distance = createLinkDistanceScale(d3);
 
@@ -355,27 +349,16 @@ const createContributorNetworkVisual = (
     // Initialize filters to show all
     applyFilters();
 
-    // contributors, repos, links are now set by applyFilters
-    if (values[3]) {
-      // Check if there is a column called "author_name" in the dataset
-      if (values[3][0].author_name !== undefined) {
-        remainingContributors = values[3];
-        REMAINING_PRESENT = true;
-        } // if
-    } // if
-
     // Prepare data using extracted module
     const prepared = prepareData(
       {
         contributors,
         repos,
-        links,
-        remainingContributors: REMAINING_PRESENT ? remainingContributors : []
+        links
       },
       {
         d3,
         REPO_CENTRAL,
-        REMAINING_PRESENT,
         COLOR_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
@@ -390,8 +373,7 @@ const createContributorNetworkVisual = (
       {
         scale_repo_radius,
         scale_contributor_radius,
-        scale_link_width,
-        scale_remaining_contributor_radius
+        scale_link_width
       }
     );
 
@@ -470,26 +452,6 @@ const createContributorNetworkVisual = (
       }
     );
     // console.log("Central force simulation done")
-
-    /////////////////////////////////////////////////////////////
-    ////// Run Force Simulation for Remaining Contributors //////
-    /////////////////////////////////////////////////////////////
-    // Run a force simulation to position the remaining contributors around the central area
-    if (REMAINING_PRESENT) {
-      runRemainingSimulation(
-        remainingContributors,
-        d3,
-        TAU,
-        cos,
-        sin,
-        max,
-        RADIUS_CONTRIBUTOR,
-        CONTRIBUTOR_RING_WIDTH,
-        DEFAULT_SIZE,
-        scale_remaining_contributor_radius
-      );
-    }
-    // console.log("Remaining contributor force simulation done")
 
     /////////////////////////////////////////////////////////////
     ////////////// Resolve String References in Links ///////////
@@ -606,12 +568,10 @@ const createContributorNetworkVisual = (
       PIXEL_RATIO,
       SF,
       nodes_delaunay,
-      delaunay,
-      delaunay_remaining
+      delaunay
     };
     const data = {
-      nodes,
-      remainingContributors
+      nodes
     };
     
     // Update local variables from state object BEFORE calling handleResize
@@ -630,7 +590,6 @@ const createContributorNetworkVisual = (
       SF = state.SF;
       nodes_delaunay = state.nodes_delaunay;
       delaunay = state.delaunay;
-      delaunay_remaining = state.delaunay_remaining;
       // Now draw with updated values
       draw();
     };
@@ -642,7 +601,6 @@ const createContributorNetworkVisual = (
       state,
       data,
       {
-        REMAINING_PRESENT,
         d3,
         setDelaunay,
         interactionState,
@@ -657,8 +615,7 @@ const createContributorNetworkVisual = (
     SF = state.SF;
     nodes_delaunay = state.nodes_delaunay;
     delaunay = state.delaunay;
-    delaunay_remaining = state.delaunay_remaining;
-    
+
     // Debug: Log after resize
     console.log('chart.resize() completed', { WIDTH, HEIGHT, SF, nodesCount: nodes.length });
   }; //function resize
@@ -762,11 +719,6 @@ const createContributorNetworkVisual = (
   ///////////// Force Simulation | Collaboration Repos ////////////
   /////////////////////////////////////////////////////////////////
   // Extracted to src/js/simulations/collaborationSimulation.js
-
-  /////////////////////////////////////////////////////////////////
-  ///////////// Force Simulation | Other Contributors /////////////
-  /////////////////////////////////////////////////////////////////
-  // Extracted to src/js/simulations/remainingSimulation.js
 
 
   /////////////////////////////////////////////////////////////////
@@ -962,10 +914,8 @@ const createContributorNetworkVisual = (
       set delaunay(val) { delaunay = val; },
       get nodesDelaunay() { return nodes_delaunay; },
       set nodesDelaunay(val) { nodes_delaunay = val; },
-      get delaunayRemaining() { return delaunay_remaining; },
-      set delaunayRemaining(val) { delaunay_remaining = val; }
     };
-    
+
     setupHoverInteraction({
       d3,
       canvasSelector: "#canvas-hover",
@@ -975,8 +925,6 @@ const createContributorNetworkVisual = (
       REPO_CENTRAL,
       canvas,
       contextHover: context_hover,
-      REMAINING_PRESENT,
-      remainingContributors,
       setHovered,
       clearHover,
       drawHoverState,
@@ -1131,10 +1079,8 @@ const createContributorNetworkVisual = (
       set delaunay(val) { delaunay = val; },
       get nodesDelaunay() { return nodes_delaunay; },
       set nodesDelaunay(val) { nodes_delaunay = val; },
-      get delaunayRemaining() { return delaunay_remaining; },
-      set delaunayRemaining(val) { delaunay_remaining = val; }
     };
-    
+
     setupClickInteraction({
       d3,
       canvasSelector: "#canvas-hover", // Use hover canvas for clicks too since it's on top
@@ -1146,8 +1092,6 @@ const createContributorNetworkVisual = (
       contextClick: context_click,
       contextHover: context_hover,
       nodes,
-      REMAINING_PRESENT,
-      remainingContributors,
       setClicked,
       clearClick,
       clearHover,
@@ -1310,7 +1254,6 @@ const createContributorNetworkVisual = (
     // Reset spatial data structures (will be rebuilt in resize())
     nodes_delaunay = [];
     delaunay = null;
-    delaunay_remaining = null;
     // Note: clearDelaunay already called above via clearAll
 
     // Apply current filters
@@ -1321,13 +1264,11 @@ const createContributorNetworkVisual = (
       {
         contributors,
         repos,
-        links,
-        remainingContributors: REMAINING_PRESENT ? remainingContributors : []
+        links
       },
       {
         d3,
         REPO_CENTRAL,
-        REMAINING_PRESENT,
         COLOR_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
@@ -1342,8 +1283,7 @@ const createContributorNetworkVisual = (
       {
         scale_repo_radius,
         scale_contributor_radius,
-        scale_link_width,
-        scale_remaining_contributor_radius
+        scale_link_width
       }
     );
 
@@ -1395,21 +1335,6 @@ const createContributorNetworkVisual = (
         INNER_RADIUS_FACTOR
       }
     );
-    if (REMAINING_PRESENT) {
-      runRemainingSimulation(
-        remainingContributors,
-        d3,
-        TAU,
-        cos,
-        sin,
-        max,
-        RADIUS_CONTRIBUTOR,
-        CONTRIBUTOR_RING_WIDTH,
-        DEFAULT_SIZE,
-        scale_remaining_contributor_radius
-      );
-    }
-
     // Resolve any remaining string references in links
     links = resolveLinkReferences(links, nodes);
 

@@ -65,12 +65,9 @@ export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CO
  *   - SF: Scale factor (will be updated)
  *   - nodes_delaunay: Nodes for Delaunay (will be updated)
  *   - delaunay: Delaunay triangulation (will be updated)
- *   - delaunay_remaining: Remaining Delaunay (will be updated)
  * @param {Object} data - Data arrays:
  *   - nodes: All nodes
- *   - remainingContributors: Remaining contributor nodes
  * @param {Object} options - Additional options:
- *   - REMAINING_PRESENT: Whether remaining contributors are present
  *   - d3: D3 library instance
  *   - setDelaunay: Function to update Delaunay in interaction state
  *   - interactionState: Interaction state object
@@ -84,9 +81,9 @@ export function handleResize(
   data,
   options
 ) {
-  const { REMAINING_PRESENT, d3, setDelaunay, interactionState, draw } = options;
+  const { d3, setDelaunay, interactionState, draw } = options;
   const { width, height, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, round } = config;
-  const { nodes, remainingContributors } = data;
+  const { nodes } = data;
 
   // Screen pixel ratio
   state.PIXEL_RATIO = Math.max(2, window.devicePixelRatio);
@@ -109,13 +106,8 @@ export function handleResize(
   // Reset the delaunay for the mouse events
   state.nodes_delaunay = nodes;
   state.delaunay = d3.Delaunay.from(state.nodes_delaunay.map((d) => [d.x, d.y]));
-  if (REMAINING_PRESENT) {
-    state.delaunay_remaining = d3.Delaunay.from(
-      remainingContributors.map((d) => [d.x, d.y]),
-    );
-  }
   // Update interaction state with Delaunay data
-  setDelaunay(interactionState, state.delaunay, state.nodes_delaunay, state.delaunay_remaining);
+  setDelaunay(interactionState, state.delaunay, state.nodes_delaunay);
 
   // Draw the visual
   draw();

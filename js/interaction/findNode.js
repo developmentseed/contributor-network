@@ -18,16 +18,13 @@
  * @param {Object} delaunayData - Delaunay triangulation data:
  *   - delaunay: Main Delaunay triangulation
  *   - nodesDelaunay: Nodes used for main Delaunay
- *   - delaunayRemaining: Optional Delaunay for remaining contributors
  * @param {Object} interactionState - Interaction state object
- * @param {boolean} REMAINING_PRESENT - Whether remaining contributors are present
- * @param {Array} remainingContributors - Array of remaining contributor nodes
  * @param {Object} zoomTransform - Optional D3 zoom transform object (defaults to identity)
  * @returns {Array} [node, found] - The found node (or null) and whether it was found
  */
-export function findNode(mx, my, config, delaunayData, interactionState, REMAINING_PRESENT, remainingContributors, zoomTransform = null) {
+export function findNode(mx, my, config, delaunayData, interactionState, zoomTransform = null) {
   const { PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt } = config;
-  const { delaunay, nodesDelaunay, delaunayRemaining } = delaunayData;
+  const { delaunay, nodesDelaunay } = delaunayData;
 
   // Convert mouse coordinates to visualization coordinates, accounting for zoom
   if (zoomTransform && zoomTransform.k !== 1) {
@@ -60,16 +57,6 @@ export function findNode(mx, my, config, delaunayData, interactionState, REMAINI
   let dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
   // If the distance is too big, don't show anything
   let FOUND = dist < d.r + (interactionState.clickActive ? 10 : 50);
-
-  // Check if the mouse is close enough to one of the remaining contributors if FOUND is false
-  if (!FOUND && REMAINING_PRESENT && delaunayRemaining) {
-    point = delaunayRemaining.find(mx, my);
-    d = remainingContributors[point];
-    if (d) {
-      dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
-      FOUND = dist < d.r + 5;
-    }
-  } // if
 
   return [d, FOUND];
 }
