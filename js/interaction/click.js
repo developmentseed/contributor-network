@@ -14,7 +14,6 @@ import { shouldSuppressClick, drawWithZoomTransform } from './zoom.js';
  *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
  *   - delaunayData: Delaunay triangulation data (will be updated: delaunay, nodesDelaunay)
  *   - interactionState: Interaction state object
- *   - REPO_CENTRAL: ID of the central repository
  *   - canvas: Main canvas element (for opacity control)
  *   - contextClick: Canvas context for click layer
  *   - contextHover: Canvas context for hover layer
@@ -34,7 +33,6 @@ export function setupClick(options) {
     config,
     delaunayData,
     interactionState,
-    REPO_CENTRAL,
     canvas,
     contextClick,
     contextHover,
@@ -61,8 +59,7 @@ export function setupClick(options) {
     // Clear the "clicked" canvas
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Skip click on the central pseudo-node (it's not a real entity)
-    if (FOUND && d && d.id !== REPO_CENTRAL) {
+    if (FOUND && d) {
       setClicked(interactionState, d);
 
       // Reset the delaunay for the hover, taking only the neighbors into account of the clicked node

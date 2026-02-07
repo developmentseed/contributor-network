@@ -4,11 +4,11 @@
 //
 // Development Seed Modifications:
 // - Updated color scheme to DevSeed brand (Grenadier orange, Aquamarine blue)
-// - Removed the central "team" pseudo-node from rendering (but kept for layout)
+// - Removed the central "team" pseudo-node entirely (force simulation finds natural equilibrium)
+// - Contributors positioned in fixed ring around viewport center
 // - Added null safety checks for hover/click interactions
 // - Added boundary checking to prevent hover outside visualization area
 // - Added mouseleave handler to properly clean up hover state
-// - Filtered out artificial links to/from the central pseudo-node
 // - Refactored to use modular components (Phase 1 & 2 data expansion)
 //
 /////////////////////////////////////////////////////////////////////
@@ -112,7 +112,6 @@ import { handleResize, sizeCanvas, calculateScaleFactor } from './layout/resize.
 // ============================================================
 const createContributorNetworkVisual = (
   container,
-  initial_repo_central,
   contributor_padding,
   masterContributorsList,
   displayNameMap,
@@ -130,9 +129,6 @@ const createContributorNetworkVisual = (
   let min = Math.min;
   let max = Math.max;
   let sqrt = Math.sqrt;
-
-  // Default repo
-  let REPO_CENTRAL = initial_repo_central;
 
   /////////////////////////////////////////////////////////////////
   // Filter State Management
@@ -178,7 +174,6 @@ const createContributorNetworkVisual = (
   let nodes = [],
     nodes_central;
   let links;
-  let central_repo;
 
   /////////////////////////////////////////////////////////////////
   // Interaction State Management
@@ -357,13 +352,10 @@ const createContributorNetworkVisual = (
       },
       {
         d3,
-        REPO_CENTRAL,
         COLOR_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
-        COLOR_REPO_MAIN,
         MAX_CONTRIBUTOR_WIDTH,
-        CENTRAL_RADIUS,
         context,
         isValidContributor,
         setContributorFont,
@@ -383,9 +375,6 @@ const createContributorNetworkVisual = (
     if (!Array.isArray(prepared.nodes) || prepared.nodes.length === 0) {
       throw new Error('prepareData returned invalid nodes: expected non-empty array');
     }
-    if (!prepared.central_repo) {
-      throw new Error(`prepareData: central repository "${REPO_CENTRAL}" not found in prepared data`);
-    }
     if (!Array.isArray(prepared.links)) {
       throw new Error('prepareData returned invalid links: expected array');
     }
@@ -394,7 +383,6 @@ const createContributorNetworkVisual = (
     nodes = prepared.nodes;
     nodes_central = prepared.nodes_central;
     links = prepared.links;
-    central_repo = prepared.central_repo;
     // console.log("Data prepared")
 
     /////////////////////////////////////////////////////////////
@@ -416,14 +404,10 @@ const createContributorNetworkVisual = (
     /////////////////////////////////////////////////////////////
     ///////////////// Position Contributor Nodes ////////////////
     /////////////////////////////////////////////////////////////
-    // Place the central repo in the middle
-    central_repo.x = central_repo.fx = 0;
-    central_repo.y = central_repo.fy = 0;
-
-    // Place the contributor nodes in a circle around the central repo
+    // Place the contributor nodes in a circle around viewport center (0, 0)
     // Taking into account the max_radius of single-degree repos around them
     const positioningResult = positionContributorNodes(
-      { nodes, contributors, central_repo },
+      { nodes, contributors },
       { CONTRIBUTOR_PADDING }
     );
     RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
@@ -443,8 +427,6 @@ const createContributorNetworkVisual = (
       max,
       {
         context,
-        REPO_CENTRAL,
-        central_repo,
         scale_link_distance,
         RADIUS_CONTRIBUTOR,
         INNER_RADIUS_FACTOR
@@ -523,7 +505,7 @@ const createContributorNetworkVisual = (
     drawVisualization(
       context,
       { nodes, links, nodes_central },
-      { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH },
+      { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH },
       {
         drawLink: drawLinkWrapper,
         drawNodeArc: drawNodeArcWrapper,
@@ -643,8 +625,6 @@ const createContributorNetworkVisual = (
     // If organizations are selected, filter to those organizations
     if (hasActiveFilters(activeFilters)) {
       visibleRepos = visibleRepos.filter((repo) => {
-        // Always include the central pseudo-repo
-        if (repo.repo === REPO_CENTRAL) return true;
         const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
         return hasOrganization(activeFilters, owner);
       });
@@ -727,26 +707,26 @@ const createContributorNetworkVisual = (
   // Extracted to src/js/render/shapes.js
   // Wrapper to adapt old signature to new module signature
   function drawNodeWrapper(context, SF, d) {
-    const config = { REPO_CENTRAL, COLOR_BACKGROUND, max };
+    const config = { COLOR_BACKGROUND, max };
     drawNode(context, SF, d, config, interactionState);
   }
 
   // Extracted to src/js/render/shapes.js
   // Wrapper to adapt old signature to new module signature
   function drawNodeArcWrapper(context, SF, d) {
-    drawNodeArc(context, SF, d, interactionState, COLOR_CONTRIBUTOR, d3, central_repo);
+    drawNodeArc(context, SF, d, interactionState, COLOR_CONTRIBUTOR, d3, null);
   }
 
   // Extracted to src/js/render/shapes.js
   // Wrapper to adapt old signature to new module signature
   function drawHoverRingWrapper(context, d) {
-    drawHoverRing(context, d, SF, central_repo);
+    drawHoverRing(context, d, SF, null);
   }
 
   // Extracted to src/js/render/shapes.js
   // Wrapper to adapt old signature to new module signature
   function timeRangeArcWrapper(context, SF, d, repo, link, COL = COLOR_REPO_MAIN) {
-    timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo);
+    timeRangeArc(context, SF, d, repo, link, COL, d3, null);
   }
 
   // Extracted to src/js/render/shapes.js
@@ -921,7 +901,6 @@ const createContributorNetworkVisual = (
       config,
       delaunayData,
       interactionState,
-      REPO_CENTRAL,
       canvas,
       contextHover: context_hover,
       setHovered,
@@ -943,10 +922,6 @@ const createContributorNetworkVisual = (
     if (d.neighbor_links === undefined) {
       d.neighbor_links = links.filter(
         (l) => {
-          // Skip links to/from the central pseudo-node (not real contributions)
-          const targetId = l.target.id || l.target;
-          const sourceId = l.source.id || l.source;
-          if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
           return l.source.id === d.id || l.target.id === d.id;
         }
       );
@@ -955,14 +930,8 @@ const createContributorNetworkVisual = (
     // Get all the connected nodes (if not done before)
     if (d.neighbors === undefined) {
       d.neighbors = nodes.filter((n) => {
-        // Skip the central pseudo-node
-        if (n.id === REPO_CENTRAL) return false;
         return links.find(
           (l) => {
-            // Skip links to/from the central pseudo-node
-            const targetId = l.target.id || l.target;
-            const sourceId = l.source.id || l.source;
-            if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return false;
             return (l.source.id === d.id && l.target.id === n.id) ||
               (l.target.id === d.id && l.source.id === n.id);
           }
@@ -972,10 +941,7 @@ const createContributorNetworkVisual = (
       // If any of these neighbors are "owner" nodes, find what the original repo was from that owner that the contributor was connected to
       // OR
       // If this node is a repo and any of these neighbors are "owner" nodes, find what original contributor was connected to this repo
-      if (
-        d.type === "contributor" ||
-        (d.type === "repo" && d !== central_repo)
-      ) {
+      if (d.type === "contributor" || d.type === "repo") {
         d.neighbors.forEach((n) => {
           if (n && n.type === "owner" && d.data && d.data.links_original) {
             // Go through all of the original links and see if this owner is in there
@@ -1011,15 +977,6 @@ const createContributorNetworkVisual = (
             }); // forEach
           } // if
         }); // forEach
-
-        // Filter out the possible link between the central_node and its owner, to not create a ring
-        d.neighbor_links = d.neighbor_links.filter(
-          (l) =>
-            !(
-              l.target.id === central_repo.id &&
-              l.source.id === central_repo.data.owner
-            ),
-        );
       } // if
     } // if
 
@@ -1086,7 +1043,6 @@ const createContributorNetworkVisual = (
       config,
       delaunayData,
       interactionState,
-      REPO_CENTRAL,
       canvas,
       contextClick: context_click,
       contextHover: context_hover,
@@ -1127,7 +1083,6 @@ const createContributorNetworkVisual = (
   function drawTooltipWrapper(context, d) {
     const config = {
       SF,
-      REPO_CENTRAL,
       COLOR_BACKGROUND,
       COLOR_TEXT,
       COLOR_CONTRIBUTOR,
@@ -1135,7 +1090,7 @@ const createContributorNetworkVisual = (
       COLOR_OWNER,
       min
     };
-    drawTooltipModule(context, d, config, interactionState, central_repo, formatDate, formatDateExact, formatDigit);
+    drawTooltipModule(context, d, config, interactionState, null, formatDate, formatDateExact, formatDigit);
   }
   
   // Keep old function name for compatibility - delegate to wrapper
@@ -1147,13 +1102,12 @@ const createContributorNetworkVisual = (
   function drawNodeLabelWrapper(context, d, DO_CENTRAL_OUTSIDE = false) {
     const config = {
       SF,
-      REPO_CENTRAL,
       COLOR_TEXT,
       COLOR_BACKGROUND,
       COLOR_REPO_MAIN,
       PI
     };
-    drawNodeLabel(context, d, config, central_repo, DO_CENTRAL_OUTSIDE);
+    drawNodeLabel(context, d, config, null, DO_CENTRAL_OUTSIDE);
   }
 
   // =============================================================================
@@ -1230,11 +1184,7 @@ const createContributorNetworkVisual = (
     return chart;
   }; // chart.height
 
-  chart.repository = function (value) {
-    if (!arguments.length) return REPO_CENTRAL;
-    REPO_CENTRAL = value;
-    return chart;
-  }; // chart.repository
+  // Note: chart.repository() accessor removed - no longer have a central repository
 
   /////////////////////////////////////////////////////////////////
   ////////////////////// Filtering Functions //////////////////////
@@ -1266,13 +1216,10 @@ const createContributorNetworkVisual = (
       },
       {
         d3,
-        REPO_CENTRAL,
         COLOR_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
-        COLOR_REPO_MAIN,
         MAX_CONTRIBUTOR_WIDTH,
-        CENTRAL_RADIUS,
         context,
         isValidContributor,
         setContributorFont,
@@ -1294,25 +1241,16 @@ const createContributorNetworkVisual = (
       console.error('rebuild: prepareData returned empty nodes - filters may be too restrictive');
       return chart;
     }
-    if (!prepared.central_repo) {
-      console.error(`rebuild: central repository "${REPO_CENTRAL}" not found`);
-      return chart;
-    }
 
     // Update local variables from prepared data
     nodes = prepared.nodes;
     nodes_central = prepared.nodes_central;
     links = prepared.links;
-    central_repo = prepared.central_repo;
-
-    // Place the central repo in the middle (critical for positioning contributors)
-    central_repo.x = central_repo.fx = 0;
-    central_repo.y = central_repo.fy = 0;
 
     runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, min);
     runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max);
     const positioningResult = positionContributorNodes(
-      { nodes, contributors, central_repo },
+      { nodes, contributors },
       { CONTRIBUTOR_PADDING }
     );
     RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
@@ -1326,8 +1264,6 @@ const createContributorNetworkVisual = (
       max,
       {
         context,
-        REPO_CENTRAL,
-        central_repo,
         scale_link_distance,
         RADIUS_CONTRIBUTOR,
         INNER_RADIUS_FACTOR
@@ -1339,7 +1275,7 @@ const createContributorNetworkVisual = (
     // Position any nodes that didn't get positioned by force simulations
     // Critical for filtered data where force simulations may not include all nodes
     const unpositionedNodes = nodes.filter(n =>
-      n.x === 0 && n.y === 0 && n.id !== REPO_CENTRAL
+      n.x === 0 && n.y === 0
     );
 
     if (unpositionedNodes.length > 0) {
@@ -1458,15 +1394,8 @@ const createContributorNetworkVisual = (
       typeof l.source === 'object' && typeof l.target === 'object'
     );
 
-    // Count how many links would be drawn (not to central repo)
-    const drawnLinks = validLinks.filter(l => {
-      const targetId = l.target.id || l.target;
-      const sourceId = l.source.id || l.source;
-      return targetId !== REPO_CENTRAL && sourceId !== REPO_CENTRAL;
-    });
-
     // Count links that have valid coordinates for drawing
-    const drawableLinks = drawnLinks.filter(l =>
+    const drawableLinks = validLinks.filter(l =>
       l.source && l.target &&
       typeof l.source.x === 'number' && typeof l.source.y === 'number' &&
       typeof l.target.x === 'number' && typeof l.target.y === 'number' &&

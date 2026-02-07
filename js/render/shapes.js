@@ -75,26 +75,19 @@ export function drawLine(context, SF, line) {
  * @param {number} SF - Scale factor
  * @param {Object} d - Node data
  * @param {Object} config - Configuration object:
- *   - REPO_CENTRAL: ID of central repository
  *   - COLOR_BACKGROUND: Background color
  *   - max: Max function (Math.max)
  * @param {Object} interactionState - Interaction state object
  */
 export function drawNode(context, SF, d, config, interactionState) {
-  const { REPO_CENTRAL, COLOR_BACKGROUND, max } = config;
-  
-  // The central "team" node should be subtle/muted since it's not a real repo
-  const IS_CENTRAL = d.id === REPO_CENTRAL;
+  const { COLOR_BACKGROUND, max } = config;
 
   // Draw a circle for the node
   context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
   context.shadowColor = "#f7f7f7";
 
-  // Central node gets reduced opacity to be less prominent
-  context.globalAlpha = IS_CENTRAL ? 0.5 : 1;
   context.fillStyle = d.color;
   drawCircle(context, d.x, d.y, SF, d.r);
-  context.globalAlpha = 1;
   context.shadowBlur = 0;
 
   // Also draw a stroke around the node
@@ -131,10 +124,10 @@ export function drawNodeArc(context, SF, d, interactionState, COLOR_CONTRIBUTOR,
  * @param {CanvasRenderingContext2D} context - Canvas rendering context
  * @param {Object} d - Node data
  * @param {number} SF - Scale factor
- * @param {Object} central_repo - Central repository node
+ * @param {Object} central_repo - Deprecated, no longer used
  */
 export function drawHoverRing(context, d, SF, central_repo) {
-  let r = d.r + (d.type === "contributor" ? 9 : d === central_repo ? 14 : 7);
+  let r = d.r + (d.type === "contributor" ? 9 : 7);
   context.beginPath();
   context.moveTo((d.x + r) * SF, d.y * SF);
   context.arc(d.x * SF, d.y * SF, r * SF, 0, TAU);
@@ -152,7 +145,7 @@ export function drawHoverRing(context, d, SF, central_repo) {
  * @param {Object} link - Link data with commit_sec_min and commit_sec_max
  * @param {string} COL - Color (default: COLOR_REPO_MAIN)
  * @param {Object} d3 - D3 library instance
- * @param {Object} central_repo - Central repository node
+ * @param {Object} central_repo - Deprecated, no longer used
  */
 export function timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo) {
   context.save();
@@ -161,14 +154,14 @@ export function timeRangeArc(context, SF, d, repo, link, COL, d3, central_repo) 
   context.fillStyle = COL;
   context.strokeStyle = COL;
 
-  // The scale for between which min and max date the contributor has been involved in the central repo
+  // The scale for between which min and max date the contributor has been involved in the repo
   const scale_involved_range = d3
     .scaleLinear()
     .domain([repo.data.createdAt, repo.data.updatedAt])
     .range([0, TAU]);
 
   let r_inner =
-    d.r + (d.type === "contributor" || d === central_repo ? 2.5 : 1);
+    d.r + (d.type === "contributor" ? 2.5 : 1);
   let r_outer = r_inner + 3;
 
   const arc = d3
@@ -278,17 +271,18 @@ export function drawLink(context, SF, l, config, interactionState, calculateLink
  * Draws the contributor ring - a filled ring band where contributors are positioned
  * Uses the "winding rule" technique: outer arc clockwise + inner arc counterclockwise
  * to create a filled ring shape (not just outlines).
+ * Ring is centered at the viewport origin (0, 0).
  *
  * @param {CanvasRenderingContext2D} context - Canvas rendering context
  * @param {number} SF - Scale factor
  * @param {number} RADIUS_CONTRIBUTOR - Radius of the contributor ring
  * @param {number} CONTRIBUTOR_RING_WIDTH - Width of the contributor ring
- * @param {Object} central_repo - Central repository node
  * @param {string} COLOR_RING - Ring fill color (default: Grenadier orange)
  */
-export function drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, central_repo, COLOR_RING = '#CF3F02') {
-  const center_x = central_repo.x * SF;
-  const center_y = central_repo.y * SF;
+export function drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, COLOR_RING = '#CF3F02') {
+  // Ring is centered at viewport origin (0, 0)
+  const center_x = 0;
+  const center_y = 0;
 
   // Small offset for visual refinement (matches original ORCA implementation)
   const O = 4;
