@@ -559,15 +559,12 @@ export function prepareData(data, config, scales) {
   // ============================================================
   nodes.sort((a, b) => {
     if (a.type === b.type) {
-      // For contributors, sort by total commits (higher first)
       if (a.type === "contributor") {
-        const aCommits = a.data.total_commits || 0;
-        const bCommits = b.data.total_commits || 0;
-        return bCommits - aCommits;
+        // Alphabetical by label (case-insensitive)
+        return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
       }
       return 0;
     } else {
-      // Sort by type (contributor < repo < owner)
       if (a.type < b.type) return -1;
       else if (a.type > b.type) return 1;
       else return 0;
