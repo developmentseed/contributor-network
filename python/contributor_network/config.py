@@ -20,7 +20,7 @@ class Config(BaseModel):
         title: Page title for the visualization
         author: Author attribution
         description: Description shown on the page
-        central_repository: Label for the central node (e.g., "DevSeed Team")
+        organization_name: Name of the organization (e.g., "Development Seed")
         repositories: List of GitHub repos to track (format: "owner/repo")
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
@@ -30,7 +30,7 @@ class Config(BaseModel):
     title: str
     author: str
     description: str
-    central_repository: str
+    organization_name: str
     repositories: list[str]
     contributors: dict[
         str, dict[str, str]

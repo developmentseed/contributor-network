@@ -2,7 +2,7 @@
   "title": "The Development Seed Contributor Network",
   "author": "Pete Gadomski",
   "description": "An interactive visualization of contributors to Development Seed code and their connections to other repositories",
-  "central_repository": "developmentseed/DevSeed Team",
+  "organization_name": "Development Seed",
   "contributor_padding": 20,
   "contributors": {
     "AMSCamacho": "Angela Camacho",

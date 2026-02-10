@@ -86,13 +86,10 @@ function parseRepoString(repoString) {
  *   - links: Array of link objects
  * @param {Object} config - Configuration:
  *   - d3: D3 library instance
- *   - REPO_CENTRAL: Central repository identifier
  *   - COLOR_CONTRIBUTOR: Color for contributor nodes
  *   - COLOR_REPO: Color for repository nodes
  *   - COLOR_OWNER: Color for owner nodes
- *   - COLOR_REPO_MAIN: Color for main repository
  *   - MAX_CONTRIBUTOR_WIDTH: Maximum width for contributor name wrapping
- *   - CENTRAL_RADIUS: Radius for central repository node
  *   - context: Canvas 2D context (for text measurement)
  *   - isValidContributor: Function to validate contributor names
  *   - setContributorFont: Function to set contributor font
@@ -103,7 +100,6 @@ function parseRepoString(repoString) {
  *   - scale_link_width: Scale for link width
  * @returns {Object} Prepared data:
  *   - nodes: Array of node objects
- *   - central_repo: Central repository node
  *   - owners: Array of owner objects
  *   - nodes_central: Array of central nodes (same as nodes for now)
  */
@@ -116,13 +112,10 @@ export function prepareData(data, config, scales) {
 
   const {
     d3,
-    REPO_CENTRAL,
     COLOR_CONTRIBUTOR,
     COLOR_REPO,
     COLOR_OWNER,
-    COLOR_REPO_MAIN,
     MAX_CONTRIBUTOR_WIDTH,
-    CENTRAL_RADIUS,
     context,
     isValidContributor,
     setContributorFont,
@@ -288,17 +281,6 @@ export function prepareData(data, config, scales) {
   });
 
   // ============================================================
-  // Find Central Repository
-  // ============================================================
-  const central_repo = nodes.find(
-    (d) => d.type === "repo" && d.id === REPO_CENTRAL,
-  );
-
-  if (!central_repo) {
-    throw new Error(`Central repository "${REPO_CENTRAL}" not found in nodes`);
-  }
-
-  // ============================================================
   // Create Owner Groups
   // ============================================================
   // Find repos that share the same owner (owners with multiple repos)
@@ -380,8 +362,8 @@ export function prepareData(data, config, scales) {
   let new_links_contributor_owner = [];
 
   links.forEach((d) => {
-    // Skip central repo (it's handled specially)
-    if (d.repo !== REPO_CENTRAL && owners.find((o) => o.owner === d.owner)) {
+    // For repos owned by grouped owners, create links through owner node
+    if (owners.find((o) => o.owner === d.owner)) {
       // Add link from owner to repo
       new_links_owner_repo.push({
         source: d.owner,
@@ -490,22 +472,6 @@ export function prepareData(data, config, scales) {
     return true;
   });
 
-  // ============================================================
-  // Add Central Repo Owner Link
-  // ============================================================
-  // Add a link between the owner of the central repo and the central repo
-  if (central_repo.data.owner && central_repo.data.owner.trim() !== '') {
-    const linksToCentral = processedLinks.filter((l) => getLinkNodeId(l.target) === central_repo.id);
-    processedLinks.push({
-      source: central_repo.data.owner,
-      target: central_repo.id,
-      owner: central_repo.data.owner,
-      commit_count: d3.sum(linksToCentral, (d) => d.commit_count),
-      commit_sec_min: d3.min(linksToCentral, (d) => d.commit_sec_min),
-      commit_sec_max: d3.max(linksToCentral, (d) => d.commit_sec_max),
-    });
-  }
-
   if (isDebugEnabled()) {
     console.log("Links:", processedLinks);
   }
@@ -534,11 +500,15 @@ export function prepareData(data, config, scales) {
     scale_repo_radius.domain([0, 10]); // fallback for empty dataset
   }
 
-  const linksToCentral = processedLinks.filter((l) => getLinkNodeId(l.target) === central_repo.id);
-  if (linksToCentral.length > 0) {
-    scale_contributor_radius.domain(
-      d3.extent(linksToCentral, (d) => d.commit_count),
+  // Base contributor radius on total commit counts across all repos
+  const contributorCommits = contributors.map((c) => {
+    const contributorLinks = processedLinks.filter(
+      (l) => getLinkNodeId(l.source) === c.contributor_name
     );
+    return d3.sum(contributorLinks, (d) => d.commit_count);
+  }).filter((c) => c > 0);
+  if (contributorCommits.length > 0) {
+    scale_contributor_radius.domain(d3.extent(contributorCommits));
   } else {
     scale_contributor_radius.domain([1, 10]); // fallback for empty dataset
   }
@@ -567,17 +537,13 @@ export function prepareData(data, config, scales) {
 
     // Calculate radius based on node type
     if (d.type === "contributor") {
-      let link_to_central = processedLinks.find(
-        (l) => getLinkNodeId(l.source) === d.id && getLinkNodeId(l.target) === central_repo.id,
+      // Calculate total commits across all repos for this contributor
+      const contributorLinks = processedLinks.filter(
+        (l) => getLinkNodeId(l.source) === d.id
       );
-      d.data.link_central = link_to_central;
-      // Only calculate radius if contributor has a link to central repo
-      if (link_to_central && link_to_central.commit_count) {
-        d.r = scale_contributor_radius(link_to_central.commit_count);
-      } else {
-        // Fallback for contributors without central repo links
-        d.r = scale_contributor_radius.range()[0]; // Use minimum radius
-      }
+      const totalCommits = d3.sum(contributorLinks, (l) => l.commit_count);
+      d.data.total_commits = totalCommits;
+      d.r = totalCommits > 0 ? scale_contributor_radius(totalCommits) : scale_contributor_radius.range()[0];
     } else if (d.type === "repo") {
       d.r = scale_repo_radius(d.data.stars);
     } else {
@@ -593,22 +559,12 @@ export function prepareData(data, config, scales) {
   // ============================================================
   nodes.sort((a, b) => {
     if (a.type === b.type) {
-      // For contributors, sort by earliest commit date to central repo
-      if (a.data.link_central && b.data.link_central) {
-        if (
-          a.data.link_central.commit_sec_min <
-          b.data.link_central.commit_sec_min
-        )
-          return -1;
-        else if (
-          a.data.link_central.commit_sec_min >
-          b.data.link_central.commit_sec_min
-        )
-          return 1;
-        else return 0;
-      } else return 0;
+      if (a.type === "contributor") {
+        // Alphabetical by label (case-insensitive)
+        return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+      }
+      return 0;
     } else {
-      // Sort by type (contributor < repo < owner)
       if (a.type < b.type) return -1;
       else if (a.type > b.type) return 1;
       else return 0;
@@ -616,19 +572,10 @@ export function prepareData(data, config, scales) {
   });
 
   // ============================================================
-  // Configure Central Repository
-  // ============================================================
-  central_repo.r = CENTRAL_RADIUS;
-  central_repo.padding = CENTRAL_RADIUS;
-  central_repo.special_type = "central";
-  central_repo.color = COLOR_REPO_MAIN;
-
-  // ============================================================
   // Return Prepared Data
   // ============================================================
   return {
     nodes,
-    central_repo,
     owners,
     nodes_central: nodes, // Alias for compatibility
     links: processedLinks

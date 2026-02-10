@@ -7,7 +7,7 @@
  * @module simulations/collaborationSimulation
  */
 
-import { setCentralRepoFont, setOwnerFont, setRepoFont } from '../render/text.js';
+import { setOwnerFont, setRepoFont } from '../render/text.js';
 
 /**
  * Run force simulation for collaboration repositories
@@ -20,8 +20,6 @@ import { setCentralRepoFont, setOwnerFont, setRepoFont } from '../render/text.js
  * @param {Function} max - Math.max function
  * @param {Object} config - Configuration object:
  *   - context: Canvas 2D context for text measurement
- *   - REPO_CENTRAL: ID of the central repository
- *   - central_repo: Central repository node object
  *   - scale_link_distance: Scale function for link distances
  *   - RADIUS_CONTRIBUTOR: Radius for contributor positioning
  *   - INNER_RADIUS_FACTOR: Factor for inner radius constraint
@@ -36,7 +34,7 @@ export function runCollaborationSimulation(
   max,
   config
 ) {
-  const { context, REPO_CENTRAL, central_repo, scale_link_distance, RADIUS_CONTRIBUTOR, INNER_RADIUS_FACTOR } = config;
+  const { context, scale_link_distance, RADIUS_CONTRIBUTOR, INNER_RADIUS_FACTOR } = config;
   let nodes_central;
   
   let simulation = d3
@@ -62,12 +60,11 @@ export function runCollaborationSimulation(
       d3.forceManyBody()
     );
 
-  // Keep the nodes that are an "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
+  // Keep the nodes that are a "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
   nodes_central = nodes.filter(
     (d) =>
       d.type === "contributor" ||
       (d.type === "owner" && d.data.single_contributor == false) ||
-      d.id === REPO_CENTRAL ||
       (d.type === "repo" &&
         d.data.multi_repo_owner === false &&
         d.degree > 1),
@@ -87,9 +84,7 @@ export function runCollaborationSimulation(
     } // if
 
     // Set the fonts
-    if (d.id === central_repo.id) {
-      setCentralRepoFont(context, 1);
-    } else if (d.type === "owner") {
+    if (d.type === "owner") {
       setOwnerFont(context, 1);
     } else if (d.type === "repo") {
       setRepoFont(context, 1);
@@ -101,17 +96,6 @@ export function runCollaborationSimulation(
     if (d.type === "repo") {
       if (context.measureText(d.data.owner).width > text_size.width)
         text_size = context.measureText(d.data.owner);
-    } // if
-
-    // The central repo is the only one with the label in the center instead of along the top
-    if (d.id === REPO_CENTRAL) {
-      let r = d.r + 14;
-      let w = max(r * 2, text_size.width * 1.25) + 10;
-      d.bbox = [
-        [-w / 2, -r],
-        [w / 2, r],
-      ];
-      return;
     } // if
 
     let text_height =

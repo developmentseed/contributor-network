@@ -67,7 +67,7 @@ function hasValidCoordinates(node) {
  *   - HEIGHT: Canvas height
  *   - SF: Scale factor
  *   - COLOR_BACKGROUND: Background color
- *   - REPO_CENTRAL: Central repository identifier
+ *   - RADIUS_CONTRIBUTOR: Radius for contributor positioning
  * @param {Object} renderFunctions - Render function wrappers:
  *   - drawLink: Function to draw a link
  *   - drawNodeArc: Function to draw node arc
@@ -77,7 +77,7 @@ function hasValidCoordinates(node) {
  */
 export function draw(context, data, config, renderFunctions) {
   const { nodes, links, nodes_central } = data;
-  const { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, REPO_CENTRAL, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH } = config;
+  const { WIDTH, HEIGHT, SF, COLOR_BACKGROUND, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH } = config;
   const { drawLink, drawNodeArc, drawNode, drawNodeLabel } = renderFunctions;
 
   // ============================================================
@@ -115,7 +115,6 @@ export function draw(context, data, config, renderFunctions) {
   // ============================================================
   // Filter nodes once, reuse for multiple rendering passes
   const renderableNodes = nodes.filter((d) => {
-    if (d.id === REPO_CENTRAL) return false; // Skip central pseudo-node
     if (!hasValidCoordinates(d)) {
       console.warn(`Skipping node with invalid coordinates: ${d.id}`);
       return false;
@@ -135,13 +134,8 @@ export function draw(context, data, config, renderFunctions) {
   // ============================================================
   // Layer 1: Links (bottom layer)
   // ============================================================
-  // Draw all the links as lines (skip links to/from the central pseudo-node)
+  // Draw all the links as lines
   links.forEach((l) => {
-    // Skip drawing links that connect directly to the central "team" node
-    const targetId = l.target.id || l.target;
-    const sourceId = l.source.id || l.source;
-    if (targetId === REPO_CENTRAL || sourceId === REPO_CENTRAL) return;
-
     // Validate that both nodes exist and have finite coordinates
     if (hasValidCoordinates(l.source) && hasValidCoordinates(l.target)) {
       safeRender(drawLink, 'drawLink', context, SF, l);
@@ -153,16 +147,15 @@ export function draw(context, data, config, renderFunctions) {
   // ============================================================
   // Draw the contributor ring as a semi-transparent orange band
   // where contributor nodes are positioned (matches original ORCA visualization)
-  const central_repo = nodes.find(d => d.id === REPO_CENTRAL);
-  if (central_repo && RADIUS_CONTRIBUTOR && CONTRIBUTOR_RING_WIDTH) {
+  // Ring is centered at viewport origin (0, 0)
+  if (RADIUS_CONTRIBUTOR && CONTRIBUTOR_RING_WIDTH) {
     safeRender(
       drawContributorRing,
       'drawContributorRing',
       context,
       SF,
       RADIUS_CONTRIBUTOR,
-      CONTRIBUTOR_RING_WIDTH,
-      central_repo
+      CONTRIBUTOR_RING_WIDTH
       // Uses default color: Grenadier orange (#CF3F02) at 5% opacity
     );
   }
@@ -188,7 +181,6 @@ export function draw(context, data, config, renderFunctions) {
   // Use nodes_central for labels (may include additional filtering)
   const labelNodes = nodes_central || nodes;
   labelNodes.forEach((d) => {
-    if (d.id === REPO_CENTRAL) return;
     if (!hasValidCoordinates(d)) return;
     safeRender(drawNodeLabel, 'drawNodeLabel', context, d);
   });

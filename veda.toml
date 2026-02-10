@@ -1,7 +1,7 @@
 title = "The VEDA Contributor Network"
 author = "Max Jones"
 description = "An interactive visualization of contributors to VEDA code and their connections to other open source repositories"
-central_repository = "VEDA"
+organization_name = "VEDA"
 contributor_padding = 100
 repositories = [
 "apache/arrow-rs",

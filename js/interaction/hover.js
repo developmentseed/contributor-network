@@ -14,7 +14,6 @@ import { drawWithZoomTransform } from './zoom.js';
  *   - config: Configuration object containing PIXEL_RATIO, WIDTH, HEIGHT, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH, sqrt
  *   - delaunayData: Delaunay triangulation data (delaunay, nodesDelaunay)
  *   - interactionState: Interaction state object
- *   - REPO_CENTRAL: ID of the central repository
  *   - canvas: Main canvas element (for opacity control)
  *   - contextHover: Canvas context for hover layer
  *   - setHovered: Function to set hovered state
@@ -28,7 +27,6 @@ export function setupHover(options) {
     config,
     delaunayData,
     interactionState,
-    REPO_CENTRAL,
     canvas,
     contextHover,
     setHovered,
@@ -45,8 +43,7 @@ export function setupHover(options) {
       let [d, FOUND] = findNodeAtPosition(mx, my, config, delaunayData, interactionState, zoomTransform);
 
       // Draw the hover state on the top canvas
-      // Skip hover on the central pseudo-node (it's not a real entity)
-      if (FOUND && d && d.id !== REPO_CENTRAL) {
+      if (FOUND && d) {
         setHovered(interactionState, d);
 
         // Fade out the main canvas, using CSS

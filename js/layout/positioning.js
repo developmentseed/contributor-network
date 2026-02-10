@@ -2,7 +2,7 @@
  * Contributor Node Positioning Module
  *
  * Calculates the radius for the contributor ring and positions contributor nodes
- * in a circle around the central repository. Also handles positioning of connected
+ * in a circle around the viewport center (0, 0). Also handles positioning of connected
  * single-degree repositories relative to their contributors.
  *
  * @module layout/positioning
@@ -25,7 +25,7 @@ const MIN_RADIUS_PER_CONTRIBUTOR = 15;
 const ABSOLUTE_MIN_RADIUS = 200;
 
 /**
- * Position contributor nodes in a ring around the central repository
+ * Position contributor nodes in a ring around the viewport center (0, 0)
  *
  * This function:
  * - Calculates the optimal radius for the contributor ring based on node sizes
@@ -36,7 +36,6 @@ const ABSOLUTE_MIN_RADIUS = 200;
  * @param {Object} data - Input data:
  *   - nodes: Array of all nodes
  *   - contributors: Array of contributor data objects
- *   - central_repo: Central repository node object
  * @param {Object} config - Configuration:
  *   - CONTRIBUTOR_PADDING: Padding between contributor nodes
  * @returns {Object} Updated values:
@@ -44,22 +43,12 @@ const ABSOLUTE_MIN_RADIUS = 200;
  *   - CONTRIBUTOR_RING_WIDTH: Width of the contributor ring
  */
 export function positionContributorNodes(data, config) {
-  const { nodes, contributors, central_repo } = data;
+  const { nodes, contributors } = data;
   const { CONTRIBUTOR_PADDING } = config;
 
-  // ============================================================
-  // Input Validation
-  // ============================================================
-  // Validate central_repo is positioned before we try to use its coordinates
-  if (!central_repo) {
-    throw new Error('positionContributorNodes: central_repo is required');
-  }
-  if (!isFinite(central_repo.fx) || !isFinite(central_repo.fy)) {
-    throw new Error(
-      'positionContributorNodes: central_repo must be positioned (fx, fy set) before calling. ' +
-      `Got fx=${central_repo.fx}, fy=${central_repo.fy}`
-    );
-  }
+  // Ring is centered at viewport origin (0, 0)
+  const CENTER_X = 0;
+  const CENTER_Y = 0;
 
   // Validate nodes array
   if (!Array.isArray(nodes) || nodes.length === 0) {
@@ -131,7 +120,7 @@ export function positionContributorNodes(data, config) {
 
     // Debug: log first few contributor positions
     if (i < 3) {
-      console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, central_repo=(${central_repo.fx}, ${central_repo.fy})`);
+      console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, center=(${CENTER_X}, ${CENTER_Y})`);
     }
 
     let contributor_arc = d.max_radius * 2 + CONTRIBUTOR_PADDING;
@@ -146,10 +135,10 @@ export function positionContributorNodes(data, config) {
 
     let radius_drawn = RADIUS_CONTRIBUTOR;
     d.x =
-      central_repo.fx +
+      CENTER_X +
       radius_drawn * cos(angle + contributor_angle - PI / 2);
     d.y =
-      central_repo.fy +
+      CENTER_Y +
       radius_drawn * sin(angle + contributor_angle - PI / 2);
     d.contributor_angle = angle + contributor_angle - PI / 2;
     angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;

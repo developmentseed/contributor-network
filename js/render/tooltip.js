@@ -19,14 +19,13 @@ import { min } from '../utils/helpers.js';
  * Calculates the height required for a repository tooltip based on all content
  * @param {Object} d - Node data
  * @param {Object} interactionState - Interaction state object
- * @param {Object} central_repo - Central repository node
  * @param {number} SF - Scale factor
  * @param {Function} formatDate - Date formatting function
  * @param {Function} formatDateExact - Exact date formatting function
  * @param {Function} formatDigit - Digit formatting function
  * @returns {number} Required height in pixels
  */
-function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, formatDate, formatDateExact, formatDigit) {
+function calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatDateExact, formatDigit) {
   const config = REPO_CARD_CONFIG;
   const line_height = 1.2; // Line height for main tooltip sections
   let height = 0;
@@ -111,14 +110,13 @@ function calculateRepoTooltipHeight(d, interactionState, central_repo, SF, forma
  * @param {CanvasRenderingContext2D} context - Canvas context
  * @param {Object} d - Node data
  * @param {Object} interactionState - Interaction state object
- * @param {Object} central_repo - Central repository node
  * @param {number} SF - Scale factor
  * @param {Function} formatDate - Date formatting function
  * @param {Function} formatDateExact - Exact date formatting function
  * @param {Function} formatDigit - Digit formatting function
  * @returns {number} Required width in pixels
  */
-function calculateRepoTooltipWidth(context, d, interactionState, central_repo, SF, formatDate, formatDateExact, formatDigit) {
+function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate, formatDateExact, formatDigit) {
   const config = REPO_CARD_CONFIG;
   let maxWidth = 0;
 
@@ -235,7 +233,6 @@ function calculateRepoTooltipWidth(context, d, interactionState, central_repo, S
  * @param {Object} d - Node data
  * @param {Object} config - Configuration object:
  *   - SF: Scale factor
- *   - REPO_CENTRAL: ID of central repository
  *   - COLOR_BACKGROUND: Background color
  *   - COLOR_TEXT: Text color
  *   - COLOR_CONTRIBUTOR: Contributor color
@@ -243,13 +240,13 @@ function calculateRepoTooltipWidth(context, d, interactionState, central_repo, S
  *   - COLOR_OWNER: Owner color
  *   - min: Min function (Math.min)
  * @param {Object} interactionState - Interaction state object
- * @param {Object} central_repo - Central repository node
+ * @param {Object} central_repo - Deprecated, no longer used
  * @param {Function} formatDate - Date formatting function
  * @param {Function} formatDateExact - Exact date formatting function
  * @param {Function} formatDigit - Digit formatting function
  */
 export function drawTooltip(context, d, config, interactionState, central_repo, formatDate, formatDateExact, formatDigit) {
-  const { SF, REPO_CENTRAL, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER, min } = config;
+  const { SF, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER, min } = config;
   
   let line_height = 1.2;
   let font_size;
@@ -274,15 +271,10 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     W = 280;
   } else if (d.type === "repo") {
     // Repository tooltip - use dynamic calculations
-    if (d.id === central_repo.id) {
-      H = 80;
-      W = 280;
-    } else {
-      // Calculate height dynamically based on all content
-      H = calculateRepoTooltipHeight(d, interactionState, central_repo, SF, formatDate, formatDateExact, formatDigit);
-      // Calculate width dynamically based on all text content
-      W = calculateRepoTooltipWidth(context, d, interactionState, central_repo, SF, formatDate, formatDateExact, formatDigit);
-    }
+    // Calculate height dynamically based on all content
+    H = calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatDateExact, formatDigit);
+    // Calculate width dynamically based on all text content
+    W = calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate, formatDateExact, formatDigit);
   } else {
     H = 93;
     W = 280;
@@ -378,8 +370,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   setFont(context, font_size * SF, 400, "italic");
   context.fillStyle = COL;
   text = "";
-  if (d.id === central_repo.id) text = REPO_CENTRAL;
-  else if (d.type === "contributor") text = "Contributor";
+  if (d.type === "contributor") text = "Contributor";
   else if (d.type === "repo") text = "Repository";
   else if (d.type === "owner") text = "Owner";
   renderText(context, text, x * SF, y * SF, 2.5 * SF);
@@ -387,11 +378,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   context.fillStyle = COLOR_TEXT;
   y += 18; // Balanced
 
-  if (d.id === central_repo.id) {
-    font_size = 15;
-    setFont(context, font_size * SF, 700, "normal");
-    renderText(context, REPO_CENTRAL, x * SF, y * SF, 1.25 * SF);
-  } else if (d.type === "contributor") {
+  if (d.type === "contributor") {
     // The contributor's name
     font_size = 16;
     setFont(context, font_size * SF, 700, "normal");

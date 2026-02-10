@@ -1,4 +1,3 @@
-import datetime
 import json
 import shutil
 from csv import DictWriter
@@ -90,19 +89,7 @@ def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> No
         "\n".join(["author_name"] + authors)
     )
 
-    repositories = [
-        Repository(
-            repo=config.central_repository,
-            repo_stars=0,
-            repo_forks=0,
-            repo_createdAt=datetime.datetime.now(),
-            repo_updatedAt=datetime.datetime.now(),
-            repo_total_commits=0,
-            repo_url="https://github.com/developmentseed/contributor-network",
-            repo_description=config.description,
-            repo_languages="",
-        ).model_dump(mode="json")
-    ]
+    repositories = []
     for path in (directory / "repositories").glob("**/*.json"):
         repositories.append(
             Repository.model_validate_json(path.read_text()).model_dump(mode="json")
@@ -113,16 +100,7 @@ def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> No
         writer.writeheader()
         writer.writerows(repositories)
 
-    links = [
-        Link(
-            author_name=name,
-            repo=config.central_repository,
-            commit_count=1,
-            commit_sec_min=int(datetime.datetime.now().timestamp()),
-            commit_sec_max=int(datetime.datetime.now().timestamp()),
-        ).model_dump(mode="json")
-        for name in contributors.values()
-    ]
+    links = []
     for path in (directory / "links").glob("**/*.json"):
         links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
     with open(directory / "links.csv", "w") as f:
@@ -185,7 +163,7 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
         "title": config.title,
         "author": config.author,
         "description": config.description,
-        "central_repository": config.central_repository,
+        "organization_name": config.organization_name,
         "contributor_padding": config.contributor_padding,
         "contributors": config.all_contributors,
     }
