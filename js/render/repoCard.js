@@ -16,10 +16,10 @@ import { min } from '../utils/helpers.js';
  */
 export const REPO_CARD_CONFIG = {
   lineHeight: 1.4,
-  sectionSpacing: 20, // Balanced spacing (was 24, reduced to 18, now 20 for better readability)
-  labelFontSize: 11,
-  valueFontSize: 11.5,
-  headerFontSize: 12,
+  sectionSpacing: 24, // Balanced spacing (scaled up for larger font sizes)
+  labelFontSize: 14,
+  valueFontSize: 14,
+  headerFontSize: 15,
   labelOpacity: 0.6,
   valueOpacity: 0.9,
   warningOpacity: 0.7,

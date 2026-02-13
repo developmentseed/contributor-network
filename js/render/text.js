@@ -39,7 +39,7 @@ export function setFont(context, fontSize, fontWeight, fontStyle = 'normal', fon
  * @param {number} SF - Scale factor
  * @param {number} fontSize - Base font size
  */
-export function setRepoFont(context, SF = 1, fontSize = 12) {
+export function setRepoFont(context, SF = 1, fontSize = 15) {
   setFont(context, fontSize * SF, 400, 'normal');
 }
 
@@ -61,7 +61,7 @@ export function setCentralRepoFont(context, SF = 1, fontSize = 15) {
  * @param {number} SF - Scale factor
  * @param {number} fontSize - Base font size
  */
-export function setOwnerFont(context, SF = 1, fontSize = 12) {
+export function setOwnerFont(context, SF = 1, fontSize = 15) {
   setFont(context, fontSize * SF, 700, 'normal');
 }
 
@@ -72,7 +72,7 @@ export function setOwnerFont(context, SF = 1, fontSize = 12) {
  * @param {number} SF - Scale factor
  * @param {number} fontSize - Base font size
  */
-export function setContributorFont(context, SF = 1, fontSize = 13) {
+export function setContributorFont(context, SF = 1, fontSize = 16) {
   setFont(context, fontSize * SF, 700, 'italic');
 }
 
