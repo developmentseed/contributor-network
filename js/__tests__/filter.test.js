@@ -10,6 +10,8 @@ import {
   deepClone,
   getRepoOwner,
   filterReposByOrganization,
+  filterReposByStars,
+  filterReposByForks,
   filterLinksByRepos,
   filterLinksByContributors,
   filterContributorsByLinks,
@@ -19,11 +21,11 @@ import {
 
 // Sample test data
 const sampleRepos = [
-  { repo: 'developmentseed/titiler', stars: 100 },
-  { repo: 'developmentseed/rio-cogeo', stars: 50 },
-  { repo: 'stac-utils/stac-fastapi', stars: 200 },
-  { repo: 'radiantearth/stac-spec', stars: 300 },
-  { repo: 'DevSeed Team', stars: 0 }  // Central pseudo-repo
+  { repo: 'developmentseed/titiler', stars: 100, repo_stars: '1036', repo_forks: '216' },
+  { repo: 'developmentseed/rio-cogeo', stars: 50, repo_stars: '50', repo_forks: '10' },
+  { repo: 'stac-utils/stac-fastapi', stars: 200, repo_stars: '304', repo_forks: '116' },
+  { repo: 'radiantearth/stac-spec', stars: 300, repo_stars: '875', repo_forks: '188' },
+  { repo: 'DevSeed Team', stars: 0, repo_stars: '0', repo_forks: '0' }  // Central pseudo-repo
 ];
 
 const sampleContributors = [
@@ -151,6 +153,56 @@ describe('filterContributorsByLinks', () => {
   });
 });
 
+describe('filterReposByStars', () => {
+  it('should filter repos below the star threshold', () => {
+    const result = filterReposByStars(sampleRepos, 100);
+
+    // titiler (1036), stac-fastapi (304), stac-spec (875) pass
+    expect(result).toHaveLength(3);
+    expect(result.every(r => +r.repo_stars >= 100)).toBe(true);
+  });
+
+  it('should return all repos when threshold is 0', () => {
+    const result = filterReposByStars(sampleRepos, 0);
+    expect(result).toHaveLength(sampleRepos.length);
+  });
+
+  it('should return empty array when threshold exceeds all repos', () => {
+    const result = filterReposByStars(sampleRepos, 5000);
+    expect(result).toHaveLength(0);
+  });
+
+  it('should handle string repo_stars values from CSV', () => {
+    const repos = [
+      { repo: 'test/a', repo_stars: '150' },
+      { repo: 'test/b', repo_stars: '50' }
+    ];
+    const result = filterReposByStars(repos, 100);
+    expect(result).toHaveLength(1);
+    expect(result[0].repo).toBe('test/a');
+  });
+});
+
+describe('filterReposByForks', () => {
+  it('should filter repos below the fork threshold', () => {
+    const result = filterReposByForks(sampleRepos, 100);
+
+    // titiler (216), stac-fastapi (116), stac-spec (188) pass
+    expect(result).toHaveLength(3);
+    expect(result.every(r => +r.repo_forks >= 100)).toBe(true);
+  });
+
+  it('should return all repos when threshold is 0', () => {
+    const result = filterReposByForks(sampleRepos, 0);
+    expect(result).toHaveLength(sampleRepos.length);
+  });
+
+  it('should return empty array when threshold exceeds all repos', () => {
+    const result = filterReposByForks(sampleRepos, 5000);
+    expect(result).toHaveLength(0);
+  });
+});
+
 describe('applyFilters', () => {
   let originalData;
 
@@ -220,6 +272,34 @@ describe('applyFilters', () => {
     expect(result.links).toEqual([]);
   });
 
+  it('should filter by minimum stars', () => {
+    const result = applyFilters(originalData, { organizations: [], starsMin: 500, forksMin: null });
+
+    // titiler (1036) and stac-spec (875) pass; stac-fastapi (304) and rio-cogeo (50) don't
+    expect(result.repos.length).toBeLessThan(sampleRepos.length);
+    expect(result.repos.every(r => +r.repo_stars >= 500)).toBe(true);
+  });
+
+  it('should filter by minimum forks', () => {
+    const result = applyFilters(originalData, { organizations: [], starsMin: null, forksMin: 100 });
+
+    // titiler (216), stac-fastapi (116), stac-spec (188) pass
+    expect(result.repos).toHaveLength(3);
+    expect(result.repos.every(r => +r.repo_forks >= 100)).toBe(true);
+  });
+
+  it('should compose organization and metric filters', () => {
+    const result = applyFilters(originalData, {
+      organizations: ['developmentseed'],
+      starsMin: 100,
+      forksMin: null
+    });
+
+    // Only developmentseed repos with 100+ stars: titiler (1036) passes, rio-cogeo (50) doesn't
+    expect(result.repos).toHaveLength(1);
+    expect(result.repos[0].repo).toBe('developmentseed/titiler');
+  });
+
   it('should correctly chain filters (repos → links → contributors → links)', () => {
     // Filter to radiantearth only
     const result = applyFilters(originalData, { organizations: ['radiantearth'] });
@@ -240,7 +320,7 @@ describe('applyFilters', () => {
 describe('createFilterManager', () => {
   it('should start with empty filters', () => {
     const manager = createFilterManager();
-    expect(manager.getFilters()).toEqual({ organizations: [] });
+    expect(manager.getFilters()).toEqual({ organizations: [], starsMin: null, forksMin: null });
   });
 
   it('should add organization when setOrganization called with true', () => {
@@ -300,5 +380,66 @@ describe('createFilterManager', () => {
 
     manager.clearOrganizations();
     expect(manager.hasActiveFilters()).toBe(false);
+  });
+
+  it('should set metric filters', () => {
+    const manager = createFilterManager();
+    manager.setMetricFilter('starsMin', 100);
+
+    expect(manager.getFilters().starsMin).toBe(100);
+    expect(manager.hasActiveFilters()).toBe(true);
+  });
+
+  it('should clear metric filters with null', () => {
+    const manager = createFilterManager();
+    manager.setMetricFilter('starsMin', 100);
+    manager.setMetricFilter('starsMin', null);
+
+    expect(manager.getFilters().starsMin).toBeNull();
+    expect(manager.hasActiveFilters()).toBe(false);
+  });
+
+  it('should report hasActiveFilters for metric filters', () => {
+    const manager = createFilterManager();
+
+    manager.setMetricFilter('forksMin', 50);
+    expect(manager.hasActiveFilters()).toBe(true);
+
+    manager.setMetricFilter('forksMin', null);
+    expect(manager.hasActiveFilters()).toBe(false);
+  });
+
+  it('should clear all filters including metrics', () => {
+    const manager = createFilterManager();
+    manager.setOrganization('developmentseed', true);
+    manager.setMetricFilter('starsMin', 100);
+    manager.setMetricFilter('forksMin', 50);
+    manager.clearAll();
+
+    expect(manager.getFilters()).toEqual({
+      organizations: [],
+      starsMin: null,
+      forksMin: null
+    });
+    expect(manager.hasActiveFilters()).toBe(false);
+  });
+
+  it('should call onChange when metric filter changes', () => {
+    let lastFilters = null;
+    const manager = createFilterManager((filters) => {
+      lastFilters = filters;
+    });
+
+    manager.setMetricFilter('starsMin', 500);
+
+    expect(lastFilters.starsMin).toBe(500);
+  });
+
+  it('should ignore invalid metric names', () => {
+    const manager = createFilterManager();
+    manager.setMetricFilter('invalidMetric', 100);
+
+    const filters = manager.getFilters();
+    expect(filters.invalidMetric).toBeUndefined();
   });
 });

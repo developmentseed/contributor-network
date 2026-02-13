@@ -53,6 +53,28 @@ export function filterReposByOrganization(repos, organizations, centralRepo = nu
 }
 
 /**
+ * Filter repositories by minimum star count.
+ *
+ * @param {Array} repos - Array of repository objects with 'repo_stars' property
+ * @param {number} minStars - Minimum star count threshold
+ * @returns {Array} Filtered repositories
+ */
+export function filterReposByStars(repos, minStars) {
+  return repos.filter(repo => +repo.repo_stars >= minStars);
+}
+
+/**
+ * Filter repositories by minimum fork count.
+ *
+ * @param {Array} repos - Array of repository objects with 'repo_forks' property
+ * @param {number} minForks - Minimum fork count threshold
+ * @returns {Array} Filtered repositories
+ */
+export function filterReposByForks(repos, minForks) {
+  return repos.filter(repo => +repo.repo_forks >= minForks);
+}
+
+/**
  * Filter links to only those pointing to visible repositories.
  *
  * @param {Array} links - Array of link objects with 'repo' property
@@ -120,6 +142,14 @@ export function applyFilters(originalData, activeFilters, options = {}) {
     visibleRepos = filterReposByOrganization(visibleRepos, activeFilters.organizations, centralRepo);
   }
 
+  // Apply metric filters
+  if (activeFilters.starsMin != null) {
+    visibleRepos = filterReposByStars(visibleRepos, activeFilters.starsMin);
+  }
+  if (activeFilters.forksMin != null) {
+    visibleRepos = filterReposByForks(visibleRepos, activeFilters.forksMin);
+  }
+
   // Build set of visible repo names for quick lookup
   const visibleRepoNames = new Set(visibleRepos.map(r => r.repo));
 
@@ -162,7 +192,9 @@ export function applyFilters(originalData, activeFilters, options = {}) {
  */
 export function createFilterManager(onChange) {
   let activeFilters = {
-    organizations: []
+    organizations: [],
+    starsMin: null,
+    forksMin: null
   };
 
   return {
@@ -196,6 +228,21 @@ export function createFilterManager(onChange) {
     },
 
     /**
+     * Set a metric filter (starsMin, forksMin)
+     * @param {string} metric - Metric name
+     * @param {number|null} value - Minimum threshold, or null to clear
+     */
+    setMetricFilter(metric, value) {
+      if (metric === 'starsMin' || metric === 'forksMin') {
+        activeFilters[metric] = value;
+      }
+
+      if (onChange) {
+        onChange(this.getFilters());
+      }
+    },
+
+    /**
      * Clear all organization filters
      */
     clearOrganizations() {
@@ -207,11 +254,28 @@ export function createFilterManager(onChange) {
     },
 
     /**
+     * Clear all filters (organizations and metrics)
+     */
+    clearAll() {
+      activeFilters.organizations = [];
+      activeFilters.starsMin = null;
+      activeFilters.forksMin = null;
+
+      if (onChange) {
+        onChange(this.getFilters());
+      }
+    },
+
+    /**
      * Check if any filters are active
      * @returns {boolean} True if any filters are active
      */
     hasActiveFilters() {
-      return activeFilters.organizations.length > 0;
+      return (
+        activeFilters.organizations.length > 0 ||
+        activeFilters.starsMin !== null ||
+        activeFilters.forksMin !== null
+      );
     }
   };
 }
