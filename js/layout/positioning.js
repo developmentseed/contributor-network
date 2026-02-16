@@ -62,8 +62,8 @@ export function positionContributorNodes(data, config) {
   // ============================================================
   // Contributor Node Preparation
   // ============================================================
-  // Ensure all contributors have a valid max_radius before calculating ring size
-  const contributorNodes = nodes.filter((d) => d.type === "contributor");
+  // Only sponsored contributors go in the ring; community contributors are positioned separately
+  const contributorNodes = nodes.filter((d) => d.type === "contributor" && d.tier !== "community");
   contributorNodes.forEach((d) => {
     // Ensure max_radius is set - fallback to contributor's own radius
     if (!d.max_radius || !isFinite(d.max_radius) || d.max_radius <= 0) {

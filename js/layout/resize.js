@@ -36,7 +36,11 @@ export function calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CO
   // Set the scale factor
   let SF = WIDTH / DEFAULT_SIZE;
   // If this means that the ring won't fit, make the SF smaller
-  let OUTER_RING = RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2;
+  // Account for community contributors positioned outside the main ring
+  let OUTER_RING = Math.max(
+    RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2,
+    RADIUS_CONTRIBUTOR * 1.6
+  );
   if (WIDTH / 2 < OUTER_RING * SF) SF = WIDTH / (2 * OUTER_RING);
   return SF;
 }
@@ -100,7 +104,11 @@ export function handleResize(
   // Set the scale factor
   state.SF = state.WIDTH / DEFAULT_SIZE;
   // If this means that the ring won't fit, make the SF smaller
-  let OUTER_RING = RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2;
+  // Account for community contributors positioned outside the main ring (at ~1.45x radius)
+  let OUTER_RING = Math.max(
+    RADIUS_CONTRIBUTOR + (CONTRIBUTOR_RING_WIDTH / 2) * 2,
+    RADIUS_CONTRIBUTOR * 1.6 // Community nodes are at ~1.45x, plus padding
+  );
   if (state.WIDTH / 2 < OUTER_RING * state.SF) state.SF = state.WIDTH / (2 * OUTER_RING);
 
   // Reset the delaunay for the mouse events

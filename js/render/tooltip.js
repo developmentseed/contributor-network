@@ -262,8 +262,9 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   let H, W;
 
   if (d.type === "contributor") {
-    // Contributor tooltip
-    H = 100;
+    // Contributor tooltip - taller if community tier badge is shown
+    const hasTierBadge = d.tier === 'community' || d.tier === 'sponsored';
+    H = hasTierBadge ? 120 : 100;
     W = 320;
   } else if (d.type === "owner") {
     // Owner tooltip - keep existing logic for now
@@ -384,6 +385,17 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     setFont(context, font_size * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
     renderText(context, text, x * SF, y * SF, 1.25 * SF);
+
+    // Tier badge (Sponsored / Community)
+    const tierLabel = d.tier === 'community' ? 'Community' : 'Sponsored';
+    y += 22;
+    font_size = 12;
+    setFont(context, font_size * SF, 700, "normal");
+    context.fillStyle = COL;
+    context.globalAlpha = 0.8;
+    renderText(context, tierLabel.toUpperCase(), x * SF, y * SF, 1.5 * SF);
+    context.globalAlpha = 1.0;
+    context.fillStyle = COLOR_TEXT;
   } else if (d.type === "owner") {
     // The name
     font_size = 20;

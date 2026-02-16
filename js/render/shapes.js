@@ -82,6 +82,13 @@ export function drawLine(context, SF, line) {
 export function drawNode(context, SF, d, config, interactionState) {
   const { COLOR_BACKGROUND, max } = config;
 
+  // Community contributors are rendered at reduced opacity
+  const isCommunity = d.type === 'contributor' && d.tier === 'community';
+  if (isCommunity) {
+    context.save();
+    context.globalAlpha = 0.7;
+  }
+
   // Draw a circle for the node
   context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
   context.shadowColor = "#f7f7f7";
@@ -95,6 +102,10 @@ export function drawNode(context, SF, d, config, interactionState) {
   context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
   drawCircle(context, d.x, d.y, SF, d.r, true, true);
   context.stroke();
+
+  if (isCommunity) {
+    context.restore();
+  }
 }
 
 /**

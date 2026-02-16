@@ -56,7 +56,8 @@ import {
 import {
   runOwnerSimulation,
   runContributorSimulation,
-  runCollaborationSimulation
+  runCollaborationSimulation,
+  runCommunitySimulation
 } from './simulations/index.js';
 import {
   createFilterState,
@@ -228,6 +229,8 @@ const createContributorNetworkVisual = (
   const COLOR_OWNER = COLORS.owner;           // Grenadier
   const COLOR_CONTRIBUTOR = COLORS.contributor;     // Lighter aquamarine
 
+  const COLOR_COMMUNITY_CONTRIBUTOR = COLORS.communityContributor; // Aquamarine (community)
+
   const COLOR_LINK = COLORS.link;
   const COLOR_TEXT = COLORS.text;            // Base dark gray
 
@@ -354,6 +357,7 @@ const createContributorNetworkVisual = (
       {
         d3,
         COLOR_CONTRIBUTOR,
+        COLOR_COMMUNITY_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
         MAX_CONTRIBUTOR_WIDTH,
@@ -434,6 +438,12 @@ const createContributorNetworkVisual = (
       }
     );
     // console.log("Central force simulation done")
+
+    /////////////////////////////////////////////////////////////
+    /////////// Run Force Simulation for Community Nodes ////////
+    /////////////////////////////////////////////////////////////
+    // Position community contributors outside the sponsored ring
+    runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
 
     /////////////////////////////////////////////////////////////
     ////////////// Resolve String References in Links ///////////
@@ -1233,6 +1243,7 @@ const createContributorNetworkVisual = (
       {
         d3,
         COLOR_CONTRIBUTOR,
+        COLOR_COMMUNITY_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
         MAX_CONTRIBUTOR_WIDTH,
@@ -1292,6 +1303,9 @@ const createContributorNetworkVisual = (
         INNER_RADIUS_FACTOR
       }
     );
+    // Position community contributors outside the sponsored ring
+    runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
+
     // Resolve any remaining string references in links
     links = resolveLinkReferences(links, nodes);
 

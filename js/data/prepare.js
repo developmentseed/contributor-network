@@ -113,6 +113,7 @@ export function prepareData(data, config, scales) {
   const {
     d3,
     COLOR_CONTRIBUTOR,
+    COLOR_COMMUNITY_CONTRIBUTOR,
     COLOR_REPO,
     COLOR_OWNER,
     MAX_CONTRIBUTOR_WIDTH,
@@ -136,7 +137,11 @@ export function prepareData(data, config, scales) {
   // ============================================================
   contributors.forEach((d) => {
     d.contributor_name = d.author_name;
-    d.color = COLOR_CONTRIBUTOR;
+    // Tier comes from CSV: "sponsored" or "community" (default to "sponsored" for backward compat)
+    d.tier = d.tier || 'sponsored';
+    d.color = d.tier === 'community'
+      ? (COLOR_COMMUNITY_CONTRIBUTOR || COLOR_CONTRIBUTOR)
+      : COLOR_CONTRIBUTOR;
 
     // Determine across how many lines to split the contributor name
     setContributorFont(context);
@@ -247,6 +252,7 @@ export function prepareData(data, config, scales) {
     nodes.push({
       id: d.contributor_name,
       type: "contributor",
+      tier: d.tier || 'sponsored',
       label: d.contributor_name,
       data: d,
     });
