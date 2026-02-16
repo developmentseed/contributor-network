@@ -16,6 +16,8 @@ class Link(BaseModel):
     # Phase 1: Computed contribution metrics
     contribution_span_days: int = 0
     is_recent_contributor: bool = False
+    # Tiered visualization: "sponsored" or "community"
+    tier: str = "sponsored"
 
     @classmethod
     def from_github(cls, repo: Repo, contributor: NamedUser, author_name: str) -> Link:

@@ -25,6 +25,8 @@ class Config(BaseModel):
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
+        sponsored_contributor_group: Which contributor group to treat as "sponsored"
+                                     in the tiered visualization. Defaults to "devseed".
     """
 
     title: str
@@ -34,8 +36,9 @@ class Config(BaseModel):
     repositories: list[str]
     contributors: dict[
         str, dict[str, str]
-    ]  # Nested: {"devseed": {...}, "alumni": {...}}
+    ]  # Nested: {"devseed": {...}, "alumni": {...}, "sponsored": {...}}
     contributor_padding: int = 40
+    sponsored_contributor_group: str = "devseed"
 
     @property
     def devseed_contributors(self) -> dict[str, str]:
@@ -54,6 +57,27 @@ class Config(BaseModel):
         for category in self.contributors.values():
             result.update(category)
         return result
+
+    @property
+    def sponsored_contributors(self) -> dict[str, str]:
+        """Contributors designated as 'sponsored' (prominent in the ring).
+
+        Uses the group specified by sponsored_contributor_group, falling back
+        to the 'devseed' group if the specified group doesn't exist.
+        """
+        group = self.contributors.get(self.sponsored_contributor_group)
+        if group is not None:
+            return group
+        return self.contributors.get("devseed", {})
+
+    @property
+    def sponsored_usernames(self) -> set[str]:
+        """Set of GitHub usernames that are sponsored contributors."""
+        return set(self.sponsored_contributors.keys())
+
+    def is_sponsored(self, username: str) -> bool:
+        """Check if a GitHub username belongs to a sponsored contributor."""
+        return username in self.sponsored_usernames
 
     @classmethod
     def from_toml(cls, path: Path | str) -> Config:

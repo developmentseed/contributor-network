@@ -36,11 +36,23 @@ def main():
     is_flag=True,
     help="Include alumni and friends (not just DevSeed employees)",
 )
+@click.option(
+    "--include-community",
+    is_flag=True,
+    help="Also discover and include community (non-sponsored) contributors",
+)
+@click.option(
+    "--max-community-per-repo",
+    default=50,
+    help="Maximum community contributors to discover per repo",
+)
 def data(
     directory: Path,
     config_path: str | None,
     github_token: str | None,
     all_contributors: bool,
+    include_community: bool,
+    max_community_per_repo: int,
 ):
     """Build the contributor network data."""
 
@@ -57,14 +69,26 @@ def data(
     contributors = (
         config.all_contributors if all_contributors else config.devseed_contributors
     )
-    print(f"Building data for {len(contributors)} contributors")
+    sponsored_usernames = config.sponsored_usernames
+    print(f"Building data for {len(contributors)} sponsored contributors")
+    if include_community:
+        print("Community contributor discovery enabled")
 
     for repository in config.repositories:
         print(f"Updating repository: {repository}")
         repo = client.get_repo(repository)
         client.update_repository(repo)
         print(f"Updating links: {repository}")
-        client.update_links(repo, contributors)
+        client.update_links(repo, contributors, sponsored_usernames=sponsored_usernames)
+
+        if include_community:
+            known_usernames = set(contributors.keys())
+            community = client.discover_community_contributors(
+                repo, known_usernames, max_community=max_community_per_repo
+            )
+            if community:
+                print(f"  Discovered {len(community)} community contributors")
+                client.update_community_links(repo, community)
 
 
 @main.command()
@@ -76,19 +100,50 @@ def data(
     help="Include alumni and friends (not just DevSeed employees)",
 )
 def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> None:
-    """Write the CSVs."""
+    """Write the CSVs.
+
+    Generates:
+    - top_contributors.csv: contributor names and tier (sponsored/community)
+    - repositories.csv: repository metadata
+    - links.csv: contributor-to-repo links with tier field
+    """
 
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
         config.all_contributors if all_contributors else config.devseed_contributors
     )
-    authors = list(contributors.values())
-    print(f"Writing CSVs for {len(authors)} contributors")
+    # Load all links to discover community contributor names
+    links = []
+    for path in (directory / "links").glob("**/*.json"):
+        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
 
-    (directory / "top_contributors.csv").write_text(
-        "\n".join(["author_name"] + authors)
+    # Build the full contributor list: sponsored + community (from link data)
+    # Sponsored contributors come from the config
+    all_author_names: dict[str, str] = {}  # author_name -> tier
+    for name in contributors.values():
+        all_author_names[name] = "sponsored"
+
+    # Community contributors are discovered from link data
+    for link in links:
+        name = link["author_name"]
+        if name not in all_author_names:
+            all_author_names[name] = link.get("tier", "community")
+
+    sponsored_count = sum(1 for t in all_author_names.values() if t == "sponsored")
+    community_count = sum(1 for t in all_author_names.values() if t == "community")
+    print(
+        f"Writing CSVs for {len(all_author_names)} contributors "
+        f"({sponsored_count} sponsored, {community_count} community)"
     )
 
+    # Write top_contributors.csv with tier column
+    with open(directory / "top_contributors.csv", "w") as f:
+        writer = DictWriter(f, fieldnames=["author_name", "tier"])
+        writer.writeheader()
+        for name, tier in sorted(all_author_names.items()):
+            writer.writerow({"author_name": name, "tier": tier})
+
+    # Write repositories.csv (unchanged)
     repositories = []
     for path in (directory / "repositories").glob("**/*.json"):
         repositories.append(
@@ -100,9 +155,7 @@ def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> No
         writer.writeheader()
         writer.writerows(repositories)
 
-    links = []
-    for path in (directory / "links").glob("**/*.json"):
-        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
+    # Write links.csv (now includes tier field via the model)
     with open(directory / "links.csv", "w") as f:
         fieldnames = list(Link.model_json_schema()["properties"].keys())
         writer = DictWriter(f, fieldnames=fieldnames)
@@ -166,6 +219,7 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
         "organization_name": config.organization_name,
         "contributor_padding": config.contributor_padding,
         "contributors": config.all_contributors,
+        "sponsored_contributors": config.sponsored_contributors,
     }
     (data_dest / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
