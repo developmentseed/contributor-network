@@ -1271,6 +1271,13 @@ const createContributorNetworkVisual = (
     );
     RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
     CONTRIBUTOR_RING_WIDTH = positioningResult.CONTRIBUTOR_RING_WIDTH;
+
+    // Pre-compute SF now that RADIUS_CONTRIBUTOR is known.
+    // This ensures SF is consistent before any downstream code references it.
+    // resize() will re-derive the same value, but setting it early prevents
+    // any intermediate code from seeing a stale SF.
+    SF = calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
+
     nodes_central = runCollaborationSimulation(
       nodes,
       links,
@@ -1355,13 +1362,18 @@ const createContributorNetworkVisual = (
       }
     });
 
-    // Re-setup interaction handlers
+    // Calculate SF early so it's finalized before interaction handlers capture it.
+    // positionContributorNodes() determines RADIUS_CONTRIBUTOR and CONTRIBUTOR_RING_WIDTH,
+    // which resize() uses to compute SF. By calling resize() first, we ensure setupHover()
+    // and setupClick() capture the final SF value — preventing the hit-detection offset bug
+    // that occurred when SF changed between setupHover() and resize().
+    // This matches the order in the initial chart() function (resize before interactions).
+    chart.resize();
+
+    // Re-setup interaction handlers AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
     setupZoom();
-
-    // Redraw with new scale factors
-    chart.resize();
 
     return chart;
   };

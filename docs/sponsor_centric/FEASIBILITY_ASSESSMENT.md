@@ -6,56 +6,80 @@
 
 ---
 
-## Executive Summary
+## Updated Implementation Strategy
 
-**Status:** ✅ **HIGHLY FEASIBLE**
+Following detailed technical review, we've refined the implementation approach to address key technical challenges:
 
-The proposed redesign—shifting from a search-based model to a fixed repository list with tiered contributor visualization (inspired by ORCA)—is well-aligned with the current architecture and achievable with moderate effort.
+### Key Changes from Initial Assessment
+1. **Contributor Discovery**
+   - Implement comprehensive GitHub API-based contributor discovery
+   - Create new method to find contributors across tracked repositories
+   - Handle GitHub API rate limits intelligently
 
-**Key Findings:**
-- Current data pipeline already supports a fixed repository list (via `config.toml`)
-- Visualization architecture is modular and flexible enough to accommodate a new layout strategy
-- Data model supports contributor classification (sponsored vs. community)
-- Primary changes are **isolated to Python backend and JavaScript layout/rendering layers**
+2. **Simulation Strategy**
+   - Create new `communityContributorSimulation.js`
+   - Custom force simulation for community contributors
+   - Positioned outside main contributor ring with controlled scattering
 
-**Estimated Scope:** 3-4 weeks of development
-**Risk Level:** Low to Medium
-**Technical Debt Impact:** Minimal (improves code organization)
+3. **Configuration Handling**
+   - Optional `[contributors.sponsored]` section
+   - Fallback to `[contributors.devseed]`
+   - Configurable sponsored contributor group
+
+### Detailed Technical Approach
+
+#### Contributor Discovery Pipeline
+```python
+def discover_repo_contributors(repo):
+    """
+    Discover all contributors for a given repository
+    
+    Steps:
+    1. Call GitHub API to get repository contributors
+    2. Filter out already known contributors
+    3. Store new contributors with metadata
+    """
+    # Implementation details in client.py
+```
+
+#### Community Contributor Simulation
+```javascript
+function createCommunityContributorSimulation(communityNodes, centerX, centerY, ringRadius) {
+    // Create force simulation with:
+    // - Radial positioning outside main ring
+    // - Node collision prevention
+    // - Gentle node repulsion
+}
+```
+
+### Revised Implementation Phases
+
+1. **Backend Contributor Discovery** (1-2 weeks)
+   - Modify GitHub client to discover all contributors
+   - Create storage mechanism for discovered contributors
+   - Handle API rate limits
+
+2. **Configuration Enhancement** (3-5 days)
+   - Update `config.py` to support sponsored contributor selection
+   - Add flexible configuration options
+   - Maintain backward compatibility
+
+3. **Frontend Visualization Update** (1-2 weeks)
+   - Create community contributor simulation
+   - Update data loading to incorporate new contributor tiers
+   - Implement scattered positioning for community contributors
+
+### Complexity Acknowledgment
+The initial estimate of "~50 lines of Python" significantly underestimated the complexity. The actual implementation will require:
+- Approximately 200-300 lines of Python
+- Comprehensive GitHub API interaction
+- Intelligent contributor discovery and storage
+
+### Risk Mitigation
+- Incremental implementation
+- Fallback to existing contributor list
+- Modular design allowing future refinement
 
 ---
 
-(Most of the document remains the same, but with the following changes in key sections)
-
-### Decision 2: One Ring or Two?
-
-**Options:**
-- A) Sponsored in ring, community scattered (using existing simulation) ✅ **CHOSEN**
-- B) Sponsored in inner ring, community in outer ring
-- C) Sponsored prominent (larger), community faded
-
-**Reasoning:**
-- **Option A** leverages existing "remaining" simulation
-- Minimal code changes required
-- Follows current behavior for extra contributors
-- Quick to implement with current architecture
-- Provides clear visual distinction between sponsored and community contributors
-
-### Development Strategy: Option A (Existing Simulation)
-
-**Primary Implementation Approach:**
-- Reuse existing `remainingSimulation.js`
-- Position sponsored contributors in central ring
-- Scatter community contributors using existing logic
-- Minimal modifications to current visualization code
-
-**Benefits:**
-- Fastest path to implementation (1 week)
-- Low risk of introducing new bugs
-- Maintains current performance characteristics
-- Easy to iterate and improve in future versions
-
-**Future Potential:**
-- If client wants more refined positioning, can upgrade to Option B later
-- Current approach provides a solid, functional first iteration
-
-(Rest of the document remains the same)
+(Rest of the original document remains the same, with these updates)
