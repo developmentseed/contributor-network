@@ -535,6 +535,32 @@ li#item-remaining::before {
     box-shadow: 0 0 0 2px rgba(207, 63, 2, 0.1);
 }
 
+.filter-separator {
+    width: 1px;
+    height: 24px;
+    background: #ddd;
+    flex-shrink: 0;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #443F3F;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #2E86AB;
+    cursor: pointer;
+}
+
 #filter-stats {
     margin: 10px 0 0 0;
     font-size: 13px;
@@ -556,5 +582,9 @@ li#item-remaining::before {
     #forks-select {
         width: 100%;
         max-width: 300px;
+    }
+
+    .filter-separator {
+        display: none;
     }
 }

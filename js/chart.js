@@ -66,7 +66,8 @@ import {
   clearFilters,
   hasOrganization,
   hasActiveFilters,
-  setMetricFilter
+  setMetricFilter,
+  setTierFilter
 } from './state/filterState.js';
 import { prepareData } from './data/prepare.js';
 import { positionContributorNodes } from './layout/positioning.js';
@@ -664,6 +665,11 @@ const createContributorNetworkVisual = (
       .filter((link) => visibleRepoNames.has(link.repo))
       .map((link) => JSON.parse(JSON.stringify(link)));
 
+    // Apply tier filter: remove community-tier links when toggle is off
+    if (activeFilters.showCommunity === false) {
+      visibleLinks = visibleLinks.filter((link) => link.tier !== "community");
+    }
+
     // Build set of visible contributor display names from visible links
     const visibleDisplayNames = new Set(
       visibleLinks.map((link) => link.author_name),
@@ -674,6 +680,13 @@ const createContributorNetworkVisual = (
     visibleContributors = originalContributors
       .filter((contributor) => visibleDisplayNames.has(contributor.author_name))
       .map((c) => JSON.parse(JSON.stringify(c)));
+
+    // Apply tier filter: remove community-tier contributors when toggle is off
+    if (activeFilters.showCommunity === false) {
+      visibleContributors = visibleContributors.filter(
+        (c) => c.tier !== "community"
+      );
+    }
 
     // Build set of visible contributor names for link filtering
     const visibleContributorNames = new Set(
@@ -695,6 +708,7 @@ const createContributorNetworkVisual = (
       console.debug('=== APPLY FILTERS ===');
       console.debug(`Org filters: ${activeFilters.organizations.join(", ") || "none"}`);
       console.debug(`Stars min: ${activeFilters.starsMin ?? "none"}, Forks min: ${activeFilters.forksMin ?? "none"}`);
+      console.debug(`Show community: ${activeFilters.showCommunity}`);
       console.debug(`Data before: ${originalContributors.length} contributors, ${originalRepos.length} repos, ${originalLinks.length} links`);
       console.debug(`Data after: ${visibleContributors.length} contributors, ${visibleRepos.length} repos, ${visibleLinks.length} links`);
       console.debug('Visible repos:', visibleRepos.map(r => r.repo));
@@ -1417,6 +1431,18 @@ const createContributorNetworkVisual = (
    */
   chart.setRepoFilter = function (metric, value) {
     setMetricFilter(activeFilters, metric, value);
+    chart.rebuild();
+    return chart;
+  };
+
+  /**
+   * Updates a tier visibility filter and rebuilds the chart
+   * @param {string} tier - Tier filter name ('showCommunity')
+   * @param {boolean} visible - Whether to show this tier
+   * @returns {Object} - The chart instance
+   */
+  chart.setTierFilter = function (tier, visible) {
+    setTierFilter(activeFilters, tier, visible);
     chart.rebuild();
     return chart;
   };

@@ -69,6 +69,13 @@
                     <option value="100">100+</option>
                 </select>
 
+                <span class="filter-separator"></span>
+
+                <label for="community-toggle" class="toggle-label">
+                    <input type="checkbox" id="community-toggle" checked>
+                    Show community contributors
+                </label>
+
                 <p id="filter-stats"></p>
             </div>
         </div>
@@ -204,6 +211,13 @@
                     updateFilterStats();
                 });
 
+                // Community contributor toggle
+                const communityToggle = document.getElementById("community-toggle");
+                communityToggle.addEventListener("change", function () {
+                    contributorNetworkVisual.setTierFilter("showCommunity", this.checked);
+                    updateFilterStats();
+                });
+
                 function updateFilterStats() {
                     const statsElement = document.getElementById("filter-stats");
                     const parts = [];
@@ -216,6 +230,9 @@
                     }
                     if (forksSelect.value !== "") {
                         parts.push(`forks: ${forksSelect.value}+`);
+                    }
+                    if (!communityToggle.checked) {
+                        parts.push("community hidden");
                     }
 
                     if (parts.length === 0) {
