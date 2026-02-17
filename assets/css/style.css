@@ -508,7 +508,9 @@ li#item-remaining::before {
     margin: 0;
 }
 
-#org-select {
+#org-select,
+#stars-select,
+#forks-select {
     padding: 8px 12px;
     font-size: 14px;
     border: 1px solid #ddd;
@@ -519,11 +521,15 @@ li#item-remaining::before {
     transition: border-color 0.2s ease;
 }
 
-#org-select:hover {
+#org-select:hover,
+#stars-select:hover,
+#forks-select:hover {
     border-color: #CF3F02;
 }
 
-#org-select:focus {
+#org-select:focus,
+#stars-select:focus,
+#forks-select:focus {
     outline: none;
     border-color: #CF3F02;
     box-shadow: 0 0 0 2px rgba(207, 63, 2, 0.1);
@@ -545,7 +551,9 @@ li#item-remaining::before {
         gap: 10px;
     }
     
-    #org-select {
+    #org-select,
+    #stars-select,
+    #forks-select {
         width: 100%;
         max-width: 300px;
     }

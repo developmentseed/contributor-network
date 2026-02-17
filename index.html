@@ -44,10 +44,31 @@
 
         <div id="chart-filters">
             <div id="filter-header">
-                <label for="org-select">Filter by Organization:</label>
+                <label for="org-select">Organization:</label>
                 <select id="org-select">
                     <option value="">-- All Organizations --</option>
                 </select>
+
+                <label for="stars-select">Min Stars:</label>
+                <select id="stars-select">
+                    <option value="">Any</option>
+                    <option value="10">10+</option>
+                    <option value="50">50+</option>
+                    <option value="100">100+</option>
+                    <option value="500">500+</option>
+                    <option value="1000">1,000+</option>
+                </select>
+
+                <label for="forks-select">Min Forks:</label>
+                <select id="forks-select">
+                    <option value="">Any</option>
+                    <option value="5">5+</option>
+                    <option value="10">10+</option>
+                    <option value="25">25+</option>
+                    <option value="50">50+</option>
+                    <option value="100">100+</option>
+                </select>
+
                 <p id="filter-stats"></p>
             </div>
         </div>
@@ -167,12 +188,40 @@
                     updateFilterStats();
                 });
 
+                // Stars filter
+                const starsSelect = document.getElementById("stars-select");
+                starsSelect.addEventListener("change", function () {
+                    const value = this.value === "" ? null : parseInt(this.value, 10);
+                    contributorNetworkVisual.setRepoFilter("starsMin", value);
+                    updateFilterStats();
+                });
+
+                // Forks filter
+                const forksSelect = document.getElementById("forks-select");
+                forksSelect.addEventListener("change", function () {
+                    const value = this.value === "" ? null : parseInt(this.value, 10);
+                    contributorNetworkVisual.setRepoFilter("forksMin", value);
+                    updateFilterStats();
+                });
+
                 function updateFilterStats() {
                     const statsElement = document.getElementById("filter-stats");
-                    if (currentSelectedOrg === null) {
+                    const parts = [];
+
+                    if (currentSelectedOrg !== null) {
+                        parts.push(`org: ${currentSelectedOrg}`);
+                    }
+                    if (starsSelect.value !== "") {
+                        parts.push(`stars: ${starsSelect.value}+`);
+                    }
+                    if (forksSelect.value !== "") {
+                        parts.push(`forks: ${forksSelect.value}+`);
+                    }
+
+                    if (parts.length === 0) {
                         statsElement.textContent = `Showing all ${sortedOrgs.length} organizations`;
                     } else {
-                        statsElement.textContent = `Filtered to: ${currentSelectedOrg}`;
+                        statsElement.textContent = `Filtered by ${parts.join(", ")}`;
                     }
                 }
                 updateFilterStats();

@@ -45,9 +45,9 @@ export const FONTS = {
   bold: 700,
 
   // Default sizes (scaled dynamically in visualization)
-  baseSizeContributor: 11,
-  baseSizeRepo: 10,
-  baseSizeOwner: 12
+  baseSizeContributor: 14,
+  baseSizeRepo: 13,
+  baseSizeOwner: 15
 };
 
 /**
@@ -76,7 +76,7 @@ export const LAYOUT = {
 
   // Contributor ring positioning
   contributorPadding: 20,  // Default, overridden by config
-  maxContributorWidth: 55,  // The maximum width (at SF = 1) of the contributor name before it gets wrapped
+  maxContributorWidth: 70,  // The maximum width (at SF = 1) of the contributor name before it gets wrapped
 
   // Canvas sizing
   defaultSize: 1500,  // Default canvas size
@@ -86,7 +86,7 @@ export const LAYOUT = {
   linkWidthExponent: 0.75,
 
   // Collision detection
-  bboxPadding: 2
+  bboxPadding: 4
 };
 
 /**

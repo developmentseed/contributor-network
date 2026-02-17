@@ -104,7 +104,7 @@ export function runCollaborationSimulation(
 
     let r = d.type === "owner" ? d.max_radius : d.r;
     let top = max(r, d.r + text_height);
-    let w = max(r * 2, text_size.width * 1.25) + 10;
+    let w = max(r * 2, text_size.width * 1.25) + 14;
 
     d.bbox = [
       [-w / 2, -top],

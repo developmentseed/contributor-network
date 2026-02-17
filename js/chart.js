@@ -64,7 +64,8 @@ import {
   removeOrganization,
   clearFilters,
   hasOrganization,
-  hasActiveFilters
+  hasActiveFilters,
+  setMetricFilter
 } from './state/filterState.js';
 import { prepareData } from './data/prepare.js';
 import { positionContributorNodes } from './layout/positioning.js';
@@ -609,7 +610,6 @@ const createContributorNetworkVisual = (
   // NOTE: Pure filter logic has been extracted to src/js/data/filter.js
   // This function handles integration with the visualization's mutable state.
   // For new features (e.g., blog charts), import { applyFilters } from './data/filter.js'
-  // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
   function applyFilters() {
     // Guard against uninitialized data
     if (!originalRepos || !originalLinks || !originalContributors) {
@@ -623,11 +623,25 @@ const createContributorNetworkVisual = (
     visibleRepos = JSON.parse(JSON.stringify(originalRepos));
 
     // If organizations are selected, filter to those organizations
-    if (hasActiveFilters(activeFilters)) {
+    if (activeFilters.organizations.length > 0) {
       visibleRepos = visibleRepos.filter((repo) => {
         const owner = repo.repo.substring(0, repo.repo.indexOf("/"));
         return hasOrganization(activeFilters, owner);
       });
+    }
+
+    // Apply minimum stars filter
+    if (activeFilters.starsMin !== null) {
+      visibleRepos = visibleRepos.filter(
+        (repo) => +repo.repo_stars >= activeFilters.starsMin
+      );
+    }
+
+    // Apply minimum forks filter
+    if (activeFilters.forksMin !== null) {
+      visibleRepos = visibleRepos.filter(
+        (repo) => +repo.repo_forks >= activeFilters.forksMin
+      );
     }
 
     // Get visible repo names for quick lookup
@@ -668,7 +682,8 @@ const createContributorNetworkVisual = (
     // Debug: Log filtering results (enable via localStorage)
     if (localStorage.getItem('debug-contributor-network') === 'true') {
       console.debug('=== APPLY FILTERS ===');
-      console.debug(`Filters applied: ${activeFilters.organizations.join(", ") || "none"}`);
+      console.debug(`Org filters: ${activeFilters.organizations.join(", ") || "none"}`);
+      console.debug(`Stars min: ${activeFilters.starsMin ?? "none"}, Forks min: ${activeFilters.forksMin ?? "none"}`);
       console.debug(`Data before: ${originalContributors.length} contributors, ${originalRepos.length} repos, ${originalLinks.length} links`);
       console.debug(`Data after: ${visibleContributors.length} contributors, ${visibleRepos.length} repos, ${visibleLinks.length} links`);
       console.debug('Visible repos:', visibleRepos.map(r => r.repo));
@@ -1255,6 +1270,13 @@ const createContributorNetworkVisual = (
     );
     RADIUS_CONTRIBUTOR = positioningResult.RADIUS_CONTRIBUTOR;
     CONTRIBUTOR_RING_WIDTH = positioningResult.CONTRIBUTOR_RING_WIDTH;
+
+    // Pre-compute SF now that RADIUS_CONTRIBUTOR is known.
+    // This ensures SF is consistent before any downstream code references it.
+    // resize() will re-derive the same value, but setting it early prevents
+    // any intermediate code from seeing a stale SF.
+    SF = calculateScaleFactor(WIDTH, DEFAULT_SIZE, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
+
     nodes_central = runCollaborationSimulation(
       nodes,
       links,
@@ -1339,13 +1361,18 @@ const createContributorNetworkVisual = (
       }
     });
 
-    // Re-setup interaction handlers
+    // Calculate SF early so it's finalized before interaction handlers capture it.
+    // positionContributorNodes() determines RADIUS_CONTRIBUTOR and CONTRIBUTOR_RING_WIDTH,
+    // which resize() uses to compute SF. By calling resize() first, we ensure setupHover()
+    // and setupClick() capture the final SF value — preventing the hit-detection offset bug
+    // that occurred when SF changed between setupHover() and resize().
+    // This matches the order in the initial chart() function (resize before interactions).
+    chart.resize();
+
+    // Re-setup interaction handlers AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
     setupZoom();
-
-    // Redraw with new scale factors
-    chart.resize();
 
     return chart;
   };
@@ -1363,6 +1390,18 @@ const createContributorNetworkVisual = (
       removeOrganization(activeFilters, organizationName);
     }
 
+    chart.rebuild();
+    return chart;
+  };
+
+  /**
+   * Updates a metric-based repo filter and rebuilds the chart
+   * @param {string} metric - Metric name ('starsMin' or 'forksMin')
+   * @param {number|null} value - Minimum threshold value, or null to clear
+   * @returns {Object} - The chart instance
+   */
+  chart.setRepoFilter = function (metric, value) {
+    setMetricFilter(activeFilters, metric, value);
     chart.rebuild();
     return chart;
   };

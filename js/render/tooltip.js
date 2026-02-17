@@ -31,22 +31,22 @@ function calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatD
   let height = 0;
 
   // Header section
-  height += 18; // Top padding (balanced)
-  height += 12 * line_height; // "Repository" label (12px font * 1.2 line height = 14.4px)
-  height += 18; // Spacing (balanced)
+  height += 22; // Top padding (balanced)
+  height += 15 * line_height; // "Repository" label (15px font * 1.2 line height = 18px)
+  height += 22; // Spacing (balanced)
 
   // Title section (owner/name) - two lines
-  height += 15 * line_height; // Owner line (15px font * 1.2 = 18px)
-  height += 15 * line_height; // Name line (15px font * 1.2 = 18px)
-  height += 42; // Spacing to dates (matches render: y += 42 accounts for name at y+18 plus padding)
+  height += 19 * line_height; // Owner line (19px font * 1.2 = 22.8px)
+  height += 19 * line_height; // Name line (19px font * 1.2 = 22.8px)
+  height += 50; // Spacing to dates (matches render: y += 50 accounts for name at y+22.8 plus padding)
 
   // Dates section
-  height += 11 * line_height; // Created date (11px font * 1.2 = 13.2px)
-  height += 11 * line_height; // Updated date (11px font * 1.2 = 13.2px)
-  height += 20; // Spacing before stats (balanced)
+  height += 14 * line_height; // Created date (14px font * 1.2 = 16.8px)
+  height += 14 * line_height; // Updated date (14px font * 1.2 = 16.8px)
+  height += 24; // Spacing before stats (balanced)
 
   // Stats line
-  height += config.headerFontSize * line_height; // Stats line (12px font * 1.2 = 14.4px)
+  height += config.headerFontSize * line_height; // Stats line (15px font * 1.2 = 18px)
   // Note: renderLanguages will add its own sectionSpacing (24px) before it
 
   // Languages section (if present)
@@ -90,12 +90,12 @@ function calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatD
   if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
     const link = interactionState.clickedNode.data.links_original?.find((l) => l.repo === d.id);
     if (link) {
-      height += 28; // Spacing
-      height += 11 * line_height; // "X commits by" line (11px font * 1.2 = 13.2px)
-      height += 16; // Spacing
-      height += 11.5 * line_height; // Contributor name (11.5px font * 1.2 = 13.8px)
-      height += 18; // Spacing
-      height += 11 * line_height; // Date range line (11px font * 1.2 = 13.2px)
+      height += 34; // Spacing
+      height += 14 * line_height; // "X commits by" line (14px font * 1.2 = 16.8px)
+      height += 20; // Spacing
+      height += 14 * line_height; // Contributor name (14px font * 1.2 = 16.8px)
+      height += 22; // Spacing
+      height += 14 * line_height; // Date range line (14px font * 1.2 = 16.8px)
     }
   }
 
@@ -121,14 +121,14 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
   let maxWidth = 0;
 
   // Measure title text
-  setFont(context, 14 * SF, 700, "normal");
+  setFont(context, 18 * SF, 700, "normal");
   let width = context.measureText(d.data.owner).width * 1.25;
   if (width > maxWidth) maxWidth = width;
   width = context.measureText(d.data.name).width * 1.25;
   if (width > maxWidth) maxWidth = width;
 
   // Measure date text
-  setFont(context, 11 * SF, 400, "normal");
+  setFont(context, 14 * SF, 400, "normal");
   width = context.measureText(`Created in ${formatDate(d.data.createdAt)}`).width * 1.25;
   if (width > maxWidth) maxWidth = width;
   width = context.measureText(`Last updated in ${formatDate(d.data.updatedAt)}`).width * 1.25;
@@ -197,16 +197,16 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
   if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
     const link = interactionState.clickedNode.data.links_original?.find((l) => l.repo === d.id);
     if (link) {
-      setFont(context, 11 * SF, 400, "italic");
+      setFont(context, 14 * SF, 400, "italic");
       const commitText = link.commit_count === 1 ? '1 commit by' : `${link.commit_count} commits by`;
       width = context.measureText(commitText).width * 1.25;
       if (width > maxWidth) maxWidth = width;
 
-      setFont(context, 11.5 * SF, 700, "normal");
+      setFont(context, 14 * SF, 700, "normal");
       width = context.measureText(interactionState.clickedNode.data.contributor_name).width * 1.25;
       if (width > maxWidth) maxWidth = width;
 
-      setFont(context, 11 * SF, 400, "normal");
+      setFont(context, 14 * SF, 400, "normal");
       let dateText = '';
       if (formatDateExact(link.commit_sec_min) === formatDateExact(link.commit_sec_max)) {
         dateText = `On ${formatDateExact(link.commit_sec_max)}`;
@@ -224,7 +224,7 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
   maxWidth = maxWidth / SF + 80;
 
   // Ensure minimum width
-  return Math.max(maxWidth, 280);
+  return Math.max(maxWidth, 320);
 }
 
 /**
@@ -263,12 +263,12 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
 
   if (d.type === "contributor") {
     // Contributor tooltip
-    H = 80;
-    W = 280;
+    H = 100;
+    W = 320;
   } else if (d.type === "owner") {
     // Owner tooltip - keep existing logic for now
-    H = 93;
-    W = 280;
+    H = 116;
+    W = 320;
   } else if (d.type === "repo") {
     // Repository tooltip - use dynamic calculations
     // Calculate height dynamically based on all content
@@ -276,13 +276,13 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     // Calculate width dynamically based on all text content
     W = calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate, formatDateExact, formatDigit);
   } else {
-    H = 93;
-    W = 280;
+    H = 116;
+    W = 320;
   }
 
   // Write all the repos for the "owner" nodes, but make sure they are not wider than the box and save each line to write out
   if (d.type === "owner") {
-    font_size = 11.5;
+    font_size = 14;
     setFont(context, font_size * SF, 400, "normal");
     d.text_lines = [];
     text = "";
@@ -308,10 +308,10 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     
     // Recalculate width for owner tooltips based on text lines
     let tW = 0;
-    setFont(context, 15 * SF, 700, "normal");
+    setFont(context, 20 * SF, 700, "normal");
     tW = context.measureText(d.data.owner).width * 1.25;
     // Check if any of the "repo lines" are longer than the owner's name
-    setFont(context, 11.5 * SF, 400, "normal");
+    setFont(context, 14 * SF, 400, "normal");
     d.text_lines.forEach((t) => {
       let line_width = context.measureText(t).width * 1.25;
       if (line_width > tW) tW = line_width;
@@ -320,7 +320,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     if (tW + 40 * SF > W * SF) W = tW / SF + 40;
   } else if (d.type === "contributor") {
     // Recalculate width for contributor tooltips
-    setFont(context, 15 * SF, 700, "normal");
+    setFont(context, 20 * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
     let tW = context.measureText(text).width * 1.25;
     // Update the max width if the text is wider
@@ -365,8 +365,8 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   context.textBaseline = "middle";
 
   // Contributor, owner or repo
-  y = 18; // Balanced
-  font_size = 12;
+  y = 22; // Balanced
+  font_size = 15;
   setFont(context, font_size * SF, 400, "italic");
   context.fillStyle = COL;
   text = "";
@@ -376,29 +376,29 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   renderText(context, text, x * SF, y * SF, 2.5 * SF);
 
   context.fillStyle = COLOR_TEXT;
-  y += 18; // Balanced
+  y += 22; // Balanced
 
   if (d.type === "contributor") {
     // The contributor's name
-    font_size = 16;
+    font_size = 20;
     setFont(context, font_size * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
     renderText(context, text, x * SF, y * SF, 1.25 * SF);
   } else if (d.type === "owner") {
     // The name
-    font_size = 16;
+    font_size = 20;
     setFont(context, font_size * SF, 700, "normal");
     renderText(context, d.data.owner, x * SF, y * SF, 1.25 * SF);
 
     // Which repos fall under this owner in this visual
-    y += 28;
-    font_size = 11;
+    y += 34;
+    font_size = 14;
     context.globalAlpha = 0.6;
     setFont(context, font_size * SF, 400, "italic");
     renderText(context, "Included repositories", x * SF, y * SF, 2 * SF);
 
     // Write out all the repositories
-    font_size = 11.5;
+    font_size = 14;
     y += font_size * line_height + 4;
     context.globalAlpha = 0.9;
     setFont(context, font_size * SF, 400, "normal");
@@ -408,7 +408,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     }); // forEach
   } else if (d.type === "repo") {
     // The repo's name and owner
-    font_size = 15;
+    font_size = 19;
     setFont(context, font_size * SF, 700, "normal");
     renderText(context, `${d.data.owner}/`, x * SF, y * SF, 1.25 * SF);
     renderText(
@@ -420,9 +420,9 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     );
 
     // The creation date
-    // Note: name was rendered at y + 18, so we need to move past it (18) plus add spacing (24) = 42
-    y += 42;
-    font_size = 11;
+    // Note: name was rendered at y + line_height*font_size, so we need to move past it plus add spacing
+    y += 50;
+    font_size = 14;
     context.globalAlpha = 0.7;
     setFont(context, font_size * SF, 400, "normal");
     renderText(
@@ -447,7 +447,7 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     // ============================================================
 
     // Stats line: stars, forks, watchers
-    y += 20; // Balanced
+    y += 24; // Balanced
     renderStatsLine(context, d.data, x, y, SF, formatDigit);
 
     // Languages section
@@ -476,15 +476,15 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
       if (!link) return;
       let num_commits = link.commit_count;
 
-      y += 20; // Reduced from 28
-      font_size = 11;
+      y += 24; // Spacing before clicked section
+      font_size = 14;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "italic");
       text = num_commits === 1 ? "1 commit by" : `${num_commits} commits by`;
       renderText(context, text, x * SF, y * SF, 2 * SF);
 
-      y += 12; // Reduced from 16
-      font_size = 11.5;
+      y += 15; // Spacing to contributor name
+      font_size = 14;
       context.globalAlpha = 0.9;
       setFont(context, font_size * SF, 700, "normal");
       renderText(
@@ -495,8 +495,8 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
         1.25 * SF,
       );
 
-      y += 14; // Reduced from 18
-      font_size = 11;
+      y += 17; // Spacing to date range
+      font_size = 14;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "normal");
       if (

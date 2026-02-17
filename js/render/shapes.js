@@ -284,12 +284,12 @@ export function drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR
   const center_x = 0;
   const center_y = 0;
 
-  // Small offset for visual refinement (matches original ORCA implementation)
-  const O = 4;
+  // Position the ring so contributor dots sit at 1/3 from the inner edge
+  // (more ring space on the outer/name side, less empty space inside the dots)
   const LW = CONTRIBUTOR_RING_WIDTH;
 
-  const radius_inner = (RADIUS_CONTRIBUTOR - LW / 2 + O) * SF;
-  const radius_outer = (RADIUS_CONTRIBUTOR + LW / 2) * SF;
+  const radius_inner = (RADIUS_CONTRIBUTOR - LW / 3) * SF;
+  const radius_outer = (RADIUS_CONTRIBUTOR + 2 * LW / 3) * SF;
 
   context.save();
 
