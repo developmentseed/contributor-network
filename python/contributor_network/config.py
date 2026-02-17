@@ -1,16 +1,46 @@
 """Configuration management for the contributor network visualization.
 
-The config supports categorizing contributors into groups (e.g., "devseed" for current
+The config supports categorizing contributors into groups (e.g., "core" for current
 employees, "alumni" for past contributors). This allows filtering the visualization
 to show only active team members while preserving historical data.
+
+Supports two discovery modes:
+- contributor: Start from known contributors, discover their repos (default)
+- repository: Start from tracked repos, discover all contributors
 """
 
 from __future__ import annotations
 
 import tomllib
+from enum import Enum
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class DiscoveryMode(str, Enum):
+    """Data discovery strategy.
+
+    - CONTRIBUTOR: Existing workflow — start from known contributors.
+    - REPOSITORY: New workflow — start from tracked repos, discover all
+      contributors and classify them as sponsored or community.
+    """
+
+    CONTRIBUTOR = "contributor"
+    REPOSITORY = "repository"
+
+
+class DiscoveryConfig(BaseModel):
+    """Settings for the discovery mode and extended metrics.
+
+    Attributes:
+        mode: Discovery strategy for data fetching.
+        fetch_forking_orgs: Whether to discover which organizations have
+            forked each tracked repository (requires extra API calls).
+    """
+
+    mode: DiscoveryMode = DiscoveryMode.CONTRIBUTOR
+    fetch_forking_orgs: bool = False
 
 
 class Config(BaseModel):
@@ -25,25 +55,32 @@ class Config(BaseModel):
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
-        sponsored_contributor_group: Which contributor group to treat as "sponsored"
-                                     in the tiered visualization. Defaults to "devseed".
+        discovery: Discovery mode and metric settings.
     """
 
     title: str
-    author: str
+    author: str = ""
     description: str
     organization_name: str
     repositories: list[str]
-    contributors: dict[
-        str, dict[str, str]
-    ]  # Nested: {"devseed": {...}, "alumni": {...}, "sponsored": {...}}
+    contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
-    sponsored_contributor_group: str = "devseed"
+    discovery: DiscoveryConfig = Field(default_factory=DiscoveryConfig)
 
     @property
-    def devseed_contributors(self) -> dict[str, str]:
-        """Only Development Seed employees."""
-        return self.contributors.get("devseed", {})
+    def discovery_mode(self) -> DiscoveryMode:
+        """Shortcut to the active discovery mode."""
+        return self.discovery.mode
+
+    @property
+    def is_repository_mode(self) -> bool:
+        """True when running in repository-first discovery mode."""
+        return self.discovery.mode == DiscoveryMode.REPOSITORY
+
+    @property
+    def core_contributors(self) -> dict[str, str]:
+        """Core team contributors."""
+        return self.contributors.get("core", {})
 
     @property
     def alumni_contributors(self) -> dict[str, str]:
@@ -62,13 +99,10 @@ class Config(BaseModel):
     def sponsored_contributors(self) -> dict[str, str]:
         """Contributors designated as 'sponsored' (prominent in the ring).
 
-        Uses the group specified by sponsored_contributor_group, falling back
-        to the 'devseed' group if the specified group doesn't exist.
+        Returns the [contributors.core] group. These are the contributors
+        shown prominently in the central ring of the visualization.
         """
-        group = self.contributors.get(self.sponsored_contributor_group)
-        if group is not None:
-            return group
-        return self.contributors.get("devseed", {})
+        return self.core_contributors
 
     @property
     def sponsored_usernames(self) -> set[str]:

@@ -81,9 +81,11 @@ class Repository(BaseModel):
     repo_archived: bool = False
     # Phase 2: Community metrics
     repo_total_contributors: int = 0
-    repo_devseed_contributors: int = 0
+    repo_core_contributors: int = 0
     repo_external_contributors: int = 0
     repo_community_ratio: float = 0.0
+    # Phase 3: Repository-centric extended metrics
+    repo_forking_organizations: str = ""
 
     @classmethod
     def from_github(cls, repo: Repo) -> Repository:
@@ -118,16 +120,20 @@ class Repository(BaseModel):
             repo_total_contributors=total_contributors,
         )
 
-    def update_community_stats(self, devseed_count: int) -> None:
-        """Update community metrics given the count of DevSeed contributors.
+    def update_community_stats(self, core_count: int) -> None:
+        """Update community metrics given the count of core contributors.
 
         Call this after processing contributors for the repository.
         """
-        self.repo_devseed_contributors = devseed_count
-        self.repo_external_contributors = self.repo_total_contributors - devseed_count
+        self.repo_core_contributors = core_count
+        self.repo_external_contributors = self.repo_total_contributors - core_count
         if self.repo_total_contributors > 0:
             self.repo_community_ratio = round(
                 self.repo_external_contributors / self.repo_total_contributors, 3
             )
         else:
             self.repo_community_ratio = 0.0
+
+    def update_forking_organizations(self, org_names: list[str]) -> None:
+        """Store the list of organizations that have forked this repository."""
+        self.repo_forking_organizations = ",".join(sorted(set(org_names)))

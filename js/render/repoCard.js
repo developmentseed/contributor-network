@@ -155,12 +155,12 @@ export function renderCommunityMetrics(context, data, x, y, SF) {
   setFont(context, config.valueFontSize * SF, 400, 'normal');
 
   const total = data.totalContributors;
-  const devseed = data.devseedContributors || 0;
+  const core = data.coreContributors || 0;
   const external = data.externalContributors || 0;
 
   renderText(
     context,
-    `${total} contributors (${devseed} DevSeed, ${external} community)`,
+    `${total} contributors (${core} core, ${external} community)`,
     x * SF,
     y * SF,
     1.25 * SF
@@ -181,16 +181,63 @@ export function renderCommunityMetrics(context, data, x, y, SF) {
   );
 
   // Bus factor warning
-  if (devseed === 1 && total > 0) {
+  if (core === 1 && total > 0) {
     y += config.valueFontSize * config.lineHeight;
     context.globalAlpha = config.warningOpacity;
     setFont(context, config.valueFontSize * SF, 400, 'italic');
-    renderText(context, '⚠ Single DevSeed maintainer', x * SF, y * SF, 1.25 * SF);
+    renderText(context, '⚠ Single core maintainer', x * SF, y * SF, 1.25 * SF);
     context.globalAlpha = config.valueOpacity;
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     y += config.valueFontSize * config.lineHeight; // Increment after warning line
   } else {
     y += config.valueFontSize * config.lineHeight; // Increment after health line
+  }
+
+  return y;
+}
+
+/**
+ * Render forking organizations section
+ * @param {CanvasRenderingContext2D} context - Canvas context
+ * @param {Object} data - Repository data
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} SF - Scale factor
+ * @returns {number} New Y position after rendering
+ */
+export function renderForkingOrganizations(context, data, x, y, SF) {
+  const config = REPO_CARD_CONFIG;
+
+  if (!data.forkingOrganizations || data.forkingOrganizations.length === 0) {
+    return y;
+  }
+
+  y += config.sectionSpacing;
+
+  // Section label
+  context.globalAlpha = config.labelOpacity;
+  setFont(context, config.labelFontSize * SF, 400, 'italic');
+  renderText(context, 'Forked by Organizations', x * SF, y * SF, 2 * SF);
+
+  // Organization names
+  y += config.valueFontSize * config.lineHeight + 4;
+  context.globalAlpha = config.valueOpacity;
+  setFont(context, config.valueFontSize * SF, 400, 'normal');
+
+  const maxOrgs = min(3, data.forkingOrganizations.length);
+  let text = '';
+  for (let i = 0; i < maxOrgs; i++) {
+    text += `${data.forkingOrganizations[i]}${i < maxOrgs - 1 ? ', ' : ''}`;
+  }
+  renderText(context, text, x * SF, y * SF, 1.25 * SF);
+
+  // "& X more" if needed
+  if (data.forkingOrganizations.length > 3) {
+    y += config.valueFontSize * config.lineHeight;
+    renderText(context, `& ${data.forkingOrganizations.length - 3} more`, x * SF, y * SF, 1.25 * SF);
+    y += config.valueFontSize * config.lineHeight;
+  } else {
+    y += config.valueFontSize * config.lineHeight;
   }
 
   return y;

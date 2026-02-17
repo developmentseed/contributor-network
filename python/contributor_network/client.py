@@ -43,7 +43,7 @@ class Client:
                 If provided, links are tagged with tier="sponsored" or "community".
                 If None, all links default to tier="sponsored" (backward compatible).
         """
-        devseed_count = 0
+        core_count = 0
         for contributor in repo.get_contributors():
             if contributor_name := contributors.get(contributor.login):
                 tier = "sponsored"
@@ -54,10 +54,64 @@ class Client:
                         else "community"
                     )
                 self.update_link(repo, contributor, contributor_name, tier=tier)
-                devseed_count += 1
+                core_count += 1
 
         # Update repository with community stats
-        self.update_repository_community_stats(repo.full_name, devseed_count)
+        self.update_repository_community_stats(repo.full_name, core_count)
+
+    def discover_contributors_for_repositories(
+        self,
+        repositories: list[str],
+        *,
+        min_contributions: int = 1,
+    ) -> list[dict]:
+        """Discover contributors across multiple repositories.
+
+        Aggregates contributor data across all listed repositories,
+        tracking total contributions and which repos each person
+        contributed to.
+
+        Args:
+            repositories: List of repository full names (e.g., "owner/repo")
+            min_contributions: Minimum total contributions to include
+
+        Returns:
+            List of contributor dicts, each with keys:
+            - login: GitHub username
+            - name: Display name (GitHub name or login fallback)
+            - total_contributions: Sum of contributions across all repos
+            - repositories: List of repo full names contributed to
+        """
+        all_contributors: dict[str, dict] = {}
+
+        for repo_name in repositories:
+            try:
+                repo = self.github.get_repo(repo_name)
+                for contributor in repo.get_contributors():
+                    username = contributor.login
+                    if username not in all_contributors:
+                        all_contributors[username] = {
+                            "login": username,
+                            "name": contributor.name or username,
+                            "total_contributions": contributor.contributions,
+                            "repositories": [repo_name],
+                        }
+                    else:
+                        existing = all_contributors[username]
+                        existing["total_contributions"] += contributor.contributions
+                        if repo_name not in existing["repositories"]:
+                            existing["repositories"].append(repo_name)
+            except RateLimitExceededException:
+                print(f"  Rate limit hit discovering contributors for {repo_name}")
+            except GithubException as e:
+                print(f"  Error discovering contributors for {repo_name}: {e}")
+
+        # Filter by minimum contributions
+        return [
+            c
+            for c in all_contributors.values()
+            if c["total_contributions"] >= min_contributions
+        ]
 
     def discover_community_contributors(
         self,
@@ -113,14 +167,51 @@ class Client:
                 print(f"  Skipping community contributor {contributor.login}: {e}")
 
     def update_repository_community_stats(
-        self, repo_full_name: str, devseed_count: int
+        self, repo_full_name: str, core_count: int
     ) -> None:
         """Update the community stats for a repository after processing contributors."""
         path = self.directory / "repositories" / (repo_full_name + ".json")
         if path.exists():
             repository = Repository.model_validate_json(path.read_text())
-            repository.update_community_stats(devseed_count)
+            repository.update_community_stats(core_count)
             path.write_text(repository.model_dump_json())
+
+    def discover_forking_organizations(self, repo: Repo) -> list[str]:
+        """Discover organizations that have forked this repository.
+
+        Iterates the fork list and collects unique organization logins.
+
+        Args:
+            repo: GitHub repository object
+
+        Returns:
+            Sorted list of unique organization names that have forked the repo.
+        """
+        org_names: list[str] = []
+        try:
+            for fork in repo.get_forks():
+                if fork.owner.type == "Organization":
+                    org_names.append(fork.owner.login)
+        except RateLimitExceededException:
+            print(f"  Rate limit hit discovering forks for {repo.full_name}")
+        except GithubException as e:
+            print(f"  Error discovering forks for {repo.full_name}: {e}")
+        return sorted(set(org_names))
+
+    def update_repository_forking_orgs(self, repo: Repo) -> None:
+        """Fetch forking organizations and persist to the repository JSON.
+
+        Args:
+            repo: GitHub repository object
+        """
+        orgs = self.discover_forking_organizations(repo)
+        path = self.directory / "repositories" / (repo.full_name + ".json")
+        if path.exists():
+            repository = Repository.model_validate_json(path.read_text())
+            repository.update_forking_organizations(orgs)
+            path.write_text(repository.model_dump_json())
+            if orgs:
+                print(f"  Forking orgs for {repo.full_name}: {', '.join(orgs)}")
 
     def update_link(
         self,
