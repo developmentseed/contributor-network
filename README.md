@@ -70,7 +70,7 @@ All commands are run via `uv run contributor-network <command>`.
 
 ### `discover from-repositories`
 
-Discover contributors by scanning the repos in `repositories.txt`. Prompts you to classify each new contributor as **core** or **community**, then saves to `contributors.csv`.
+Discover community contributors by scanning the repos in `repositories.txt`. New contributors are automatically added as **community**. Use `--classify` to interactively decide core vs community for each.
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
@@ -79,6 +79,7 @@ uv run contributor-network discover from-repositories
 
 Options:
 - `--min-contributions N`: Only include contributors with at least N contributions (default: 1)
+- `--classify`: Interactively classify each new contributor as core or community
 
 ### `discover from-contributors`
 

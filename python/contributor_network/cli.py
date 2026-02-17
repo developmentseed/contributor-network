@@ -60,18 +60,30 @@ def discover():
     default=1,
     help="Minimum contributions to include a contributor",
 )
+@click.option(
+    "--classify",
+    is_flag=True,
+    help="Interactively classify each new contributor as core or community"
+    " (default: auto-assign community)",
+)
 def discover_from_repos(
     config_path: str | None,
     github_token: str | None,
     min_contributions: int,
+    classify: bool,
 ) -> None:
-    """Discover contributors for repositories listed in repositories.txt.
+    """Discover community contributors for repos in repositories.txt.
+
+    \b
+    Scans each repository for contributors not yet listed in
+    contributors.csv and adds them as community contributors.
+    Use --classify to interactively decide core vs community for each.
 
     \b
     Workflow:
       1. Read repositories from repositories.txt
       2. Query GitHub for all contributors to each repo
-      3. Interactively classify each new contributor as core or community
+      3. Add new contributors as community (or classify with --classify)
       4. Save/update contributors.csv
     """
     cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
@@ -86,7 +98,6 @@ def discover_from_repos(
     else:
         auth = Auth.NetrcAuth()
 
-    # We only need a GitHub client — no directory for JSON storage
     from github import Github
 
     github = Github(auth=auth)
@@ -126,42 +137,53 @@ def discover_from_repos(
     ]
     click.echo(f"Discovered {len(discovered)} contributors")
 
-    # Load existing contributors to auto-classify known ones
+    # Load existing contributors to skip known ones
     existing_entries = cfg.load_contributors()
     known_usernames = {e.username: e for e in existing_entries}
 
-    # Interactive classification for unknown contributors
     remaining = [c for c in discovered if c["login"] not in known_usernames]
     remaining.sort(key=lambda c: c["total_contributions"], reverse=True)
 
+    if not remaining:
+        click.echo("No new contributors found.")
+        return
+
     click.echo()
     click.echo("=" * 60)
-    click.echo("CONTRIBUTOR CLASSIFICATION")
+    if classify:
+        click.echo("CONTRIBUTOR CLASSIFICATION")
+    else:
+        click.echo("NEW COMMUNITY CONTRIBUTORS")
     click.echo("=" * 60)
     click.echo(
         f"Total discovered: {len(discovered)}  |  "
-        f"Already classified: {len(known_usernames)}  |  "
-        f"To classify: {len(remaining)}"
+        f"Already known: {len(known_usernames)}  |  "
+        f"New: {len(remaining)}"
     )
 
     new_entries: list[dict[str, str]] = []
     for contributor in remaining:
         username = contributor["login"]
         name = contributor.get("name", username)
-        contributions = contributor["total_contributions"]
-        repos = contributor["repositories"]
 
-        click.echo()
-        click.echo("-" * 40)
-        click.echo(f"  Username:      {username}")
-        click.echo(f"  Name:          {name}")
-        click.echo(f"  Contributions: {contributions}")
-        click.echo(f"  Repositories:  {', '.join(repos[:5])}")
-        if len(repos) > 5:
-            click.echo(f"                 & {len(repos) - 5} more")
+        if classify:
+            contributions = contributor["total_contributions"]
+            repos = contributor["repositories"]
 
-        is_core = click.confirm(f"  Classify {username} as core?", default=False)
-        contributor_type = "core" if is_core else "community"
+            click.echo()
+            click.echo("-" * 40)
+            click.echo(f"  Username:      {username}")
+            click.echo(f"  Name:          {name}")
+            click.echo(f"  Contributions: {contributions}")
+            click.echo(f"  Repositories:  {', '.join(repos[:5])}")
+            if len(repos) > 5:
+                click.echo(f"                 & {len(repos) - 5} more")
+
+            is_core = click.confirm(f"  Classify {username} as core?", default=False)
+            contributor_type = "core" if is_core else "community"
+        else:
+            contributor_type = "community"
+
         new_entries.append(
             {"username": username, "type": contributor_type, "name": name}
         )
@@ -183,11 +205,11 @@ def discover_from_repos(
     community_count = len(merged) - core_count
     click.echo()
     click.echo("=" * 60)
-    click.echo("CLASSIFICATION COMPLETE")
+    click.echo("COMPLETE")
     click.echo("=" * 60)
     click.echo(f"  Core:      {core_count}")
     click.echo(f"  Community: {community_count}")
-    click.echo(f"  Total: {len(merged)}")
+    click.echo(f"  Total:     {len(merged)} ({len(new_entries)} new)")
     click.echo(f"  Saved to {csv_path}")
 
 
