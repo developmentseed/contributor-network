@@ -70,7 +70,7 @@ All commands are run via `uv run contributor-network <command>`.
 
 ### `discover from-repositories`
 
-Discover contributors by scanning the repos in `repositories.txt`. Prompts you to classify each new contributor as **core** or **other**, then saves to `contributors.csv`.
+Discover contributors by scanning the repos in `repositories.txt`. Prompts you to classify each new contributor as **core** or **community**, then saves to `contributors.csv`.
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
@@ -94,38 +94,26 @@ Options:
 - `--min-contributors N`: Minimum contributors to include a repo (default: 2)
 - `--limit N`: Maximum repos to output (default: 50)
 
-### `data`
+### `build`
 
-Fetch detailed contribution data from GitHub into JSON files. Reads repos from `repositories.txt` and contributors from `contributors.csv`.
+Fetch GitHub data, generate visualization CSVs, and assemble the static site — all in one step.
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network data data/
+uv run contributor-network build build/
 ```
 
 Options:
+- `-d, --data-dir DIR`: Directory for intermediate JSON and CSV data (default: `data/`)
 - `--include-community`: Also fetch link data for community (non-core) contributors
 - `--fetch-forking-orgs`: Discover which organizations have forked each repo
+- `--skip-fetch`: Skip the GitHub API fetch step and reuse existing JSON data
 
-### `csvs`
-
-Generate the visualization CSVs from fetched JSON data:
-
-```shell
-uv run contributor-network csvs data/
-```
-
-Produces `repositories.csv` and `links.csv` inside `data/`. The frontend derives the contributor list from `links.csv`, so `contributors.csv` remains the single source of truth.
-
-### `build`
-
-Build the static site into an output directory:
+To rebuild the site without re-fetching data from GitHub:
 
 ```shell
-uv run contributor-network build data/ build/
+uv run contributor-network build build/ --skip-fetch
 ```
-
-Copies CSVs, JS, CSS, images, and generates `config.json` for runtime use.
 
 ### `list-contributors`
 
@@ -148,16 +136,10 @@ export GITHUB_TOKEN="your_token_here"
 # 3. Discover and classify contributors interactively
 uv run contributor-network discover from-repositories
 
-# 4. Fetch detailed data from GitHub
-uv run contributor-network data data/
+# 4. Fetch data, generate CSVs, and build the site
+uv run contributor-network build build/
 
-# 5. Generate CSVs
-uv run contributor-network csvs data/
-
-# 6. Build the site
-uv run contributor-network build data/ build/
-
-# 7. Preview locally
+# 5. Preview locally
 cd build/ && python3 -m http.server 8000
 ```
 
@@ -172,16 +154,10 @@ export GITHUB_TOKEN="your_token_here"
 # 3. Discover repos your team contributes to
 uv run contributor-network discover from-contributors
 
-# 4. Fetch detailed data from GitHub
-uv run contributor-network data data/
+# 4. Fetch data, generate CSVs, and build the site
+uv run contributor-network build build/
 
-# 5. Generate CSVs
-uv run contributor-network csvs data/
-
-# 6. Build the site
-uv run contributor-network build data/ build/
-
-# 7. Preview locally
+# 5. Preview locally
 cd build/ && python3 -m http.server 8000
 ```
 

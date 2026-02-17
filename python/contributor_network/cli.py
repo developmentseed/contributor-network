@@ -4,9 +4,7 @@ Workflow overview
 -----------------
 1. Populate ``repositories.txt`` and ``contributors.csv`` — either
    manually or via ``discover from-repositories`` / ``discover from-contributors``.
-2. ``data``  — fetch detailed GitHub data (JSONs) for every repo+contributor.
-3. ``csvs``  — convert the JSONs into the three CSVs the frontend needs.
-4. ``build`` — assemble the static site.
+2. ``build`` — fetch GitHub data, generate CSVs, and assemble the static site.
 """
 
 import csv
@@ -25,7 +23,6 @@ ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
 
 # Shared CLI decorators
-directory = click.argument("directory", type=click.Path(path_type=Path))
 config_option = click.option(
     "-c",
     "--config",
@@ -316,49 +313,26 @@ def discover_from_contributors(
 
 
 # ================================================================
-# data
+# build  (unified: fetch + csvs + assemble)
 # ================================================================
 
 
-@main.command()
-@directory
-@config_option
-@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
-@click.option(
-    "--include-community",
-    is_flag=True,
-    help="Include community (non-core) contributors when fetching link data",
-)
-@click.option(
-    "--fetch-forking-orgs",
-    is_flag=True,
-    help="Discover which organizations have forked each repo (extra API calls)",
-)
-def data(
-    directory: Path,
-    config_path: str | None,
+def _fetch_data(
+    cfg: Config,
+    data_dir: Path,
     github_token: str | None,
     include_community: bool,
     fetch_forking_orgs: bool,
 ) -> None:
-    """Fetch contribution data from GitHub into JSON files.
-
-    Reads repositories from repositories.txt and contributors from
-    contributors.csv, then fetches detailed commit/link data for each
-    contributor-repo pair.
-    """
-    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    """Fetch contribution data from GitHub into JSON files."""
     repositories = cfg.load_repositories()
     all_entries = cfg.load_contributors()
 
-    # Build the contributor map based on flags
     if include_community:
         contributors = {e.username: e.name for e in all_entries}
     else:
         contributors = {
-            e.username: e.name
-            for e in all_entries
-            if e.type == ContributorType.CORE
+            e.username: e.name for e in all_entries if e.type == ContributorType.CORE
         }
 
     core_usernames = cfg.core_usernames
@@ -375,7 +349,7 @@ def data(
     else:
         auth = Auth.NetrcAuth()
 
-    client = Client(auth, directory)
+    client = Client(auth, data_dir)
 
     click.echo(
         f"Fetching data for {len(repositories)} repos, {len(contributors)} contributors"
@@ -387,9 +361,7 @@ def data(
         client.update_repository(repo)
 
         click.echo("  Updating links...")
-        client.update_links(
-            repo, contributors, core_usernames=core_usernames
-        )
+        client.update_links(repo, contributors, core_usernames=core_usernames)
 
         if fetch_forking_orgs:
             client.update_repository_forking_orgs(repo)
@@ -397,36 +369,18 @@ def data(
     click.echo("Done fetching data.")
 
 
-# ================================================================
-# csvs
-# ================================================================
-
-
-@main.command()
-@directory
-@config_option
-def csvs(directory: Path, config_path: str | None) -> None:
-    """Generate visualization CSVs from fetched JSON data.
-
-    Produces repositories.csv and links.csv inside the given DIRECTORY.
-    The frontend derives the contributor list from links.csv, so no
-    separate contributor CSV is generated — contributors.csv is the
-    single source of truth.
-    """
+def _generate_csvs(cfg: Config, data_dir: Path) -> None:
+    """Generate visualization CSVs from fetched JSON data."""
     from .models import Link, Repository
 
-    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     core_names = set(cfg.core_contributors.values())
 
     # Load all link JSONs
     links = []
-    for path in (directory / "links").glob("**/*.json"):
-        links.append(
-            Link.model_validate_json(path.read_text()).model_dump(mode="json")
-        )
+    for path in (data_dir / "links").glob("**/*.json"):
+        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
 
-    # Remap tier in links: core contributors get "core", others keep
-    # their existing tier (defaulting to "community")
+    # Remap tier: core contributors get "core", others default to "community"
     for link in links:
         if link["author_name"] in core_names:
             link["tier"] = "core"
@@ -434,9 +388,7 @@ def csvs(directory: Path, config_path: str | None) -> None:
             link["tier"] = "community"
 
     core_count = sum(1 for lnk in links if lnk["tier"] == "core")
-    community_count = sum(
-        1 for lnk in links if lnk["tier"] == "community"
-    )
+    community_count = sum(1 for lnk in links if lnk["tier"] == "community")
     unique_authors = {lnk["author_name"] for lnk in links}
     click.echo(
         f"Writing CSVs: {len(unique_authors)} contributors "
@@ -445,41 +397,26 @@ def csvs(directory: Path, config_path: str | None) -> None:
 
     # repositories.csv
     repositories = []
-    for path in (directory / "repositories").glob("**/*.json"):
+    for path in (data_dir / "repositories").glob("**/*.json"):
         repositories.append(
-            Repository.model_validate_json(path.read_text()).model_dump(
-                mode="json"
-            )
+            Repository.model_validate_json(path.read_text()).model_dump(mode="json")
         )
-    with open(directory / "repositories.csv", "w", newline="") as f:
-        fieldnames = list(
-            Repository.model_json_schema()["properties"].keys()
-        )
+    with open(data_dir / "repositories.csv", "w", newline="") as f:
+        fieldnames = list(Repository.model_json_schema()["properties"].keys())
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(repositories)
 
     # links.csv
-    with open(directory / "links.csv", "w", newline="") as f:
+    with open(data_dir / "links.csv", "w", newline="") as f:
         fieldnames = list(Link.model_json_schema()["properties"].keys())
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(links)
 
 
-# ================================================================
-# build
-# ================================================================
-
-
-@main.command()
-@directory
-@click.argument("destination", type=click.Path(path_type=Path))
-@config_option
-def build(directory: Path, destination: Path, config_path: str | None) -> None:
-    """Build the static HTML site."""
-    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-
+def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
+    """Copy assets, CSVs, JS, and config.json into the output directory."""
     destination.mkdir(parents=True, exist_ok=True)
 
     # Copy assets
@@ -503,7 +440,7 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     data_dest = assets_dest / "data"
     data_dest.mkdir(parents=True, exist_ok=True)
     for file_name in ["repositories.csv", "links.csv"]:
-        shutil.copy(directory / file_name, data_dest / file_name)
+        shutil.copy(data_dir / file_name, data_dest / file_name)
 
     js_dest = destination / "js"
     js_dest.mkdir(parents=True, exist_ok=True)
@@ -529,6 +466,69 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
 
     shutil.copy(ROOT / "index.html", destination / "index.html")
     click.echo(f"Copied index.html to {destination}")
+
+
+@main.command()
+@click.argument("destination", type=click.Path(path_type=Path))
+@config_option
+@click.option(
+    "-d",
+    "--data-dir",
+    type=click.Path(path_type=Path),
+    default="data",
+    show_default=True,
+    help="Directory for intermediate JSON and CSV data",
+)
+@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
+@click.option(
+    "--include-community",
+    is_flag=True,
+    help="Include community (non-core) contributors when fetching link data",
+)
+@click.option(
+    "--fetch-forking-orgs",
+    is_flag=True,
+    help="Discover which organizations have forked each repo (extra API calls)",
+)
+@click.option(
+    "--skip-fetch",
+    is_flag=True,
+    help="Skip the GitHub API fetch step (reuse existing JSON data)",
+)
+def build(
+    destination: Path,
+    config_path: str | None,
+    data_dir: Path,
+    github_token: str | None,
+    include_community: bool,
+    fetch_forking_orgs: bool,
+    skip_fetch: bool,
+) -> None:
+    """Fetch data, generate CSVs, and build the static site.
+
+    \b
+    Steps:
+      1. Fetch contribution data from GitHub (skip with --skip-fetch)
+      2. Generate repositories.csv and links.csv from JSON data
+      3. Assemble the static site into DESTINATION
+    """
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+
+    # Step 1: Fetch GitHub data
+    if skip_fetch:
+        click.echo("Skipping GitHub fetch (--skip-fetch)")
+    else:
+        _fetch_data(cfg, data_dir, github_token, include_community, fetch_forking_orgs)
+
+    # Step 2: Generate CSVs
+    _generate_csvs(cfg, data_dir)
+
+    # Step 3: Assemble the static site
+    _assemble_site(cfg, data_dir, destination)
+
+    click.echo()
+    click.echo(f"Build complete! Site written to {destination}/")
+    click.echo(f"Preview: cd {destination} && python3 -m http.server 8000")
 
 
 # ================================================================
