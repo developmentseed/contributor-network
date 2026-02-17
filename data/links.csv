@@ -1,6 +1,6 @@
 author_name,repo,commit_count,commit_sec_min,commit_sec_max,contribution_span_days,is_recent_contributor,tier
 Vitor George,developmentseed/lonboard,15,1697555970,1765456518,785,True,core
-mattmatt.world ,developmentseed/lonboard,2,1709240856,1711642789,27,False,sponsored
+mattmatt.world ,developmentseed/lonboard,2,1709240856,1711642789,27,False,community
 Chris Holden,developmentseed/lonboard,1,1738778383,1738778383,0,False,community
 Joris Van den Bossche,developmentseed/lonboard,1,1706575221,1706575221,0,False,community
 Qiusheng Wu,developmentseed/lonboard,1,1710856152,1710856152,0,False,community
@@ -55,7 +55,7 @@ Max Jones,developmentseed/titiler,5,1730214364,1761817321,365,False,core
 nate giraldi,developmentseed/titiler,1,1715065871,1715065871,0,False,community
 Pablo Padua,developmentseed/titiler,2,1731359811,1754493040,267,False,community
 Robin Wilson,developmentseed/titiler,1,1634281194,1634281194,0,False,community
-Pratap Vardhan,developmentseed/titiler,7,1734630739,1734711253,0,False,core
+Pratap Vardhan,developmentseed/titiler,7,1734630739,1734711253,0,False,community
 KotaYuhara,developmentseed/titiler,1,1731914474,1731914474,0,False,community
 Tom Christian,developmentseed/titiler,1,1770645288,1770645288,0,True,community
 Stefanos Mousafeiris,developmentseed/titiler,1,1645703322,1645703322,0,False,community
@@ -96,7 +96,7 @@ Dan Hirst,developmentseed/titiler,4,1679953272,1684419315,51,False,community
 holgerbach,developmentseed/titiler,1,1687503954,1687503954,0,False,community
 Frederico Liporace,developmentseed/titiler,4,1600915646,1612400136,132,False,community
 Ciaran Sweet,NASA-IMPACT/veda-backend,5,1722521511,1723132154,7,False,core
-Prakash Chaudhary,NASA-IMPACT/veda-backend,3,1668634223,1669228927,6,False,core
+Prakash Chaudhary,NASA-IMPACT/veda-backend,3,1668634223,1669228927,6,False,community
 Isayah Vidito,NASA-IMPACT/veda-backend,74,1667324462,1767891745,1163,True,core
 Jennifer Tran,NASA-IMPACT/veda-backend,166,1705627385,1770834945,754,True,core
 Jamison French,NASA-IMPACT/veda-backend,1,1692912400,1692912400,0,False,community

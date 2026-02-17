@@ -370,7 +370,11 @@ def _fetch_data(
 
 
 def _generate_csvs(cfg: Config, data_dir: Path) -> None:
-    """Generate visualization CSVs from fetched JSON data."""
+    """Generate visualization CSVs and config.json from fetched JSON data.
+
+    All output lands in *data_dir* so both local dev (project root) and
+    the assembled site (build/) read from the same place.
+    """
     from .models import Link, Repository
 
     core_names = set(cfg.core_contributors.values())
@@ -380,11 +384,12 @@ def _generate_csvs(cfg: Config, data_dir: Path) -> None:
     for path in (data_dir / "links").glob("**/*.json"):
         links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
 
-    # Remap tier: core contributors get "core", others default to "community"
+    # Remap tier based on current contributors.csv — always overwrite
+    # so that edits (e.g. core -> community) take effect
     for link in links:
         if link["author_name"] in core_names:
             link["tier"] = "core"
-        elif not link.get("tier"):
+        else:
             link["tier"] = "community"
 
     core_count = sum(1 for lnk in links if lnk["tier"] == "core")
@@ -414,12 +419,27 @@ def _generate_csvs(cfg: Config, data_dir: Path) -> None:
         writer.writeheader()
         writer.writerows(links)
 
+    # config.json (consumed by the frontend at runtime)
+    config_json = {
+        "title": cfg.title,
+        "description": cfg.description,
+        "organization_name": cfg.organization,
+        "contributor_padding": cfg.contributor_padding,
+        "contributors": cfg.all_contributors,
+        "core_contributors": cfg.core_contributors,
+        "visualization": cfg.visualization.model_dump(),
+    }
+    (data_dir / "config.json").write_text(
+        json.dumps(config_json, indent=2, ensure_ascii=False)
+    )
+    click.echo(f"Generated config.json in {data_dir}")
+
 
 def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
-    """Copy assets, CSVs, JS, and config.json into the output directory."""
+    """Copy assets, data, JS, and HTML into the output directory."""
     destination.mkdir(parents=True, exist_ok=True)
 
-    # Copy assets
+    # Copy static assets (css, lib, img)
     assets_dest = destination / "assets"
     assets_dest.mkdir(parents=True, exist_ok=True)
 
@@ -437,11 +457,15 @@ def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
     for path in (ROOT / "assets" / "img").glob("**/*.*"):
         shutil.copy(path, img_dest / path.name)
 
-    data_dest = assets_dest / "data"
+    # Copy data/ (CSVs + config.json) into the build output
+    data_dest = destination / "data"
     data_dest.mkdir(parents=True, exist_ok=True)
-    for file_name in ["repositories.csv", "links.csv"]:
-        shutil.copy(data_dir / file_name, data_dest / file_name)
+    for name in ("repositories.csv", "links.csv", "config.json"):
+        src = data_dir / name
+        if src.exists():
+            shutil.copy(src, data_dest / name)
 
+    # Copy JS modules
     js_dest = destination / "js"
     js_dest.mkdir(parents=True, exist_ok=True)
     js_source = ROOT / "js"
@@ -449,23 +473,8 @@ def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
         shutil.copytree(js_source, js_dest, dirs_exist_ok=True)
         click.echo(f"Copied js modules to {js_dest}")
 
-    # Generate config.json for the frontend
-    config_json = {
-        "title": cfg.title,
-        "description": cfg.description,
-        "organization_name": cfg.organization,
-        "contributor_padding": cfg.contributor_padding,
-        "contributors": cfg.all_contributors,
-        "core_contributors": cfg.core_contributors,
-        "visualization": cfg.visualization.model_dump(),
-    }
-    (data_dest / "config.json").write_text(
-        json.dumps(config_json, indent=2, ensure_ascii=False)
-    )
-    click.echo(f"Generated config.json in {data_dest}")
-
     shutil.copy(ROOT / "index.html", destination / "index.html")
-    click.echo(f"Copied index.html to {destination}")
+    click.echo(f"Copied site to {destination}")
 
 
 @main.command()
@@ -495,6 +504,12 @@ def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
     is_flag=True,
     help="Skip the GitHub API fetch step (reuse existing JSON data)",
 )
+@click.option(
+    "--csvs-only",
+    is_flag=True,
+    help="Only regenerate CSVs from existing data"
+    " (useful after editing contributors.csv)",
+)
 def build(
     destination: Path,
     config_path: str | None,
@@ -503,6 +518,7 @@ def build(
     include_community: bool,
     fetch_forking_orgs: bool,
     skip_fetch: bool,
+    csvs_only: bool,
 ) -> None:
     """Fetch data, generate CSVs, and build the static site.
 
@@ -511,8 +527,16 @@ def build(
       1. Fetch contribution data from GitHub (skip with --skip-fetch)
       2. Generate repositories.csv and links.csv from JSON data
       3. Assemble the static site into DESTINATION
+
+    Use --csvs-only to quickly regenerate CSVs after editing
+    contributors.csv (e.g. changing someone from core to community).
     """
     cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+
+    if csvs_only:
+        _generate_csvs(cfg, data_dir)
+        click.echo(f"Data updated in {data_dir}/")
+        return
 
     # Step 1: Fetch GitHub data
     if skip_fetch:
