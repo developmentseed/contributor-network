@@ -1,8 +1,8 @@
 /**
- * Force simulation for community (non-sponsored) contributors
+ * Force simulation for community (non-core) contributors
  *
  * Positions community contributor nodes in a scattered band outside the
- * main sponsored contributor ring. Uses d3.forceRadial to push nodes
+ * main core contributor ring. Uses d3.forceRadial to push nodes
  * outward while d3.forceCollide prevents overlap.
  *
  * @module simulations/communitySimulation
@@ -11,7 +11,7 @@
 /**
  * Run force simulation for community contributor nodes
  *
- * Positions community contributors outside the sponsored contributor ring
+ * Positions community contributors outside the core contributor ring
  * in a scattered, organic layout. Nodes are pushed to a radial band
  * centered at RADIUS_CONTRIBUTOR * 1.5 with slight randomness.
  *
@@ -19,7 +19,7 @@
  * @param {Array} links - All links between nodes
  * @param {Object} d3 - D3 library reference
  * @param {Function} getLinkNodeId - Helper to extract node ID from link source/target
- * @param {number} RADIUS_CONTRIBUTOR - Radius of the sponsored contributor ring
+ * @param {number} RADIUS_CONTRIBUTOR - Radius of the core contributor ring
  */
 export function runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR) {
   // Filter to only community contributor nodes

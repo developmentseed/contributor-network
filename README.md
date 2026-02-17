@@ -21,46 +21,82 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000/>
 
-## Discovery Modes
+## Project Structure
 
-The CLI supports two discovery modes, configured in `config.toml`:
+Configuration is split across three files to keep things simple:
 
-- **`contributor`** (default): Start from known contributors, fetch their repo data.
-- **`repository`**: Start from tracked repos, discover all contributors, and interactively classify each as core (sponsored) or community.
+| File                | Purpose                                                  |
+|---------------------|----------------------------------------------------------|
+| `config.toml`       | Title, org name, visualization settings, file paths      |
+| `repositories.txt`  | One GitHub repo per line (`owner/repo`)                  |
+| `contributors.csv`  | `username,type,name` — type is `core` or `community`      |
 
-Set the mode in `config.toml`:
+### Example `config.toml`
 
 ```toml
-[discovery]
-mode = "repository"   # or "contributor"
+title = "Contributor Network"
+organization = "Development Seed"
+description = "An interactive visualization of contributors"
+
+contributors_path = "contributors.csv"
+repositories_path = "repositories.txt"
+
+[visualization]
+show_community_contributors = true
+show_repo_details = true
+max_forks_to_display = 10
+```
+
+### Example `repositories.txt`
+
+```
+developmentseed/titiler
+developmentseed/lonboard
+NASA-IMPACT/veda-backend
+```
+
+### Example `contributors.csv`
+
+```csv
+username,type,name
+aboydnw,core,Anthony Boyd
+gadomski,core,Pete Gadomski
+some-contributor,community,Some Contributor
 ```
 
 ## CLI Commands
 
 All commands are run via `uv run contributor-network <command>`.
 
-### `data`
+### `discover from-repositories`
 
-Fetch contribution data from GitHub. Requires a `DIRECTORY` argument for intermediate JSON storage.
-
-**Repository mode** (interactive):
+Discover contributors by scanning the repos in `repositories.txt`. Prompts you to classify each new contributor as **core** or **other**, then saves to `contributors.csv`.
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network data data/ --mode repository
+uv run contributor-network discover from-repositories
 ```
-
-This will:
-1. Discover all contributors across your tracked repos
-2. Prompt you to classify each unknown contributor as core or community
-3. Add newly classified core contributors to `[contributors.core]` in `config.toml`
-4. Fetch detailed link data for every contributor
 
 Options:
 - `--min-contributions N`: Only include contributors with at least N contributions (default: 1)
-- `--mode [repository|contributor]`: Override the mode from `config.toml`
 
-**Contributor mode** (non-interactive):
+### `discover from-contributors`
+
+Discover repositories that your contributors have been active in. Optionally appends new repos to `repositories.txt`.
+
+```shell
+export GITHUB_TOKEN="your_token_here"
+uv run contributor-network discover from-contributors
+```
+
+Options:
+- `--type [core|all]`: Which contributors to scan (default: core)
+- `--min-contributors N`: Minimum contributors to include a repo (default: 2)
+- `--limit N`: Maximum repos to output (default: 50)
+
+### `data`
+
+Fetch detailed contribution data from GitHub into JSON files. Reads repos from `repositories.txt` and contributors from `contributors.csv`.
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
@@ -68,13 +104,12 @@ uv run contributor-network data data/
 ```
 
 Options:
-- `--all-contributors`: Include alumni/friends (not just core contributors)
-- `--include-community`: Also discover community contributors per repo
-- `--max-community-per-repo N`: Cap community contributors per repo (default: 50)
+- `--include-community`: Also fetch link data for community (non-core) contributors
+- `--fetch-forking-orgs`: Discover which organizations have forked each repo
 
 ### `csvs`
 
-Generate CSV files from the fetched JSON data:
+Generate the three CSV files the frontend needs from fetched JSON data:
 
 ```shell
 uv run contributor-network csvs data/
@@ -94,56 +129,26 @@ Copies CSVs, JS, CSS, images, and generates `config.json` for runtime use.
 
 ### `list-contributors`
 
-List all configured contributors by category:
+List all contributors from `contributors.csv` by category:
 
 ```shell
 uv run contributor-network list-contributors
 ```
 
-### `discover`
-
-Find new repositories that core contributors contribute to:
-
-```shell
-export GITHUB_TOKEN="your_token_here"
-uv run contributor-network discover --min-contributors 2 --limit 50
-```
-
 ## Full Workflow
 
-### Repository-first (recommended for new setups)
+### Starting from scratch (repository-first)
 
 ```shell
-# 1. Set your GitHub token
+# 1. Create repositories.txt with your repos (one per line)
+
+# 2. Set your GitHub token
 export GITHUB_TOKEN="your_token_here"
 
-# 2. Fetch data and classify contributors interactively
-uv run contributor-network data data/ --mode repository
+# 3. Discover and classify contributors interactively
+uv run contributor-network discover from-repositories
 
-# 3. Generate CSVs
-uv run contributor-network csvs data/
-
-# 4. Build the site
-uv run contributor-network build data/ build/
-
-# 5. Preview locally
-cd build/ && python3 -m http.server 8000
-```
-
-Then open <http://localhost:8000/>.
-
-### Contributor-first (existing workflow)
-
-```shell
-# 1. Set your GitHub token
-export GITHUB_TOKEN="your_token_here"
-
-# 2. (Optional) Discover new repos to add
-uv run contributor-network discover --min-contributors 2
-
-# 3. Edit config.toml to add/remove repos or contributors
-
-# 4. Fetch data from GitHub
+# 4. Fetch detailed data from GitHub
 uv run contributor-network data data/
 
 # 5. Generate CSVs
@@ -156,15 +161,31 @@ uv run contributor-network build data/ build/
 cd build/ && python3 -m http.server 8000
 ```
 
-## Configuration
+### Starting from known team (contributor-first)
 
-Edit `config.toml` to configure:
+```shell
+# 1. Create contributors.csv with your team (username,type,name)
 
-- **repositories**: List of GitHub repos to track (format: `"owner/repo"`)
-- **contributors.core**: Core team contributors shown in the central ring (format: `github_username = "Display Name"`)
-- **contributors.alumni**: Friends and alumni (optional)
-- **discovery.mode**: `"repository"` or `"contributor"`
-- **discovery.fetch_forking_orgs**: Set to `true` to discover which organizations have forked each repo (adds extra API calls)
+# 2. Set your GitHub token
+export GITHUB_TOKEN="your_token_here"
+
+# 3. Discover repos your team contributes to
+uv run contributor-network discover from-contributors
+
+# 4. Fetch detailed data from GitHub
+uv run contributor-network data data/
+
+# 5. Generate CSVs
+uv run contributor-network csvs data/
+
+# 6. Build the site
+uv run contributor-network build data/ build/
+
+# 7. Preview locally
+cd build/ && python3 -m http.server 8000
+```
+
+Then open <http://localhost:8000/>.
 
 ## Development
 

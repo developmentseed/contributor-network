@@ -32,25 +32,25 @@ class Client:
         repo: Repo,
         contributors: dict[str, str],
         *,
-        sponsored_usernames: set[str] | None = None,
+        core_usernames: set[str] | None = None,
     ) -> None:
         """Update the links for a single repository.
 
         Args:
             repo: GitHub repository object
             contributors: Map of username -> display name for known contributors
-            sponsored_usernames: Set of usernames considered "sponsored".
-                If provided, links are tagged with tier="sponsored" or "community".
-                If None, all links default to tier="sponsored" (backward compatible).
+            core_usernames: Set of usernames classified as "core".
+                If provided, links are tagged with tier="core" or "community".
+                If None, all links default to tier="core".
         """
         core_count = 0
         for contributor in repo.get_contributors():
             if contributor_name := contributors.get(contributor.login):
-                tier = "sponsored"
-                if sponsored_usernames is not None:
+                tier = "core"
+                if core_usernames is not None:
                     tier = (
-                        "sponsored"
-                        if contributor.login in sponsored_usernames
+                        "core"
+                        if contributor.login in core_usernames
                         else "community"
                     )
                 self.update_link(repo, contributor, contributor_name, tier=tier)
@@ -127,7 +127,7 @@ class Client:
 
         Args:
             repo: GitHub repository object
-            known_usernames: Set of usernames already configured (sponsored)
+            known_usernames: Set of usernames already configured (core)
             max_community: Maximum community contributors to return per repo
 
         Returns:
@@ -219,7 +219,7 @@ class Client:
         contributor: NamedUser,
         contributor_name: str,
         *,
-        tier: str = "sponsored",
+        tier: str = "core",
     ) -> None:
         """Update the link for a single contributor to a single repository.
 
@@ -227,7 +227,7 @@ class Client:
             repo: GitHub repository object
             contributor: GitHub user object
             contributor_name: Display name for the contributor
-            tier: "sponsored" or "community"
+            tier: "core" or "community"
         """
         path = self.directory / "links" / repo.full_name / (contributor.login + ".json")
         path.parent.mkdir(parents=True, exist_ok=True)

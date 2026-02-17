@@ -1,42 +1,12 @@
-# Minimal test config.toml
-title = "Contributor Network Test"
-description = "Repository-First Discovery Test"
-organization_name = "Development Seed"
+title = "Contributor Network"
+organization = "Development Seed"
+description = "An interactive visualization of contributors and their connections to repositories"
 
-repositories = [
-    "developmentseed/titiler",
-    "developmentseed/lonboard",
-    "NASA-IMPACT/veda-backend",
-]
+# Paths to data files (relative to this config file)
+contributors_path = "contributors.csv"
+repositories_path = "repositories.txt"
 
-[discovery]
-mode = "repository"
-
-[contributors.core]
-abarciauskas-bgse = "Aimee Barciauskas"
-aboydnw = "Anthony Boyd"
-anayeaye = "Alexandra Kirk"
-botanical = "Jennifer Tran"
-connectwithprakash = "Prakash Chaudhary"
-emmalu = "Emma Paz"
-gadomski = "Pete Gadomski"
-hrodmn = "Henry Rodman"
-ividito = "Isayah Vidito"
-kcarini = "Kiri"
-maxrjones = "Max Jones"
-moradology = "Nathan Zimmerman"
-naomatheus = "mattmatt.world"
-pratapvardhan = "Pratap Vardhan"
-ranchodeluxe = "sudobangbang"
-sandrahoang686 = "sandrahoang686"
-sharkinsspatial = "Sean Harkins"
-slesaad = "Slesa Adhikari"
-smohiudd = "Saadiq Mohiuddin"
-stephenkilbourn = "Stephen Kilbourn"
-vgeorge = "Vitor George"
-vincentsarago = "Vincent Sarago"
-alukach = "Anthony Lukach"
-ciaransweet = "Ciaran Sweet"
-kylebarron = "Kyle Barron"
-leothomas = "Leo Thomas"
-tracetechnical = "Alex Bush"
+[visualization]
+show_community_contributors = true
+show_repo_details = true
+max_forks_to_display = 10

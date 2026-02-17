@@ -60,7 +60,7 @@ export function runCollaborationSimulation(
       d3.forceManyBody()
     );
 
-  // Keep the nodes that are a sponsored "contributor" or a repo that has a degree > 1
+  // Keep the nodes that are a core "contributor" or a repo that has a degree > 1
   // Community contributors are excluded from the central simulation and positioned separately
   nodes_central = nodes.filter(
     (d) =>

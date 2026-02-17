@@ -62,7 +62,7 @@ export function positionContributorNodes(data, config) {
   // ============================================================
   // Contributor Node Preparation
   // ============================================================
-  // Only sponsored contributors go in the ring; community contributors are positioned separately
+  // Only core contributors go in the ring; community contributors are positioned separately
   const contributorNodes = nodes.filter((d) => d.type === "contributor" && d.tier !== "community");
   contributorNodes.forEach((d) => {
     // Ensure max_radius is set - fallback to contributor's own radius

@@ -443,7 +443,7 @@ const createContributorNetworkVisual = (
     /////////////////////////////////////////////////////////////
     /////////// Run Force Simulation for Community Nodes ////////
     /////////////////////////////////////////////////////////////
-    // Position community contributors outside the sponsored ring
+    // Position community contributors outside the core contributor ring
     runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
 
     /////////////////////////////////////////////////////////////
@@ -1317,7 +1317,7 @@ const createContributorNetworkVisual = (
         INNER_RADIUS_FACTOR
       }
     );
-    // Position community contributors outside the sponsored ring
+    // Position community contributors outside the core contributor ring
     runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
 
     // Resolve any remaining string references in links

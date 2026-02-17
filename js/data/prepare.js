@@ -137,8 +137,8 @@ export function prepareData(data, config, scales) {
   // ============================================================
   contributors.forEach((d) => {
     d.contributor_name = d.author_name;
-    // Tier comes from CSV: "sponsored" or "community" (default to "sponsored" for backward compat)
-    d.tier = d.tier || 'sponsored';
+    // Tier comes from CSV: "core" or "community" (default to "core")
+    d.tier = d.tier || 'core';
     d.color = d.tier === 'community'
       ? (COLOR_COMMUNITY_CONTRIBUTOR || COLOR_CONTRIBUTOR)
       : COLOR_CONTRIBUTOR;
@@ -258,7 +258,7 @@ export function prepareData(data, config, scales) {
     nodes.push({
       id: d.contributor_name,
       type: "contributor",
-      tier: d.tier || 'sponsored',
+      tier: d.tier || 'core',
       label: d.contributor_name,
       data: d,
     });

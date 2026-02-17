@@ -18,7 +18,7 @@
  * @param {Function} max - Math.max function
  */
 export function runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max) {
-  // First fix the sponsored contributor nodes in the center - this is only temporarily
+  // First fix the core contributor nodes in the center - this is only temporarily
   // Community contributors are handled by a separate simulation
   nodes
     .filter((d) => d.type === "contributor" && d.tier !== "community")
