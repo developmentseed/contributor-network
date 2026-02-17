@@ -109,13 +109,13 @@ Options:
 
 ### `csvs`
 
-Generate the three CSV files the frontend needs from fetched JSON data:
+Generate the visualization CSVs from fetched JSON data:
 
 ```shell
 uv run contributor-network csvs data/
 ```
 
-Produces `top_contributors.csv`, `repositories.csv`, and `links.csv` inside `data/`.
+Produces `repositories.csv` and `links.csv` inside `data/`. The frontend derives the contributor list from `links.csv`, so `contributors.csv` remains the single source of truth.
 
 ### `build`
 

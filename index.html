@@ -153,14 +153,35 @@
             .height(size);
 
         // ─── Load CSV data and render ─────────────────────────────
+        // Only two CSVs needed — the contributor list is derived from links
         const promises = [
-            d3.csv('assets/data/top_contributors.csv'),
             d3.csv('assets/data/repositories.csv'),
             d3.csv('assets/data/links.csv')
         ];
 
         document.fonts.ready.then(() => {
-            Promise.all(promises).then(values => {
+            Promise.all(promises).then(rawValues => {
+                const repos = rawValues[0];
+                const links = rawValues[1];
+
+                // Derive contributor list from links (single source: contributors.csv → data → links.csv)
+                const contributorMap = new Map();
+                links.forEach(link => {
+                    const existing = contributorMap.get(link.author_name);
+                    if (!existing) {
+                        contributorMap.set(link.author_name, {
+                            author_name: link.author_name,
+                            tier: link.tier || 'core'
+                        });
+                    } else if (link.tier === 'core') {
+                        existing.tier = 'core'; // core wins if mixed
+                    }
+                });
+                const contributors = Array.from(contributorMap.values());
+
+                // Repackage as [contributors, repos, links] for the visualization API
+                const values = [contributors, repos, links];
+
                 // Generate organization filter options
                 const uniqueOrgs = new Set();
                 values[1].forEach(repo => {

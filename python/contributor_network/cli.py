@@ -408,63 +408,58 @@ def data(
 def csvs(directory: Path, config_path: str | None) -> None:
     """Generate visualization CSVs from fetched JSON data.
 
-    Produces top_contributors.csv, repositories.csv, and links.csv
-    inside the given DIRECTORY.
+    Produces repositories.csv and links.csv inside the given DIRECTORY.
+    The frontend derives the contributor list from links.csv, so no
+    separate contributor CSV is generated — contributors.csv is the
+    single source of truth.
     """
     from .models import Link, Repository
 
     cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-    contributors = cfg.all_contributors
+    core_names = set(cfg.core_contributors.values())
 
     # Load all link JSONs
     links = []
     for path in (directory / "links").glob("**/*.json"):
-        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
+        links.append(
+            Link.model_validate_json(path.read_text()).model_dump(mode="json")
+        )
 
-    # Build contributor list with tier: core or community
-    all_author_names: dict[str, str] = {}
-    for name in contributors.values():
-        all_author_names[name] = "core"
-
-    # Community contributors discovered from link data
+    # Remap tier in links: core contributors get "core", others keep
+    # their existing tier (defaulting to "community")
     for link in links:
-        name = link["author_name"]
-        if name not in all_author_names:
-            all_author_names[name] = link.get("tier", "community")
+        if link["author_name"] in core_names:
+            link["tier"] = "core"
+        elif not link.get("tier"):
+            link["tier"] = "community"
 
-    core_count = sum(1 for t in all_author_names.values() if t == "core")
+    core_count = sum(1 for lnk in links if lnk["tier"] == "core")
     community_count = sum(
-        1 for t in all_author_names.values() if t == "community"
+        1 for lnk in links if lnk["tier"] == "community"
     )
+    unique_authors = {lnk["author_name"] for lnk in links}
     click.echo(
-        f"Writing CSVs for {len(all_author_names)} contributors "
-        f"({core_count} core, {community_count} community)"
+        f"Writing CSVs: {len(unique_authors)} contributors "
+        f"({core_count} core links, {community_count} community links)"
     )
-
-    # top_contributors.csv
-    with open(directory / "top_contributors.csv", "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["author_name", "tier"])
-        writer.writeheader()
-        for name, tier in sorted(all_author_names.items()):
-            writer.writerow({"author_name": name, "tier": tier})
 
     # repositories.csv
     repositories = []
     for path in (directory / "repositories").glob("**/*.json"):
         repositories.append(
-            Repository.model_validate_json(path.read_text()).model_dump(mode="json")
+            Repository.model_validate_json(path.read_text()).model_dump(
+                mode="json"
+            )
         )
     with open(directory / "repositories.csv", "w", newline="") as f:
-        fieldnames = list(Repository.model_json_schema()["properties"].keys())
+        fieldnames = list(
+            Repository.model_json_schema()["properties"].keys()
+        )
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(repositories)
 
-    # links.csv — remap tier from author lookup for consistency
-    for link in links:
-        author = link["author_name"]
-        if author in all_author_names:
-            link["tier"] = all_author_names[author]
+    # links.csv
     with open(directory / "links.csv", "w", newline="") as f:
         fieldnames = list(Link.model_json_schema()["properties"].keys())
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -507,7 +502,7 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
 
     data_dest = assets_dest / "data"
     data_dest.mkdir(parents=True, exist_ok=True)
-    for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
+    for file_name in ["repositories.csv", "links.csv"]:
         shutil.copy(directory / file_name, data_dest / file_name)
 
     js_dest = destination / "js"
