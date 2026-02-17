@@ -252,7 +252,7 @@ github_username = "Display Name"
 
 ## Project Status & Roadmap
 
-See [`roadmap.md`](./roadmap.md) for current project status, planned features, and implementation details. The roadmap is the single source of truth for what's been completed, what's in progress, and what's planned next.
+See [`CLAUDE.md`](./CLAUDE.md) for current project status and developer orientation.
 
 ---
 

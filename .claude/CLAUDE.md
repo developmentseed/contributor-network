@@ -2,7 +2,7 @@
 
 **Start here.** This file provides quick orientation for anyone working with this codebase.
 
-> **Important for AI agents:** When you make changes to the codebase, update the relevant documentation in `docs/` and `README.md` to reflect those changes. Keep `README.md` short, concise, and human-readable -- it is the public-facing project overview. This file (`CLAUDE.md`) is the detailed reference for developers and agents.
+> **Important for AI agents:** When you make changes to the codebase, update the relevant documentation in `.claude/` and `README.md` to reflect those changes. Keep `README.md` short, concise, and human-readable -- it is the public-facing project overview. This file (`CLAUDE.md`) is the detailed reference for developers and agents.
 
 ## What Is This?
 
@@ -224,7 +224,6 @@ The visualization uses multiple composited canvas layers for performance: main (
 |----------|---------|-----------|
 | **README.md** (root) | Project overview, CLI reference, full workflows | Understanding the product and CLI usage |
 | **PRD.md** | Product requirements and vision | First - understand the *why* |
-| **roadmap.md** | Project status, planned features, and implementation status | Planning new work |
 | **DATA_EXPANSION_PLAN.md** | Data collection phases (1-5) with details | Adding new data fields |
 
 ---
@@ -329,16 +328,10 @@ uv run pytest -v
 
 ---
 
-## Current Project Status
-
-See [`roadmap.md`](./roadmap.md) for full project status, planned features, and roadmap details.
-
----
-
 ## Need Help?
 
 - **Project overview and CLI usage?** → `README.md` (root)
-- **What are we building next?** → `roadmap.md` or `DATA_EXPANSION_PLAN.md`
+- **What are we building next?** → `DATA_EXPANSION_PLAN.md`
 - **What's the product for?** → `PRD.md`
 
 ---

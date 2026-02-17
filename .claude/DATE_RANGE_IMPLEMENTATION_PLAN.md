@@ -295,7 +295,7 @@ Nodes appear when their first commit month is reached. Links grow as commit coun
 7. **JS data preparation** — attach histograms to link objects
 8. **Time range filtering** — implement count-based filtering in `applyFilters()`
 9. **Scale updates** — verify link widths and contributor radii update correctly
-10. **UI slider** — build the time range control (see Feature 4 in ROADMAP.md)
+10. **UI slider** — build the time range control
 
 Steps 1-5 are Python/data work (~half day). Steps 6-10 are JS/visualization work (~1-2 days), mostly layered on top of the Feature 4 time range slider from the roadmap.
 
@@ -311,7 +311,7 @@ Steps 1-5 are Python/data work (~half day). Steps 6-10 are JS/visualization work
 
 **Scale behavior:** When the time range is very narrow (e.g., one month), most links will have small counts and the scale domain shrinks. This can make thin links appear thick. Consider setting a minimum domain ceiling (e.g., 10) to prevent scale distortion on narrow ranges.
 
-**Backward compatibility:** `links.csv` is unchanged. The new `commit_activity.csv` is additive. If the JS can't find it, fall back to the overlap-based filtering described in the ROADMAP.md Feature 4 entry.
+**Backward compatibility:** `links.csv` is unchanged. The new `commit_activity.csv` is additive. If the JS can't find it, fall back to overlap-based filtering.
 
 ---
 

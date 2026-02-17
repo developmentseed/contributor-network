@@ -610,7 +610,6 @@ const createContributorNetworkVisual = (
   // NOTE: Pure filter logic has been extracted to src/js/data/filter.js
   // This function handles integration with the visualization's mutable state.
   // For new features (e.g., blog charts), import { applyFilters } from './data/filter.js'
-  // See ARCHITECTURE_RECOMMENDATIONS.md for migration guide.
   function applyFilters() {
     // Guard against uninitialized data
     if (!originalRepos || !originalLinks || !originalContributors) {
