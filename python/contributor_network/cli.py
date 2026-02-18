@@ -13,11 +13,17 @@ from .models import Link, Repository
 
 ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
-directory = click.argument(
-    "directory", type=click.Path(path_type=Path), default=ROOT / "assets" / "data"
+directory = click.option(
+    "--directory",
+    type=click.Path(path_type=Path),
+    default=ROOT / "assets" / "data",
+    help="The data directory",
 )
-destination = click.argument(
-    "destination", type=click.Path(path_type=Path), default=ROOT / "dist"
+destination = click.option(
+    "--destination",
+    type=click.Path(path_type=Path),
+    default=ROOT / "dist",
+    help="The destination for the HTML page assets",
 )
 config = click.option(
     "-c",
@@ -46,19 +52,34 @@ def main():
 @config
 @github_token
 @all_contributors
+@click.argument("repos", nargs=-1)
 def fetch(
     directory: Path,
     config_path: str | None,
     github_token: str | None,
     all_contributors: bool,
+    repos: tuple[str, ...],
 ):
     """Fetch contributor network data from the Github API.
+
+    Optionally pass one or more REPOS (e.g. owner/repo) to fetch only those
+    repositories instead of all configured ones.
 
     This is an expensive operation that involves a lot of network calls to the
     Github API.
     """
 
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+
+    if repos:
+        repositories = list(repos)
+        unknown = set(repositories) - set(config.repositories)
+        if unknown:
+            raise click.UsageError(
+                f"Repositories not found in config: {', '.join(sorted(unknown))}"
+            )
+    else:
+        repositories = config.repositories
 
     if github_token:
         auth: Auth.Auth = Auth.Token(github_token)
@@ -72,7 +93,7 @@ def fetch(
     )
     print(f"Building data for {len(contributors)} contributors")
 
-    for repository in config.repositories:
+    for repository in repositories:
         print(f"Updating repository: {repository}")
         repo = client.get_repo(repository)
         client.update_repository(repo)
