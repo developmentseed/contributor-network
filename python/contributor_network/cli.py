@@ -1,10 +1,11 @@
 import json
 import shutil
+from collections import defaultdict
 from csv import DictWriter
 from pathlib import Path
 
 import click
-from github import Auth
+from github import Auth, Github
 
 from .client import Client
 from .config import Config
@@ -12,13 +13,26 @@ from .models import Link, Repository
 
 ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
-directory = click.argument("directory", type=click.Path(path_type=Path))
+directory = click.argument(
+    "directory", type=click.Path(path_type=Path), default=ROOT / "assets" / "data"
+)
+destination = click.argument(
+    "destination", type=click.Path(path_type=Path), default=ROOT / "dist"
+)
 config = click.option(
     "-c",
     "--config",
     "config_path",
     type=click.Path(),
     help="Path to the configuration file",
+)
+github_token = click.option(
+    "--github-token", envvar="GITHUB_TOKEN", help="GitHub token"
+)
+all_contributors = click.option(
+    "--all-contributors",
+    is_flag=True,
+    help="Include alumni and friends (not just DevSeed employees)",
 )
 
 
@@ -30,19 +44,19 @@ def main():
 @main.command()
 @directory
 @config
-@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
-@click.option(
-    "--all-contributors",
-    is_flag=True,
-    help="Include alumni and friends (not just DevSeed employees)",
-)
-def data(
+@github_token
+@all_contributors
+def fetch(
     directory: Path,
     config_path: str | None,
     github_token: str | None,
     all_contributors: bool,
 ):
-    """Build the contributor network data."""
+    """Fetch contributor network data from the Github API.
+
+    This is an expensive operation that involves a lot of network calls to the
+    Github API.
+    """
 
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
@@ -53,7 +67,6 @@ def data(
 
     client = Client(auth, directory)
 
-    # Use all contributors or just DevSeed employees
     contributors = (
         config.all_contributors if all_contributors else config.devseed_contributors
     )
@@ -70,14 +83,12 @@ def data(
 @main.command()
 @directory
 @config
-@click.option(
-    "--all-contributors",
-    is_flag=True,
-    help="Include alumni and friends (not just DevSeed employees)",
-)
-def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> None:
-    """Write the CSVs."""
-
+@destination
+@all_contributors
+def build(
+    directory: Path, config_path: str | None, destination: Path, all_contributors: bool
+) -> None:
+    """Build the HTML site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
         config.all_contributors if all_contributors else config.devseed_contributors
@@ -109,46 +120,30 @@ def csvs(directory: Path, config_path: str | None, all_contributors: bool) -> No
         writer.writeheader()
         writer.writerows(links)
 
-
-@main.command()
-@directory
-@click.argument("destination", type=click.Path(path_type=Path))
-@config
-def build(directory: Path, destination: Path, config_path: str | None) -> None:
-    """Build the HTML site."""
-
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-
     destination.mkdir(parents=True, exist_ok=True)
 
-    # Copy assets directory structure
     assets_dest = destination / "assets"
     assets_dest.mkdir(parents=True, exist_ok=True)
 
-    # Copy CSS
     css_dest = assets_dest / "css"
     css_dest.mkdir(parents=True, exist_ok=True)
     shutil.copy(ROOT / "assets" / "css" / "style.css", css_dest / "style.css")
 
-    # Copy lib (D3 libraries)
     lib_dest = assets_dest / "lib"
     lib_dest.mkdir(parents=True, exist_ok=True)
     for path in (ROOT / "assets" / "lib").glob("**/*.js"):
         shutil.copy(path, lib_dest / path.name)
 
-    # Copy images
     img_dest = assets_dest / "img"
     img_dest.mkdir(parents=True, exist_ok=True)
     for path in (ROOT / "assets" / "img").glob("**/*.*"):
         shutil.copy(path, img_dest / path.name)
 
-    # Copy data files
     data_dest = assets_dest / "data"
     data_dest.mkdir(parents=True, exist_ok=True)
     for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
         shutil.copy(directory / file_name, data_dest / file_name)
 
-    # Copy JS modules
     js_dest = destination / "js"
     js_dest.mkdir(parents=True, exist_ok=True)
     js_source = ROOT / "js"
@@ -158,7 +153,6 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     else:
         print("Warning: js directory not found")
 
-    # Generate config.json from config.toml for runtime loading
     config_json = {
         "title": config.title,
         "author": config.author,
@@ -172,14 +166,13 @@ def build(directory: Path, destination: Path, config_path: str | None) -> None:
     )
     print(f"Generated config.json in {data_dest}")
 
-    # Copy the single index.html (no more Jinja template rendering)
     shutil.copy(ROOT / "index.html", destination / "index.html")
     print(f"Copied index.html to {destination}")
 
 
 @main.command()
 @config
-@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
+@github_token
 @click.option(
     "--min-contributors", default=2, help="Minimum DevSeed contributors to show a repo"
 )
@@ -193,11 +186,7 @@ def discover(
     have contributed to, which are not currently in the configuration.
     Repos with more DevSeed contributors are likely more relevant to add.
     """
-    from collections import defaultdict
-
-    from github import Github
-
-    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
     if github_token:
         auth: Auth.Auth = Auth.Token(github_token)
@@ -205,10 +194,10 @@ def discover(
         auth = Auth.NetrcAuth()
 
     github = Github(auth=auth)
-    known_repos = set(cfg.repositories)
+    known_repos = set(config.repositories)
     discovered_repos: dict[str, list[str]] = defaultdict(list)
 
-    contributors = cfg.devseed_contributors
+    contributors = config.devseed_contributors
     print(f"Discovering repos for {len(contributors)} DevSeed contributors...")
     print(f"Known repos: {len(known_repos)}")
     print()
@@ -279,26 +268,27 @@ def discover(
 
 @main.command()
 @config
-@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
-def list_contributors(config_path: str | None, github_token: str | None) -> None:
+def list_contributors(config_path: str | None) -> None:
     """List all configured contributors and their categories."""
-    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
     print("DevSeed Contributors:")
     print("-" * 40)
-    for username, name in sorted(cfg.devseed_contributors.items(), key=lambda x: x[1]):
+    for username, name in sorted(
+        config.devseed_contributors.items(), key=lambda x: x[1]
+    ):
         print(f"  {name} (@{username})")
 
     print()
-    print(f"Total DevSeed: {len(cfg.devseed_contributors)}")
+    print(f"Total DevSeed: {len(config.devseed_contributors)}")
 
-    if cfg.alumni_contributors:
+    if config.alumni_contributors:
         print()
         print("Alumni/Friends (currently enabled):")
         print("-" * 40)
         for username, name in sorted(
-            cfg.alumni_contributors.items(), key=lambda x: x[1]
+            config.alumni_contributors.items(), key=lambda x: x[1]
         ):
             print(f"  {name} (@{username})")
         print()
-        print(f"Total Alumni: {len(cfg.alumni_contributors)}")
+        print(f"Total Alumni: {len(config.alumni_contributors)}")
