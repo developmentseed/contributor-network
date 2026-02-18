@@ -21,4 +21,4 @@ jobs:
       - name: Test
         run: uv run pytest
       - name: Build
-        run: uv run contributor-network build assets/data dist
+        run: uv run contributor-network build
