@@ -66,6 +66,8 @@ repositories = [
     "MAAP-Project/maap-documentation",
     "EOEPCA/demo",
     "EOEPCA/resource-discovery",
+    "EOEPCA/data-access",
+    "EOEPCA/eoepca-plus",
     "virtual-zarr/obspec-utils",
     "developmentseed/geotiff-test-data",
     "GenericMappingTools/pygmt",
