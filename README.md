@@ -6,73 +6,46 @@ The code behind <https://developmentseed.org/contributor-network>.
 
 This visual is derived from the excellent [ORCA top-contributor-network](https://github.com/nbremer/ORCA/tree/main/top-contributor-network) by Nadieh Bremer.
 
-## Quick Start
+## Usage
 
-### Prerequisites
+To view the site on http://localhost:8000:
 
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) for Python package management
-- A GitHub personal access token with `public_repo` scope
-
-### View Locally
-
-```shell
+```sh
 python -m http.server 8000
 ```
 
-Then open <http://localhost:8000/> (the root index.html)
+## Development
 
-## CLI Commands
+Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and a GitHub personal access token with `public_repo` scope (e.g. via `gh auth token` if you have the [Github CLI](https://cli.github.com/)).
 
-All commands are run via `uv run contributor-network <command>`.
+If you've only made changes to the javascript, you can rebuild the site with:
 
-### `list-contributors`
+```sh
+uv run contributor-network build
+```
 
-List all configured contributors by category:
+If you've changed the config and need to re-fetch data from the Github API, run this (warning, this takes a while):
+
+```sh
+export GITHUB_TOKEN="your_token_here"
+uv run contributor-network fetch
+```
+
+To list all configured contributors by category:
 
 ```shell
 uv run contributor-network list-contributors
 ```
 
-### `discover`
-
-Find new repositories that DevSeed employees contribute to:
+To find new repositories that DevSeed employees contribute to:
 
 ```shell
-export GITHUB_TOKEN="your_token_here"
 uv run contributor-network discover --min-contributors 2 --limit 50
 ```
 
 This queries GitHub to find repos where multiple DevSeed employees have contributed, which are not yet in the configuration.
 
-### `data`
-
-Fetch contribution data from GitHub for all configured repositories:
-
-```shell
-export GITHUB_TOKEN="your_token_here"
-uv run contributor-network assets/data assets/data
-```
-
-Options:
-- `--all-contributors`: Include alumni/friends (not just current DevSeed employees)
-
-### `csvs`
-
-Generate CSV files from the fetched JSON data:
-
-```shell
-uv run contributor-network csvs assets/data
-```
-
-### `build`
-
-Build the static site to the `dist/` folder:
-
-```shell
-uv run contributor-network build assets/data dist
-```
-
-## Full Workflow
+### Full workflow
 
 To update the visualization with new data:
 
@@ -86,16 +59,27 @@ uv run contributor-network discover --min-contributors 2
 # 3. Edit config.toml to add/remove repos or contributors
 
 # 4. Fetch data from GitHub
-uv run contributor-network assets/data assets/data
+uv run contributor-network fetch
 
-# 5. Generate CSVs
-uv run contributor-network csvs assets/data
-
-# 6. Build the site
-uv run contributor-network build assets/data dist
+# 5. Build the site
+uv run contributor-network build
 
 # 7. Preview locally
 cd dist && python -m http.server 8000
+```
+
+### Tests
+
+```shell
+npm test
+uv run pytest
+```
+
+### Lints
+
+```shell
+uv run ruff check --fix
+uv run ruff format
 ```
 
 ## Configuration
@@ -105,61 +89,6 @@ Edit `config.toml` to configure:
 - **repositories**: List of GitHub repos to track (format: `"owner/repo"`)
 - **contributors.devseed**: Current DevSeed employees (format: `github_username = "Display Name"`)
 - **contributors.alumni**: Friends and alumni (commented out by default)
-
-## Development
-
-### Architecture
-
-The visualization code is organized into modular ES6 modules in `src/js/`:
-
-```
-src/js/
-├── config/          # Configuration (theme, scales)
-├── data/            # Data filtering and utilities
-├── interaction/     # Mouse hover and click handling
-├── layout/          # Canvas sizing and layout
-├── render/          # Drawing functions (shapes, text, labels)
-├── simulations/     # D3 force simulations
-├── state/           # State management
-├── utils/           # Utilities (helpers, validation, formatters, debug)
-└── __tests__/       # Unit tests
-```
-
-The main entry point is `index.js` which:
-1. Loads dependencies (D3, etc.)
-2. Imports all modular components
-3. Exports `createContributorNetworkVisual` function
-
-The visualization is used in `dist/index.html` to render the interactive network.
-
-### Running Tests
-
-```shell
-npm test
-```
-
-Tests use Vitest and cover filtering, validation, and utility functions.
-
-### Making Changes
-
-When modifying the visualization:
-1. Edit files in `src/js/`
-2. Changes are immediately available in the browser (no build step needed)
-3. Refresh `http://localhost:8000/` to see updates
-4. Run `npm test` to verify changes don't break tests
-
-### Code Quality
-
-```shell
-uv sync
-uv run ruff check --fix
-uv run ruff format
-uv run pytest
-```
-
-### Automated Rebuilds
-
-We use [workflow dispatch](https://github.com/developmentseed/contributor-network/actions/workflows/build.yml) to rebuild the source data manually.
 
 ## Branding
 
