@@ -72,6 +72,8 @@ repositories = [
     "developmentseed/pixelverse",
     "NASA-IMPACT/veda-odd",
     "Disasters-Learning-Portal/veda-disasters",
+    "ecmwf/qubed",
+    "ecmwf/polytope-client"
 ]
 
 # Friends and alumni - commented out but preserved for future use
