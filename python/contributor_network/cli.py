@@ -1,4 +1,6 @@
+import csv
 import json
+import re
 import shutil
 from collections import defaultdict
 from csv import DictWriter
@@ -8,7 +10,7 @@ import click
 from github import Auth, Github
 
 from .client import Client
-from .config import Config, ContributorType
+from .config import Config
 from .models import Link, Repository
 
 ROOT = Path(__file__).absolute().parents[2]
@@ -310,3 +312,129 @@ def list_contributors(config_path: str | None) -> None:
             print(f"  {name} (@{username})")
         print()
         print(f"Total Community: {len(cfg.community_contributors)}")
+
+
+# ================================================================
+# bootstrap
+# ================================================================
+
+TOML_TEMPLATE = """\
+title = "{title}"
+author = ""
+description = ""
+organization_name = "{org}"
+{repos_section}
+[contributors.core]
+{contributors_section}
+"""
+
+
+def _detect_format(path: Path) -> str:
+    """Detect whether a file contains repos or contributors.
+
+    Returns ``"repos"`` or ``"contributors"``.
+    """
+    with open(path) as f:
+        first_line = f.readline().strip()
+    if "," in first_line:
+        return "contributors"
+    if re.match(r"^[\w.-]+/[\w.-]+$", first_line):
+        return "repos"
+    return "contributors" if "," in path.read_text() else "repos"
+
+
+def _read_repos_file(path: Path) -> list[str]:
+    repos: list[str] = []
+    with open(path) as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                repos.append(stripped)
+    return repos
+
+
+def _read_contributors_file(path: Path) -> dict[str, str]:
+    contributors: dict[str, str] = {}
+    with open(path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            username = row.get("username", "").strip()
+            name = row.get("name", username).strip()
+            if username:
+                contributors[username] = name
+    return contributors
+
+
+@main.command()
+@click.argument("infile", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "-o",
+    "--output",
+    "output_path",
+    type=click.Path(path_type=Path),
+    default="config.toml",
+    show_default=True,
+    help="Path for the generated config.toml",
+)
+@click.option(
+    "--title",
+    default="My Contributor Network",
+    show_default=True,
+    help="Title for the visualization",
+)
+@click.option(
+    "--org",
+    default="My Organization",
+    show_default=True,
+    help="Organization name",
+)
+def bootstrap(infile: Path, output_path: Path, title: str, org: str) -> None:
+    """Generate a config.toml from a list of repos or contributors.
+
+    \b
+    INFILE can be:
+      - A repos file: one owner/repo per line
+      - A contributors CSV: username,type,name (header required)
+
+    The format is auto-detected. After bootstrapping, run
+    'discover' to fill in the other side.
+    """
+    fmt = _detect_format(infile)
+
+    if fmt == "repos":
+        repos = _read_repos_file(infile)
+        repos_lines = "repositories = [\n"
+        for r in repos:
+            repos_lines += f'    "{r}",\n'
+        repos_lines += "]"
+        contributors_section = (
+            '# Run "contributor-network discover" to find contributors'
+        )
+        click.echo(f"Detected repos file with {len(repos)} repositories")
+    else:
+        contributors = _read_contributors_file(infile)
+        repos_lines = (
+            "repositories = [\n"
+            '    # Run "contributor-network discover" to find repositories\n'
+            "]"
+        )
+        contrib_lines: list[str] = []
+        for username, name in contributors.items():
+            contrib_lines.append(f'{username} = "{name}"')
+        contributors_section = "\n".join(contrib_lines) if contrib_lines else ""
+        click.echo(f"Detected contributors file with {len(contributors)} contributors")
+
+    content = TOML_TEMPLATE.format(
+        title=title,
+        org=org,
+        repos_section=repos_lines,
+        contributors_section=contributors_section,
+    )
+
+    output_path.write_text(content)
+    click.echo(f"Wrote {output_path}")
+    click.echo()
+    if fmt == "repos":
+        click.echo("Next: run 'contributor-network discover' to find contributors")
+    else:
+        click.echo("Next: run 'contributor-network discover' to find repositories")
