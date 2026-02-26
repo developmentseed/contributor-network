@@ -5,13 +5,14 @@
 
 /**
  * Creates a new filter state object
- * @returns {Object} Filter state with organizations array and metric thresholds
+ * @returns {Object} Filter state with organizations array, metric thresholds, and tier visibility
  */
 export function createFilterState() {
   return {
     organizations: [], // e.g., ["developmentseed", "stac-utils"]
     starsMin: null, // Minimum stars threshold (null = no filter)
     forksMin: null, // Minimum forks threshold (null = no filter)
+    showCommunity: true, // Whether to show community-tier contributors
   };
 }
 
@@ -54,6 +55,20 @@ export function setMetricFilter(state, metric, value) {
 }
 
 /**
+ * Sets a tier visibility filter
+ * @param {Object} state - The filter state object
+ * @param {string} tier - Tier filter name ('showCommunity')
+ * @param {boolean} visible - Whether to show this tier
+ * @returns {Object} Updated filter state
+ */
+export function setTierFilter(state, tier, visible) {
+  if (tier === 'showCommunity') {
+    state[tier] = visible;
+  }
+  return state;
+}
+
+/**
  * Clears all active filters
  * @param {Object} state - The filter state object
  * @returns {Object} Updated filter state with empty organizations array and null metrics
@@ -62,6 +77,7 @@ export function clearFilters(state) {
   state.organizations = [];
   state.starsMin = null;
   state.forksMin = null;
+  state.showCommunity = true;
   return state;
 }
 
@@ -84,6 +100,7 @@ export function hasActiveFilters(state) {
   return (
     state.organizations.length > 0 ||
     state.starsMin !== null ||
-    state.forksMin !== null
+    state.forksMin !== null ||
+    state.showCommunity === false
   );
 }

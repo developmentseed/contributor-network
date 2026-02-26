@@ -18,9 +18,10 @@
  * @param {Function} max - Math.max function
  */
 export function runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, max) {
-  // First fix the contributor nodes in the center - this is only temporarily
+  // First fix the core contributor nodes in the center - this is only temporarily
+  // Community contributors are handled by a separate simulation
   nodes
-    .filter((d) => d.type === "contributor")
+    .filter((d) => d.type === "contributor" && d.tier !== "community")
     .forEach((d) => {
       d.x = d.fx = 0;
       d.y = d.fy = 0;
@@ -28,7 +29,7 @@ export function runContributorSimulation(nodes, links, d3, getLinkNodeId, sqrt, 
 
   // Next run a force simulation to place all the single-degree repositories
   nodes
-    .filter((d) => d.type === "contributor")
+    .filter((d) => d.type === "contributor" && d.tier !== "community")
     .forEach((d) => {
       // Find all the nodes that are connected to this one with a degree of one, including the contributor node itself
       // Note: Use getLinkNodeId() since D3 force simulations may have converted some refs to objects
