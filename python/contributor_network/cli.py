@@ -280,10 +280,12 @@ def _fetch_data(
     data_dir: Path,
     github_token: str | None,
     all_contributors: bool,
+    fetch_forking_orgs: bool = False,
 ) -> None:
     """Fetch contribution data from GitHub into JSON files."""
     repositories = cfg.load_repositories()
     contributors = cfg.all_contributors if all_contributors else cfg.core_contributors
+    core_usernames = cfg.core_usernames
 
     if not repositories:
         click.echo("No repositories in config.toml")
@@ -309,18 +311,35 @@ def _fetch_data(
         client.update_repository(repo)
 
         click.echo("  Updating links...")
-        client.update_links(repo, contributors)
+        client.update_links(repo, contributors, core_usernames=core_usernames)
+
+        if fetch_forking_orgs:
+            client.update_repository_forking_orgs(repo)
 
     click.echo("Done fetching data.")
 
 
 def _generate_csvs(cfg: Config, data_dir: Path) -> None:
     """Generate visualization CSVs and config.json from fetched JSON data."""
-    contributors = cfg.all_contributors
-    authors = list(contributors.values())
-    click.echo(f"Writing CSVs for {len(authors)} contributors")
+    core_names = set(cfg.core_contributors.values())
 
-    (data_dir / "top_contributors.csv").write_text("\n".join(["author_name"] + authors))
+    links = []
+    for path in (data_dir / "links").glob("**/*.json"):
+        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
+
+    for link in links:
+        if link["author_name"] in core_names:
+            link["tier"] = "core"
+        else:
+            link["tier"] = "community"
+
+    core_count = sum(1 for lnk in links if lnk["tier"] == "core")
+    community_count = sum(1 for lnk in links if lnk["tier"] == "community")
+    unique_authors = {lnk["author_name"] for lnk in links}
+    click.echo(
+        f"Writing CSVs: {len(unique_authors)} contributors "
+        f"({core_count} core links, {community_count} community links)"
+    )
 
     repositories = []
     for path in (data_dir / "repositories").glob("**/*.json"):
@@ -333,9 +352,6 @@ def _generate_csvs(cfg: Config, data_dir: Path) -> None:
         writer.writeheader()
         writer.writerows(repositories)
 
-    links = []
-    for path in (data_dir / "links").glob("**/*.json"):
-        links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
     with open(data_dir / "links.csv", "w", newline="") as f:
         fieldnames = list(Link.model_json_schema()["properties"].keys())
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -344,11 +360,12 @@ def _generate_csvs(cfg: Config, data_dir: Path) -> None:
 
     config_json = {
         "title": cfg.title,
-        "author": cfg.author,
         "description": cfg.description,
         "organization_name": cfg.organization_name,
         "contributor_padding": cfg.contributor_padding,
         "contributors": cfg.all_contributors,
+        "core_contributors": cfg.core_contributors,
+        "visualization": cfg.visualization.model_dump(),
     }
     (data_dir / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
@@ -423,6 +440,11 @@ def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
     help="Include all contributor groups when fetching link data",
 )
 @click.option(
+    "--fetch-forking-orgs",
+    is_flag=True,
+    help="Discover which organizations have forked each repo (extra API calls)",
+)
+@click.option(
     "--skip-fetch",
     is_flag=True,
     help="Skip the GitHub API fetch step (reuse existing JSON data)",
@@ -438,6 +460,7 @@ def build(
     data_dir: Path,
     github_token: str | None,
     all_contributors: bool,
+    fetch_forking_orgs: bool,
     skip_fetch: bool,
     csvs_only: bool,
 ) -> None:
@@ -465,7 +488,7 @@ def build(
     if skip_fetch:
         click.echo("Skipping GitHub fetch (--skip-fetch)")
     else:
-        _fetch_data(cfg, data_dir, github_token, all_contributors)
+        _fetch_data(cfg, data_dir, github_token, all_contributors, fetch_forking_orgs)
 
     _generate_csvs(cfg, data_dir)
 
