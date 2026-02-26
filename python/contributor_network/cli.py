@@ -8,7 +8,7 @@ import click
 from github import Auth, Github
 
 from .client import Client
-from .config import Config
+from .config import Config, ContributorType
 from .models import Link, Repository
 
 ROOT = Path(__file__).absolute().parents[2]
@@ -89,7 +89,7 @@ def fetch(
     client = Client(auth, directory)
 
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     print(f"Building data for {len(contributors)} contributors")
 
@@ -112,7 +112,7 @@ def build(
     """Build the HTML site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     authors = list(contributors.values())
     print(f"Writing CSVs for {len(authors)} contributors")
@@ -218,8 +218,8 @@ def discover(
     known_repos = set(config.repositories)
     discovered_repos: dict[str, list[str]] = defaultdict(list)
 
-    contributors = config.devseed_contributors
-    print(f"Discovering repos for {len(contributors)} DevSeed contributors...")
+    contributors = config.core_contributors
+    print(f"Discovering repos for {len(contributors)} core contributors...")
     print(f"Known repos: {len(known_repos)}")
     print()
 
@@ -258,12 +258,12 @@ def discover(
 
     print()
     print("=" * 60)
-    print(f"DISCOVERED REPOSITORIES (min {min_contributors} DevSeed contributors)")
+    print(f"DISCOVERED REPOSITORIES (min {min_contributors} core contributors)")
     print("=" * 60)
     print()
 
     if not filtered_repos:
-        print(f"No repos found with {min_contributors}+ DevSeed contributors.")
+        print(f"No repos found with {min_contributors}+ core contributors.")
         print("Try lowering --min-contributors or check GitHub token permissions.")
         return
 
@@ -279,9 +279,8 @@ def discover(
     print('    "owner/repo-name",')
     print()
 
-    # Also output as TOML-ready format
     print("=" * 60)
-    print("TOML-READY FORMAT (copy/paste into config.toml):")
+    print("TOML FORMAT (copy/paste into config.toml):")
     print("=" * 60)
     for repo, _ in filtered_repos[:limit]:
         print(f'    "{repo}",')
@@ -291,25 +290,23 @@ def discover(
 @config
 def list_contributors(config_path: str | None) -> None:
     """List all configured contributors and their categories."""
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
-    print("DevSeed Contributors:")
+    print("Core Contributors:")
     print("-" * 40)
-    for username, name in sorted(
-        config.devseed_contributors.items(), key=lambda x: x[1]
-    ):
+    for username, name in sorted(cfg.core_contributors.items(), key=lambda x: x[1]):
         print(f"  {name} (@{username})")
 
     print()
-    print(f"Total DevSeed: {len(config.devseed_contributors)}")
+    print(f"Total Core: {len(cfg.core_contributors)}")
 
-    if config.alumni_contributors:
+    if cfg.community_contributors:
         print()
-        print("Alumni/Friends (currently enabled):")
+        print("Community Contributors:")
         print("-" * 40)
         for username, name in sorted(
-            config.alumni_contributors.items(), key=lambda x: x[1]
+            cfg.community_contributors.items(), key=lambda x: x[1]
         ):
             print(f"  {name} (@{username})")
         print()
-        print(f"Total Alumni: {len(config.alumni_contributors)}")
+        print(f"Total Community: {len(cfg.community_contributors)}")
