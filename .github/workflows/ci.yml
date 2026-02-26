@@ -22,3 +22,5 @@ jobs:
         run: uv run pytest
       - name: Build
         run: uv run contributor-network build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
