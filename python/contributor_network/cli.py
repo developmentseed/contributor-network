@@ -313,6 +313,15 @@ def _fetch_data(
         click.echo("  Updating links...")
         client.update_links(repo, contributors, core_usernames=core_usernames)
 
+        if all_contributors:
+            click.echo("  Discovering community contributors...")
+            community = client.discover_community_contributors(
+                repo, set(contributors.keys())
+            )
+            if community:
+                click.echo(f"  Found {len(community)} community contributors")
+                client.update_community_links(repo, community)
+
         if fetch_forking_orgs:
             client.update_repository_forking_orgs(repo)
 
