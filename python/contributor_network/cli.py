@@ -1,47 +1,41 @@
+"""CLI commands for the contributor network visualization.
+
+Workflow overview
+-----------------
+1. Edit ``config.toml`` — or use ``bootstrap`` to generate one.
+2. ``build`` — fetch GitHub data, generate CSVs, and assemble the static site.
+"""
+
 import csv
 import json
 import re
 import shutil
 from collections import defaultdict
-from csv import DictWriter
 from pathlib import Path
+from typing import Any
 
 import click
-from github import Auth, Github
+from github import Auth
 
 from .client import Client
-from .config import Config
+from .config import Config, ContributorType
 from .models import Link, Repository
 
 ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
-directory = click.option(
-    "--directory",
-    type=click.Path(path_type=Path),
-    default=ROOT / "assets" / "data",
-    help="The data directory",
-)
-destination = click.option(
-    "--destination",
-    type=click.Path(path_type=Path),
-    default=ROOT / "dist",
-    help="The destination for the HTML page assets",
-)
-config = click.option(
+
+config_option = click.option(
     "-c",
     "--config",
     "config_path",
     type=click.Path(),
-    help="Path to the configuration file",
+    help="Path to config.toml",
 )
-github_token = click.option(
-    "--github-token", envvar="GITHUB_TOKEN", help="GitHub token"
-)
-all_contributors = click.option(
-    "--all-contributors",
-    is_flag=True,
-    help="Include alumni and friends (not just DevSeed employees)",
-)
+
+
+# ================================================================
+# Top-level group
+# ================================================================
 
 
 @click.group()
@@ -49,100 +43,321 @@ def main():
     """Build the contributor network page."""
 
 
-@main.command()
-@directory
-@config
-@github_token
-@all_contributors
-@click.argument("repos", nargs=-1)
-def fetch(
-    directory: Path,
+# ================================================================
+# discover  (subgroup)
+# ================================================================
+
+
+@main.group()
+def discover():
+    """Discover contributors or repositories from GitHub."""
+
+
+@discover.command("from-repositories")
+@config_option
+@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
+@click.option(
+    "--min-contributions",
+    default=1,
+    help="Minimum contributions to include a contributor",
+)
+@click.option(
+    "--classify",
+    is_flag=True,
+    help="Interactively classify each new contributor as core or community"
+    " (default: auto-assign community)",
+)
+def discover_from_repos(
     config_path: str | None,
     github_token: str | None,
-    all_contributors: bool,
-    repos: tuple[str, ...],
-):
-    """Fetch contributor network data from the Github API.
+    min_contributions: int,
+    classify: bool,
+) -> None:
+    """Discover community contributors from tracked repositories.
 
-    Optionally pass one or more REPOS (e.g. owner/repo) to fetch only those
-    repositories instead of all configured ones.
-
-    This is an expensive operation that involves a lot of network calls to the
-    Github API.
+    \b
+    Scans each repository for contributors not yet in config.toml
+    and prints them. Use --classify to interactively decide core
+    vs community for each.
     """
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    repositories = cfg.load_repositories()
 
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-
-    if repos:
-        repositories = list(repos)
-        unknown = set(repositories) - set(config.repositories)
-        if unknown:
-            raise click.UsageError(
-                f"Repositories not found in config: {', '.join(sorted(unknown))}"
-            )
-    else:
-        repositories = config.repositories
+    if not repositories:
+        click.echo("No repositories in config.toml")
+        return
 
     if github_token:
         auth: Auth.Auth = Auth.Token(github_token)
     else:
         auth = Auth.NetrcAuth()
 
-    client = Client(auth, directory)
+    from github import Github
 
-    contributors = (
-        config.all_contributors if all_contributors else config.core_contributors
+    github = Github(auth=auth)
+
+    click.echo(f"Discovering contributors across {len(repositories)} repos...")
+    if min_contributions > 1:
+        click.echo(f"Minimum contributions threshold: {min_contributions}")
+
+    all_found: dict[str, dict[str, Any]] = {}
+    for repo_name in repositories:
+        click.echo(f"  Scanning {repo_name}...")
+        try:
+            repo = github.get_repo(repo_name)
+            for contributor in repo.get_contributors():
+                username = contributor.login
+                if username not in all_found:
+                    all_found[username] = {
+                        "login": username,
+                        "name": contributor.name or username,
+                        "total_contributions": contributor.contributions,
+                        "repositories": [repo_name],
+                    }
+                else:
+                    existing = all_found[username]
+                    existing["total_contributions"] += contributor.contributions
+                    if repo_name not in existing["repositories"]:
+                        existing["repositories"].append(repo_name)
+        except Exception as e:
+            click.echo(f"  Error scanning {repo_name}: {e}")
+
+    discovered = [
+        c for c in all_found.values() if c["total_contributions"] >= min_contributions
+    ]
+    click.echo(f"Discovered {len(discovered)} contributors")
+
+    known_usernames = set(cfg.all_contributors.keys())
+    remaining = [c for c in discovered if c["login"] not in known_usernames]
+    remaining.sort(key=lambda c: c["total_contributions"], reverse=True)
+
+    if not remaining:
+        click.echo("No new contributors found.")
+        return
+
+    click.echo()
+    click.echo("=" * 60)
+    if classify:
+        click.echo("CONTRIBUTOR CLASSIFICATION")
+    else:
+        click.echo("NEW COMMUNITY CONTRIBUTORS")
+    click.echo("=" * 60)
+    click.echo(
+        f"Total discovered: {len(discovered)}  |  "
+        f"Already known: {len(known_usernames)}  |  "
+        f"New: {len(remaining)}"
     )
-    print(f"Building data for {len(contributors)} contributors")
+
+    for c in remaining:
+        username = c["login"]
+        name = c.get("name", username)
+        contributions = c["total_contributions"]
+        repos = c["repositories"]
+
+        if classify:
+            click.echo()
+            click.echo("-" * 40)
+            click.echo(f"  Username:      {username}")
+            click.echo(f"  Name:          {name}")
+            click.echo(f"  Contributions: {contributions}")
+            click.echo(f"  Repositories:  {', '.join(repos[:5])}")
+        else:
+            click.echo(f"  {username} ({name}) — {contributions} contributions")
+
+    click.echo()
+    click.echo("Add these to [contributors.community] in config.toml.")
+
+
+@discover.command("from-contributors")
+@config_option
+@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
+@click.option(
+    "--type",
+    "contributor_type",
+    type=click.Choice(["core", "all"]),
+    default="core",
+    help="Which contributors to scan (default: core only)",
+)
+@click.option(
+    "--min-contributors",
+    default=2,
+    help="Minimum core contributors to include a repo",
+)
+@click.option("--limit", default=50, help="Maximum number of repos to output")
+def discover_from_contributors(
+    config_path: str | None,
+    github_token: str | None,
+    contributor_type: str,
+    min_contributors: int,
+    limit: int,
+) -> None:
+    """Discover repositories contributed to by listed contributors.
+
+    \b
+    Scans GitHub events for each contributor and finds repos not yet
+    in config.toml.
+    """
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+
+    if contributor_type == "core":
+        contributors = cfg.core_contributors
+    else:
+        contributors = cfg.all_contributors
+
+    if not contributors:
+        click.echo("No contributors in config.toml")
+        return
+
+    if github_token:
+        auth: Auth.Auth = Auth.Token(github_token)
+    else:
+        auth = Auth.NetrcAuth()
+
+    from github import Github
+
+    github = Github(auth=auth)
+
+    existing_repos = set(cfg.load_repositories())
+    discovered_repos: dict[str, list[str]] = defaultdict(list)
+
+    click.echo(f"Discovering repos for {len(contributors)} contributors...")
+    click.echo(f"Known repos: {len(existing_repos)}")
+    click.echo()
+
+    for username, name in contributors.items():
+        click.echo(f"  Checking {name} ({username})...", nl=False)
+        try:
+            user = github.get_user(username)
+            repos_found = 0
+            for event in user.get_events():
+                if event.type in ("PushEvent", "PullRequestEvent", "IssuesEvent"):
+                    repo_name = event.repo.full_name
+                    if (
+                        repo_name not in existing_repos
+                        and username not in discovered_repos[repo_name]
+                    ):
+                        discovered_repos[repo_name].append(username)
+                        repos_found += 1
+                if repos_found > 100:
+                    break
+            click.echo(f" found {repos_found} new repos")
+        except Exception as e:
+            click.echo(f" error: {e}")
+
+    sorted_repos = sorted(
+        discovered_repos.items(), key=lambda x: len(x[1]), reverse=True
+    )
+    filtered_repos = [
+        (repo, users) for repo, users in sorted_repos if len(users) >= min_contributors
+    ]
+
+    click.echo()
+    click.echo("=" * 60)
+    click.echo(f"DISCOVERED REPOSITORIES (min {min_contributors} contributors)")
+    click.echo("=" * 60)
+
+    if not filtered_repos:
+        click.echo(f"No repos found with {min_contributors}+ contributors.")
+        return
+
+    for repo, usernames in filtered_repos[:limit]:
+        click.echo(f"  {repo}")
+        click.echo(f"    Contributors ({len(usernames)}): {', '.join(usernames)}")
+
+    click.echo()
+    click.echo("Add these to 'repositories' in config.toml:")
+    for repo, _ in filtered_repos[:limit]:
+        click.echo(f'    "{repo}",')
+
+
+# ================================================================
+# build  (unified: fetch + csvs + assemble)
+# ================================================================
+
+
+def _fetch_data(
+    cfg: Config,
+    data_dir: Path,
+    github_token: str | None,
+    all_contributors: bool,
+) -> None:
+    """Fetch contribution data from GitHub into JSON files."""
+    repositories = cfg.load_repositories()
+    contributors = cfg.all_contributors if all_contributors else cfg.core_contributors
+
+    if not repositories:
+        click.echo("No repositories in config.toml")
+        return
+    if not contributors:
+        click.echo("No contributors in config.toml")
+        return
+
+    if github_token:
+        auth: Auth.Auth = Auth.Token(github_token)
+    else:
+        auth = Auth.NetrcAuth()
+
+    client = Client(auth, data_dir)
+
+    click.echo(
+        f"Fetching data for {len(repositories)} repos, {len(contributors)} contributors"
+    )
 
     for repository in repositories:
-        print(f"Updating repository: {repository}")
+        click.echo(f"Updating repository: {repository}")
         repo = client.get_repo(repository)
         client.update_repository(repo)
-        print(f"Updating links: {repository}")
+
+        click.echo("  Updating links...")
         client.update_links(repo, contributors)
 
+    click.echo("Done fetching data.")
 
-@main.command()
-@directory
-@config
-@destination
-@all_contributors
-def build(
-    directory: Path, config_path: str | None, destination: Path, all_contributors: bool
-) -> None:
-    """Build the HTML site."""
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-    contributors = (
-        config.all_contributors if all_contributors else config.core_contributors
-    )
+
+def _generate_csvs(cfg: Config, data_dir: Path) -> None:
+    """Generate visualization CSVs and config.json from fetched JSON data."""
+    contributors = cfg.all_contributors
     authors = list(contributors.values())
-    print(f"Writing CSVs for {len(authors)} contributors")
+    click.echo(f"Writing CSVs for {len(authors)} contributors")
 
-    (directory / "top_contributors.csv").write_text(
-        "\n".join(["author_name"] + authors)
-    )
+    (data_dir / "top_contributors.csv").write_text("\n".join(["author_name"] + authors))
 
     repositories = []
-    for path in (directory / "repositories").glob("**/*.json"):
+    for path in (data_dir / "repositories").glob("**/*.json"):
         repositories.append(
             Repository.model_validate_json(path.read_text()).model_dump(mode="json")
         )
-    with open(directory / "repositories.csv", "w") as f:
+    with open(data_dir / "repositories.csv", "w", newline="") as f:
         fieldnames = list(Repository.model_json_schema()["properties"].keys())
-        writer = DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(repositories)
 
     links = []
-    for path in (directory / "links").glob("**/*.json"):
+    for path in (data_dir / "links").glob("**/*.json"):
         links.append(Link.model_validate_json(path.read_text()).model_dump(mode="json"))
-    with open(directory / "links.csv", "w") as f:
+    with open(data_dir / "links.csv", "w", newline="") as f:
         fieldnames = list(Link.model_json_schema()["properties"].keys())
-        writer = DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(links)
 
+    config_json = {
+        "title": cfg.title,
+        "author": cfg.author,
+        "description": cfg.description,
+        "organization_name": cfg.organization_name,
+        "contributor_padding": cfg.contributor_padding,
+        "contributors": cfg.all_contributors,
+    }
+    (data_dir / "config.json").write_text(
+        json.dumps(config_json, indent=2, ensure_ascii=False)
+    )
+    click.echo(f"Generated config.json in {data_dir}")
+
+
+def _assemble_site(cfg: Config, data_dir: Path, destination: Path) -> None:
+    """Copy assets, data, JS, and HTML into the output directory."""
     destination.mkdir(parents=True, exist_ok=True)
 
     assets_dest = destination / "assets"
@@ -164,154 +379,131 @@ def build(
 
     data_dest = assets_dest / "data"
     data_dest.mkdir(parents=True, exist_ok=True)
-    for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
-        shutil.copy(directory / file_name, data_dest / file_name)
+    for name in (
+        "top_contributors.csv",
+        "repositories.csv",
+        "links.csv",
+        "config.json",
+    ):
+        src = data_dir / name
+        if src.exists():
+            shutil.copy(src, data_dest / name)
 
     js_dest = destination / "js"
     js_dest.mkdir(parents=True, exist_ok=True)
     js_source = ROOT / "js"
     if js_source.exists():
         shutil.copytree(js_source, js_dest, dirs_exist_ok=True)
-        print(f"Copied js modules to {js_dest}")
-    else:
-        print("Warning: js directory not found")
-
-    config_json = {
-        "title": config.title,
-        "author": config.author,
-        "description": config.description,
-        "organization_name": config.organization_name,
-        "contributor_padding": config.contributor_padding,
-        "contributors": config.all_contributors,
-    }
-    (data_dest / "config.json").write_text(
-        json.dumps(config_json, indent=2, ensure_ascii=False)
-    )
-    print(f"Generated config.json in {data_dest}")
+        click.echo(f"Copied js modules to {js_dest}")
 
     shutil.copy(ROOT / "index.html", destination / "index.html")
-    print(f"Copied index.html to {destination}")
+    click.echo(f"Copied site to {destination}")
 
 
 @main.command()
-@config
-@github_token
-@click.option(
-    "--min-contributors", default=2, help="Minimum DevSeed contributors to show a repo"
+@click.argument(
+    "destination",
+    type=click.Path(path_type=Path),
+    default="dist",
+    required=False,
 )
-@click.option("--limit", default=50, help="Maximum number of repos to display")
-def discover(
-    config_path: str | None, github_token: str | None, min_contributors: int, limit: int
+@config_option
+@click.option(
+    "-d",
+    "--data-dir",
+    type=click.Path(path_type=Path),
+    default=ROOT / "assets" / "data",
+    show_default=True,
+    help="Directory for intermediate JSON and CSV data",
+)
+@click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token")
+@click.option(
+    "--all-contributors",
+    is_flag=True,
+    help="Include all contributor groups when fetching link data",
+)
+@click.option(
+    "--skip-fetch",
+    is_flag=True,
+    help="Skip the GitHub API fetch step (reuse existing JSON data)",
+)
+@click.option(
+    "--csvs-only",
+    is_flag=True,
+    help="Only regenerate CSVs from existing data",
+)
+def build(
+    destination: Path,
+    config_path: str | None,
+    data_dir: Path,
+    github_token: str | None,
+    all_contributors: bool,
+    skip_fetch: bool,
+    csvs_only: bool,
 ) -> None:
-    """Discover repositories that DevSeed employees contribute to.
+    """Fetch data, generate CSVs, and build the static site.
 
-    This command queries GitHub to find repositories that DevSeed employees
-    have contributed to, which are not currently in the configuration.
-    Repos with more DevSeed contributors are likely more relevant to add.
+    \b
+    Steps:
+      1. Fetch contribution data from GitHub (skip with --skip-fetch)
+      2. Generate repositories.csv and links.csv from JSON data
+      3. Assemble the static site into DESTINATION
+
+    Use --csvs-only to quickly regenerate CSVs after editing config.toml.
     """
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
-
-    if github_token:
-        auth: Auth.Auth = Auth.Token(github_token)
-    else:
-        auth = Auth.NetrcAuth()
-
-    github = Github(auth=auth)
-    known_repos = set(config.repositories)
-    discovered_repos: dict[str, list[str]] = defaultdict(list)
-
-    contributors = config.core_contributors
-    print(f"Discovering repos for {len(contributors)} core contributors...")
-    print(f"Known repos: {len(known_repos)}")
-    print()
-
-    for username, name in contributors.items():
-        print(f"  Checking {name} ({username})...", end=" ", flush=True)
-        try:
-            user = github.get_user(username)
-
-            # Get repos via events (more accurate than get_repos)
-            repos_found = 0
-            for event in user.get_events():
-                if event.type in ("PushEvent", "PullRequestEvent", "IssuesEvent"):
-                    repo_name = event.repo.full_name
-                    if (
-                        repo_name not in known_repos
-                        and username not in discovered_repos[repo_name]
-                    ):
-                        discovered_repos[repo_name].append(username)
-                        repos_found += 1
-                # Limit events per user to avoid rate limiting
-                if repos_found > 100:
-                    break
-            print(f"found {repos_found} new repos")
-        except Exception as e:
-            print(f"error: {e}")
-
-    # Sort by number of DevSeed contributors (descending)
-    sorted_repos = sorted(
-        discovered_repos.items(), key=lambda x: len(x[1]), reverse=True
-    )
-
-    # Filter by minimum contributors
-    filtered_repos = [
-        (repo, users) for repo, users in sorted_repos if len(users) >= min_contributors
-    ]
-
-    print()
-    print("=" * 60)
-    print(f"DISCOVERED REPOSITORIES (min {min_contributors} core contributors)")
-    print("=" * 60)
-    print()
-
-    if not filtered_repos:
-        print(f"No repos found with {min_contributors}+ core contributors.")
-        print("Try lowering --min-contributors or check GitHub token permissions.")
-        return
-
-    for repo, usernames in filtered_repos[:limit]:
-        print(f"  {repo}")
-        print(f"    Contributors ({len(usernames)}): {', '.join(usernames)}")
-        print()
-
-    print("-" * 60)
-    print(f"Total: {len(filtered_repos)} repos with {min_contributors}+ contributors")
-    print()
-    print("To add a repo, append it to the 'repositories' list in config.toml:")
-    print('    "owner/repo-name",')
-    print()
-
-    print("=" * 60)
-    print("TOML FORMAT (copy/paste into config.toml):")
-    print("=" * 60)
-    for repo, _ in filtered_repos[:limit]:
-        print(f'    "{repo}",')
-
-
-@main.command()
-@config
-def list_contributors(config_path: str | None) -> None:
-    """List all configured contributors and their categories."""
     cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
-    print("Core Contributors:")
-    print("-" * 40)
-    for username, name in sorted(cfg.core_contributors.items(), key=lambda x: x[1]):
-        print(f"  {name} (@{username})")
+    dest = Path(destination)
+    if not dest.is_absolute():
+        dest = Path.cwd() / dest
 
-    print()
-    print(f"Total Core: {len(cfg.core_contributors)}")
+    if csvs_only:
+        _generate_csvs(cfg, data_dir)
+        click.echo(f"Data updated in {data_dir}/")
+        return
 
-    if cfg.community_contributors:
-        print()
-        print("Community Contributors:")
-        print("-" * 40)
-        for username, name in sorted(
-            cfg.community_contributors.items(), key=lambda x: x[1]
-        ):
-            print(f"  {name} (@{username})")
-        print()
-        print(f"Total Community: {len(cfg.community_contributors)}")
+    if skip_fetch:
+        click.echo("Skipping GitHub fetch (--skip-fetch)")
+    else:
+        _fetch_data(cfg, data_dir, github_token, all_contributors)
+
+    _generate_csvs(cfg, data_dir)
+
+    _assemble_site(cfg, data_dir, dest)
+
+    click.echo()
+    click.echo(f"Build complete! Site written to {dest}/")
+    click.echo(f"Preview: cd {dest} && python3 -m http.server 8000")
+
+
+# ================================================================
+# list-contributors
+# ================================================================
+
+
+@main.command()
+@config_option
+def list_contributors(config_path: str | None) -> None:
+    """List all contributors from config.toml."""
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    entries = cfg.load_contributors()
+
+    core = [e for e in entries if e.type == ContributorType.CORE]
+    community = [e for e in entries if e.type == ContributorType.COMMUNITY]
+
+    click.echo("Core Contributors:")
+    click.echo("-" * 40)
+    for e in sorted(core, key=lambda x: x.name):
+        click.echo(f"  {e.name} (@{e.username})")
+    click.echo(f"\nTotal Core: {len(core)}")
+
+    if community:
+        click.echo()
+        click.echo("Community Contributors:")
+        click.echo("-" * 40)
+        for e in sorted(community, key=lambda x: x.name):
+            click.echo(f"  {e.name} (@{e.username})")
+        click.echo(f"\nTotal Community: {len(community)}")
 
 
 # ================================================================
@@ -329,10 +521,7 @@ organization = "{organization}"
 
 
 def _detect_format(path: Path) -> str:
-    """Detect whether a file contains repos or contributors.
-
-    Returns ``"repos"`` or ``"contributors"``.
-    """
+    """Detect whether a file contains repos or contributors."""
     with open(path) as f:
         first_line = f.readline().strip()
     if "," in first_line:

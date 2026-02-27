@@ -28,8 +28,7 @@ uv run contributor-network bootstrap repos.txt --organization "My Org"
 
 ```shell
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network fetch
-uv run contributor-network build
+uv run contributor-network build dist
 ```
 
 5. **Deploy** the `dist/` directory to any static host, or preview locally.
@@ -38,53 +37,52 @@ uv run contributor-network build
 
 Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and a GitHub personal access token with `public_repo` scope (e.g. via `gh auth token` if you have the [Github CLI](https://cli.github.com/)).
 
-If you've only made changes to the javascript, you can rebuild the site with:
+Rebuild the site from existing data (JS-only changes):
 
 ```sh
-uv run contributor-network build
+uv run contributor-network build --skip-fetch
 ```
 
-If you've changed the config and need to re-fetch data from the Github API, run this (warning, this takes a while):
+Full build (fetch + generate + assemble):
 
 ```sh
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network fetch
+uv run contributor-network build dist
 ```
 
-To list all configured contributors by category:
+Discover repos your contributors work on:
+
+```shell
+uv run contributor-network discover from-contributors --min-contributors 2
+```
+
+Discover community contributors from tracked repos:
+
+```shell
+uv run contributor-network discover from-repositories --min-contributions 5
+```
+
+List contributors:
 
 ```shell
 uv run contributor-network list-contributors
 ```
 
-To find new repositories that core contributors work on:
-
-```shell
-uv run contributor-network discover --min-contributors 2 --limit 50
-```
-
-This queries GitHub to find repos where multiple core contributors have contributed, which are not yet in the configuration.
-
 ### Full workflow
-
-To update the visualization with new data:
 
 ```shell
 # 1. Set your GitHub token
 export GITHUB_TOKEN="your_token_here"
 
-# 2. (Optional) Discover new repos to add
-uv run contributor-network discover --min-contributors 2
+# 2. (Optional) Discover new repos or contributors
+uv run contributor-network discover from-contributors --min-contributors 2
 
 # 3. Edit config.toml to add/remove repos or contributors
 
-# 4. Fetch data from GitHub
-uv run contributor-network fetch
+# 4. Build (fetch + CSVs + site)
+uv run contributor-network build dist
 
-# 5. Build the site
-uv run contributor-network build
-
-# 7. Preview locally
+# 5. Preview locally
 cd dist && python -m http.server 8000
 ```
 
