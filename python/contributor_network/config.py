@@ -126,6 +126,15 @@ class Config(BaseModel):
         return {c.username: c.name for c in self.load_contributors()}
 
     @property
+    def core_usernames(self) -> set[str]:
+        """Set of usernames classified as core contributors."""
+        return set(self.core_contributors.keys())
+
+    def is_core(self, username: str) -> bool:
+        """Check whether a username is a core contributor."""
+        return username in self.core_usernames
+
+    @property
     def devseed_contributors(self) -> dict[str, str]:
         """Only the first contributor group (backward compat)."""
         return self.contributors.get("devseed", {})
