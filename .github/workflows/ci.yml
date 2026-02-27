@@ -13,9 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - uses: astral-sh/ruff-action@v3
+        with:
+          version: "0.9.27"
       - name: Format
-        run: ruff format --check --diff
+        run: uv run ruff format --check --diff
+      - name: Lint
+        run: uv run ruff check
       - name: Type check
         run: uv run mypy
       - name: Test
