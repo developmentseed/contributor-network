@@ -20,10 +20,10 @@ python -m http.server 8000
 2. **Bootstrap config** from a list of repos or contributors:
 
 ```shell
-uv run contributor-network bootstrap repos.txt --title "My Network" --org "My Org"
+uv run contributor-network bootstrap repos.txt --organization "My Org"
 ```
 
-3. **Edit `config.toml`** to adjust title, organization, repos, and contributors.
+3. **Edit `config.toml`** to adjust organization, repos, and contributors.
 4. **Run the CLI** to fetch data and build:
 
 ```shell

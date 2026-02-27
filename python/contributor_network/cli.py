@@ -319,10 +319,9 @@ def list_contributors(config_path: str | None) -> None:
 # ================================================================
 
 TOML_TEMPLATE = """\
-title = "{title}"
 author = ""
 description = ""
-organization_name = "{org}"
+organization = "{organization}"
 {repos_section}
 [contributors.core]
 {contributors_section}
@@ -377,18 +376,14 @@ def _read_contributors_file(path: Path) -> dict[str, str]:
     help="Path for the generated config.toml",
 )
 @click.option(
-    "--title",
-    default="My Contributor Network",
-    show_default=True,
-    help="Title for the visualization",
-)
-@click.option(
+    "--organization",
     "--org",
+    "organization",
     default="My Organization",
     show_default=True,
-    help="Organization name",
+    help="Organization name used for chart heading and page title",
 )
-def bootstrap(infile: Path, output_path: Path, title: str, org: str) -> None:
+def bootstrap(infile: Path, output_path: Path, organization: str) -> None:
     """Generate a config.toml from a list of repos or contributors.
 
     \b
@@ -425,8 +420,7 @@ def bootstrap(infile: Path, output_path: Path, title: str, org: str) -> None:
         click.echo(f"Detected contributors file with {len(contributors)} contributors")
 
     content = TOML_TEMPLATE.format(
-        title=title,
-        org=org,
+        organization=organization,
         repos_section=repos_lines,
         contributors_section=contributors_section,
     )

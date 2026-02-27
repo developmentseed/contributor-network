@@ -19,7 +19,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ContributorType(str, Enum):
@@ -49,8 +49,7 @@ class Config(BaseModel):
     """Top-level configuration loaded from ``config.toml``.
 
     Attributes:
-        title: Page title for the visualization.
-        organization_name: Name of the organization.
+        organization: Name of the organization.
         description: Description shown on the page.
         author: Author attribution.
         repositories: List of GitHub repos to track (owner/repo).
@@ -61,14 +60,23 @@ class Config(BaseModel):
         visualization: Frontend display settings.
     """
 
-    title: str
-    organization_name: str
+    organization: str
     description: str = ""
     author: str = ""
     repositories: list[str] = Field(default_factory=list)
     contributors: dict[str, dict[str, str]] = Field(default_factory=dict)
     contributor_padding: int = 40
     visualization: VisualizationConfig = Field(default_factory=VisualizationConfig)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_legacy_fields(cls, data: Any) -> Any:
+        """Accept legacy config keys while enforcing one organization value."""
+        if isinstance(data, dict):
+            organization = data.get("organization") or data.get("organization_name")
+            if organization:
+                data["organization"] = organization
+        return data
 
     # ------------------------------------------------------------------
     # Accessors
@@ -126,6 +134,16 @@ class Config(BaseModel):
     def alumni_contributors(self) -> dict[str, str]:
         """Friends and alumni (when enabled)."""
         return self.contributors.get("alumni", {})
+
+    @property
+    def organization_name(self) -> str:
+        """Backward-compatible alias used by the frontend config payload."""
+        return self.organization
+
+    @property
+    def title(self) -> str:
+        """Derived page title; users set only ``organization`` in config."""
+        return f"The {self.organization} Contributor Network"
 
     # ------------------------------------------------------------------
     # Factory
