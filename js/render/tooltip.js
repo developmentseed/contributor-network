@@ -7,6 +7,7 @@ import {
   renderStatsLine,
   renderLanguages,
   renderCommunityMetrics,
+  renderForkingOrganizations,
   renderLicense,
   renderArchivedBadge,
   REPO_CARD_CONFIG,
@@ -67,8 +68,18 @@ function calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatD
     height += config.labelFontSize * config.lineHeight + 4; // Label line (11px * 1.4 + 4 = 19.4px)
     height += config.valueFontSize * config.lineHeight; // Contributors line (11.5px * 1.4 = 16.1px)
     height += config.valueFontSize * config.lineHeight; // Health line (11.5px * 1.4 = 16.1px)
-    if (d.data.devseedContributors === 1 && d.data.totalContributors > 0) {
+    if (d.data.coreContributors === 1 && d.data.totalContributors > 0) {
       height += config.valueFontSize * config.lineHeight; // Bus factor warning (11.5px * 1.4 = 16.1px)
+    }
+  }
+
+  // Forking organizations section (if present)
+  if (d.data.forkingOrganizations && d.data.forkingOrganizations.length > 0) {
+    height += config.sectionSpacing;
+    height += config.labelFontSize * config.lineHeight + 4; // Label line
+    height += config.valueFontSize * config.lineHeight; // Orgs line
+    if (d.data.forkingOrganizations.length > 3) {
+      height += config.valueFontSize * config.lineHeight; // "& X more" line
     }
   }
 
@@ -162,9 +173,9 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
   if (d.data.totalContributors && d.data.totalContributors > 0) {
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     const total = d.data.totalContributors;
-    const devseed = d.data.devseedContributors || 0;
+    const core = d.data.coreContributors || 0;
     const external = d.data.externalContributors || 0;
-    width = context.measureText(`${total} contributors (${devseed} DevSeed, ${external} community)`).width * 1.25;
+    width = context.measureText(`${total} contributors (${core} core, ${external} community)`).width * 1.25;
     if (width > maxWidth) maxWidth = width;
 
     const ratio = d.data.communityRatio || 0;
@@ -173,8 +184,24 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
     width = context.measureText(`Community Health: ${healthPercent}% (${healthLabel})`).width * 1.25;
     if (width > maxWidth) maxWidth = width;
 
-    if (devseed === 1 && total > 0) {
-      width = context.measureText('⚠ Single DevSeed maintainer').width * 1.25;
+    if (core === 1 && total > 0) {
+      width = context.measureText('⚠ Single core maintainer').width * 1.25;
+      if (width > maxWidth) maxWidth = width;
+    }
+  }
+
+  // Measure forking organizations text
+  if (d.data.forkingOrganizations && d.data.forkingOrganizations.length > 0) {
+    setFont(context, config.valueFontSize * SF, 400, 'normal');
+    const maxOrgs = min(3, d.data.forkingOrganizations.length);
+    let orgText = '';
+    for (let i = 0; i < maxOrgs; i++) {
+      orgText += `${d.data.forkingOrganizations[i]}${i < maxOrgs - 1 ? ', ' : ''}`;
+    }
+    width = context.measureText(orgText).width * 1.25;
+    if (width > maxWidth) maxWidth = width;
+    if (d.data.forkingOrganizations.length > 3) {
+      width = context.measureText(`& ${d.data.forkingOrganizations.length - 3} more`).width * 1.25;
       if (width > maxWidth) maxWidth = width;
     }
   }
@@ -262,8 +289,9 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   let H, W;
 
   if (d.type === "contributor") {
-    // Contributor tooltip
-    H = 100;
+    // Contributor tooltip - taller if community tier badge is shown
+    const hasTierBadge = d.tier === 'community' || d.tier === 'core';
+    H = hasTierBadge ? 120 : 100;
     W = 320;
   } else if (d.type === "owner") {
     // Owner tooltip - keep existing logic for now
@@ -384,6 +412,17 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
     setFont(context, font_size * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
     renderText(context, text, x * SF, y * SF, 1.25 * SF);
+
+    // Tier badge (Core / Community)
+    const tierLabel = d.tier === 'community' ? 'Community' : 'Core';
+    y += 22;
+    font_size = 12;
+    setFont(context, font_size * SF, 700, "normal");
+    context.fillStyle = COL;
+    context.globalAlpha = 0.8;
+    renderText(context, tierLabel.toUpperCase(), x * SF, y * SF, 1.5 * SF);
+    context.globalAlpha = 1.0;
+    context.fillStyle = COLOR_TEXT;
   } else if (d.type === "owner") {
     // The name
     font_size = 20;
@@ -455,6 +494,9 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
 
     // Community metrics section
     y = renderCommunityMetrics(context, d.data, x, y, SF);
+
+    // Forking organizations section
+    y = renderForkingOrganizations(context, d.data, x, y, SF);
 
     // License (if available)
     y = renderLicense(context, d.data, x, y, SF);

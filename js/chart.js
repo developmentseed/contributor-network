@@ -56,7 +56,8 @@ import {
 import {
   runOwnerSimulation,
   runContributorSimulation,
-  runCollaborationSimulation
+  runCollaborationSimulation,
+  runCommunitySimulation
 } from './simulations/index.js';
 import {
   createFilterState,
@@ -65,7 +66,8 @@ import {
   clearFilters,
   hasOrganization,
   hasActiveFilters,
-  setMetricFilter
+  setMetricFilter,
+  setTierFilter
 } from './state/filterState.js';
 import { prepareData } from './data/prepare.js';
 import { positionContributorNodes } from './layout/positioning.js';
@@ -228,6 +230,8 @@ const createContributorNetworkVisual = (
   const COLOR_OWNER = COLORS.owner;           // Grenadier
   const COLOR_CONTRIBUTOR = COLORS.contributor;     // Lighter aquamarine
 
+  const COLOR_COMMUNITY_CONTRIBUTOR = COLORS.communityContributor; // Aquamarine (community)
+
   const COLOR_LINK = COLORS.link;
   const COLOR_TEXT = COLORS.text;            // Base dark gray
 
@@ -354,6 +358,7 @@ const createContributorNetworkVisual = (
       {
         d3,
         COLOR_CONTRIBUTOR,
+        COLOR_COMMUNITY_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
         MAX_CONTRIBUTOR_WIDTH,
@@ -434,6 +439,12 @@ const createContributorNetworkVisual = (
       }
     );
     // console.log("Central force simulation done")
+
+    /////////////////////////////////////////////////////////////
+    /////////// Run Force Simulation for Community Nodes ////////
+    /////////////////////////////////////////////////////////////
+    // Position community contributors outside the core contributor ring
+    runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
 
     /////////////////////////////////////////////////////////////
     ////////////// Resolve String References in Links ///////////
@@ -653,6 +664,11 @@ const createContributorNetworkVisual = (
       .filter((link) => visibleRepoNames.has(link.repo))
       .map((link) => JSON.parse(JSON.stringify(link)));
 
+    // Apply tier filter: remove community-tier links when toggle is off
+    if (activeFilters.showCommunity === false) {
+      visibleLinks = visibleLinks.filter((link) => link.tier !== "community");
+    }
+
     // Build set of visible contributor display names from visible links
     const visibleDisplayNames = new Set(
       visibleLinks.map((link) => link.author_name),
@@ -663,6 +679,13 @@ const createContributorNetworkVisual = (
     visibleContributors = originalContributors
       .filter((contributor) => visibleDisplayNames.has(contributor.author_name))
       .map((c) => JSON.parse(JSON.stringify(c)));
+
+    // Apply tier filter: remove community-tier contributors when toggle is off
+    if (activeFilters.showCommunity === false) {
+      visibleContributors = visibleContributors.filter(
+        (c) => c.tier !== "community"
+      );
+    }
 
     // Build set of visible contributor names for link filtering
     const visibleContributorNames = new Set(
@@ -684,6 +707,7 @@ const createContributorNetworkVisual = (
       console.debug('=== APPLY FILTERS ===');
       console.debug(`Org filters: ${activeFilters.organizations.join(", ") || "none"}`);
       console.debug(`Stars min: ${activeFilters.starsMin ?? "none"}, Forks min: ${activeFilters.forksMin ?? "none"}`);
+      console.debug(`Show community: ${activeFilters.showCommunity}`);
       console.debug(`Data before: ${originalContributors.length} contributors, ${originalRepos.length} repos, ${originalLinks.length} links`);
       console.debug(`Data after: ${visibleContributors.length} contributors, ${visibleRepos.length} repos, ${visibleLinks.length} links`);
       console.debug('Visible repos:', visibleRepos.map(r => r.repo));
@@ -1232,6 +1256,7 @@ const createContributorNetworkVisual = (
       {
         d3,
         COLOR_CONTRIBUTOR,
+        COLOR_COMMUNITY_CONTRIBUTOR,
         COLOR_REPO,
         COLOR_OWNER,
         MAX_CONTRIBUTOR_WIDTH,
@@ -1291,6 +1316,9 @@ const createContributorNetworkVisual = (
         INNER_RADIUS_FACTOR
       }
     );
+    // Position community contributors outside the core contributor ring
+    runCommunitySimulation(nodes, links, d3, getLinkNodeId, RADIUS_CONTRIBUTOR);
+
     // Resolve any remaining string references in links
     links = resolveLinkReferences(links, nodes);
 
@@ -1402,6 +1430,18 @@ const createContributorNetworkVisual = (
    */
   chart.setRepoFilter = function (metric, value) {
     setMetricFilter(activeFilters, metric, value);
+    chart.rebuild();
+    return chart;
+  };
+
+  /**
+   * Updates a tier visibility filter and rebuilds the chart
+   * @param {string} tier - Tier filter name ('showCommunity')
+   * @param {boolean} visible - Whether to show this tier
+   * @returns {Object} - The chart instance
+   */
+  chart.setTierFilter = function (tier, visible) {
+    setTierFilter(activeFilters, tier, visible);
     chart.rebuild();
     return chart;
   };

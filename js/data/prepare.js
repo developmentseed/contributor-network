@@ -113,6 +113,7 @@ export function prepareData(data, config, scales) {
   const {
     d3,
     COLOR_CONTRIBUTOR,
+    COLOR_COMMUNITY_CONTRIBUTOR,
     COLOR_REPO,
     COLOR_OWNER,
     MAX_CONTRIBUTOR_WIDTH,
@@ -136,7 +137,11 @@ export function prepareData(data, config, scales) {
   // ============================================================
   contributors.forEach((d) => {
     d.contributor_name = d.author_name;
-    d.color = COLOR_CONTRIBUTOR;
+    // Tier comes from CSV: "core" or "community" (default to "core")
+    d.tier = d.tier || 'core';
+    d.color = d.tier === 'community'
+      ? (COLOR_COMMUNITY_CONTRIBUTOR || COLOR_CONTRIBUTOR)
+      : COLOR_CONTRIBUTOR;
 
     // Determine across how many lines to split the contributor name
     setContributorFont(context);
@@ -167,9 +172,14 @@ export function prepareData(data, config, scales) {
 
     // Phase 2: Community metrics
     d.totalContributors = +d.repo_total_contributors || 0;
-    d.devseedContributors = +d.repo_devseed_contributors || 0;
+    d.coreContributors = +d.repo_core_contributors || 0;
     d.externalContributors = +d.repo_external_contributors || 0;
     d.communityRatio = +d.repo_community_ratio || 0;
+
+    // Phase 3: Repository-centric extended metrics
+    d.forkingOrganizations = d.repo_forking_organizations
+      ? d.repo_forking_organizations.split(",").filter(o => o !== "")
+      : [];
 
     // Parse dates with validation (check if unix time or ISO format)
     if (isInteger(d.createdAt)) {
@@ -201,9 +211,10 @@ export function prepareData(data, config, scales) {
     delete d.repo_has_discussions;
     delete d.repo_archived;
     delete d.repo_total_contributors;
-    delete d.repo_devseed_contributors;
+    delete d.repo_core_contributors;
     delete d.repo_external_contributors;
     delete d.repo_community_ratio;
+    delete d.repo_forking_organizations;
     delete d.repo_createdAt;
     delete d.repo_updatedAt;
   });
@@ -247,6 +258,7 @@ export function prepareData(data, config, scales) {
     nodes.push({
       id: d.contributor_name,
       type: "contributor",
+      tier: d.tier || 'core',
       label: d.contributor_name,
       data: d,
     });

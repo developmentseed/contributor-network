@@ -60,10 +60,11 @@ export function runCollaborationSimulation(
       d3.forceManyBody()
     );
 
-  // Keep the nodes that are a "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
+  // Keep the nodes that are a core "contributor" or a repo that has a degree > 1
+  // Community contributors are excluded from the central simulation and positioned separately
   nodes_central = nodes.filter(
     (d) =>
-      d.type === "contributor" ||
+      (d.type === "contributor" && d.tier !== "community") ||
       (d.type === "owner" && d.data.single_contributor == false) ||
       (d.type === "repo" &&
         d.data.multi_repo_owner === false &&

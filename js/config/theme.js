@@ -18,7 +18,8 @@ export const COLORS = {
 
   // Semantic colors for visualization
   background: '#f7f7f7',
-  contributor: '#3A9BBF',     // Lighter aquamarine
+  contributor: '#3A9BBF',     // Lighter aquamarine (core contributors)
+  communityContributor: '#2E86AB', // Aquamarine blue (community contributors)
   repo: '#2E86AB',            // Aquamarine (secondary blue)
   repoMain: '#CF3F02',        // Grenadier (central repo)
   owner: '#CF3F02',           // Grenadier
