@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, shrink-to-fit=0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Contributor Network</title>
 
@@ -79,6 +79,7 @@
         </div>
 
         <div id="chart-container">
+            <p id="chart-loading" style="text-align: center; padding-top: 2em; color: var(--color-text); font-style: italic;">Loading visualization...</p>
             <div id="chart-zoom-controls" aria-label="Zoom controls">
                 <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
                 <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
@@ -232,6 +233,8 @@
                 updateFilterStats();
 
                 // Render the visualization
+                const loadingEl = document.getElementById("chart-loading");
+                if (loadingEl) loadingEl.remove();
                 contributorNetworkVisual(values);
 
                 // Display most recent commit date across all links
