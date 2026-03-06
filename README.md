@@ -14,6 +14,26 @@ To view the site on http://localhost:8000:
 python -m http.server 8000
 ```
 
+## Creating your own contributor network
+
+1. **Fork or clone** the repository.
+2. **Bootstrap config** from a list of repos or contributors:
+
+```shell
+uv run contributor-network bootstrap repos.txt --organization "My Org"
+```
+
+3. **Edit `config.toml`** to adjust organization, repos, and contributors.
+4. **Run the CLI** to fetch data and build:
+
+```shell
+export GITHUB_TOKEN="your_token_here"
+uv run contributor-network fetch
+uv run contributor-network build
+```
+
+5. **Deploy** the `dist/` directory to any static host, or preview locally.
+
 ## Development
 
 Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and a GitHub personal access token with `public_repo` scope (e.g. via `gh auth token` if you have the [Github CLI](https://cli.github.com/)).
@@ -37,13 +57,13 @@ To list all configured contributors by category:
 uv run contributor-network list-contributors
 ```
 
-To find new repositories that DevSeed employees contribute to:
+To find new repositories that core contributors work on:
 
 ```shell
 uv run contributor-network discover --min-contributors 2 --limit 50
 ```
 
-This queries GitHub to find repos where multiple DevSeed employees have contributed, which are not yet in the configuration.
+This queries GitHub to find repos where multiple core contributors have contributed, which are not yet in the configuration.
 
 ### Full workflow
 

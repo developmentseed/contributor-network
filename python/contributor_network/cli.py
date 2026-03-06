@@ -1,4 +1,6 @@
+import csv
 import json
+import re
 import shutil
 from collections import defaultdict
 from csv import DictWriter
@@ -89,7 +91,7 @@ def fetch(
     client = Client(auth, directory)
 
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     print(f"Building data for {len(contributors)} contributors")
 
@@ -112,7 +114,7 @@ def build(
     """Build the HTML site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     authors = list(contributors.values())
     print(f"Writing CSVs for {len(authors)} contributors")
@@ -218,8 +220,8 @@ def discover(
     known_repos = set(config.repositories)
     discovered_repos: dict[str, list[str]] = defaultdict(list)
 
-    contributors = config.devseed_contributors
-    print(f"Discovering repos for {len(contributors)} DevSeed contributors...")
+    contributors = config.core_contributors
+    print(f"Discovering repos for {len(contributors)} core contributors...")
     print(f"Known repos: {len(known_repos)}")
     print()
 
@@ -258,12 +260,12 @@ def discover(
 
     print()
     print("=" * 60)
-    print(f"DISCOVERED REPOSITORIES (min {min_contributors} DevSeed contributors)")
+    print(f"DISCOVERED REPOSITORIES (min {min_contributors} core contributors)")
     print("=" * 60)
     print()
 
     if not filtered_repos:
-        print(f"No repos found with {min_contributors}+ DevSeed contributors.")
+        print(f"No repos found with {min_contributors}+ core contributors.")
         print("Try lowering --min-contributors or check GitHub token permissions.")
         return
 
@@ -279,9 +281,8 @@ def discover(
     print('    "owner/repo-name",')
     print()
 
-    # Also output as TOML-ready format
     print("=" * 60)
-    print("TOML-READY FORMAT (copy/paste into config.toml):")
+    print("TOML FORMAT (copy/paste into config.toml):")
     print("=" * 60)
     for repo, _ in filtered_repos[:limit]:
         print(f'    "{repo}",')
@@ -291,25 +292,143 @@ def discover(
 @config
 def list_contributors(config_path: str | None) -> None:
     """List all configured contributors and their categories."""
-    config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
+    cfg = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
-    print("DevSeed Contributors:")
+    print("Core Contributors:")
     print("-" * 40)
-    for username, name in sorted(
-        config.devseed_contributors.items(), key=lambda x: x[1]
-    ):
+    for username, name in sorted(cfg.core_contributors.items(), key=lambda x: x[1]):
         print(f"  {name} (@{username})")
 
     print()
-    print(f"Total DevSeed: {len(config.devseed_contributors)}")
+    print(f"Total Core: {len(cfg.core_contributors)}")
 
-    if config.alumni_contributors:
+    if cfg.community_contributors:
         print()
-        print("Alumni/Friends (currently enabled):")
+        print("Community Contributors:")
         print("-" * 40)
         for username, name in sorted(
-            config.alumni_contributors.items(), key=lambda x: x[1]
+            cfg.community_contributors.items(), key=lambda x: x[1]
         ):
             print(f"  {name} (@{username})")
         print()
-        print(f"Total Alumni: {len(config.alumni_contributors)}")
+        print(f"Total Community: {len(cfg.community_contributors)}")
+
+
+# ================================================================
+# bootstrap
+# ================================================================
+
+TOML_TEMPLATE = """\
+author = ""
+description = ""
+organization = "{organization}"
+{repos_section}
+[contributors.core]
+{contributors_section}
+"""
+
+
+def _detect_format(path: Path) -> str:
+    """Detect whether a file contains repos or contributors.
+
+    Returns ``"repos"`` or ``"contributors"``.
+    """
+    with open(path) as f:
+        first_line = f.readline().strip()
+    if "," in first_line:
+        return "contributors"
+    if re.match(r"^[\w.-]+/[\w.-]+$", first_line):
+        return "repos"
+    return "contributors" if "," in path.read_text() else "repos"
+
+
+def _read_repos_file(path: Path) -> list[str]:
+    repos: list[str] = []
+    with open(path) as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                repos.append(stripped)
+    return repos
+
+
+def _read_contributors_file(path: Path) -> dict[str, str]:
+    contributors: dict[str, str] = {}
+    with open(path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            username = row.get("username", "").strip()
+            name = row.get("name", username).strip()
+            if username:
+                contributors[username] = name
+    return contributors
+
+
+@main.command()
+@click.argument("infile", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "-o",
+    "--output",
+    "output_path",
+    type=click.Path(path_type=Path),
+    default="config.toml",
+    show_default=True,
+    help="Path for the generated config.toml",
+)
+@click.option(
+    "--organization",
+    "--org",
+    "organization",
+    default="My Organization",
+    show_default=True,
+    help="Organization name used for chart heading and page title",
+)
+def bootstrap(infile: Path, output_path: Path, organization: str) -> None:
+    """Generate a config.toml from a list of repos or contributors.
+
+    \b
+    INFILE can be:
+      - A repos file: one owner/repo per line
+      - A contributors CSV: username,type,name (header required)
+
+    The format is auto-detected. After bootstrapping, run
+    'discover' to fill in the other side.
+    """
+    fmt = _detect_format(infile)
+
+    if fmt == "repos":
+        repos = _read_repos_file(infile)
+        repos_lines = "repositories = [\n"
+        for r in repos:
+            repos_lines += f'    "{r}",\n'
+        repos_lines += "]"
+        contributors_section = (
+            '# Run "contributor-network discover" to find contributors'
+        )
+        click.echo(f"Detected repos file with {len(repos)} repositories")
+    else:
+        contributors = _read_contributors_file(infile)
+        repos_lines = (
+            "repositories = [\n"
+            '    # Run "contributor-network discover" to find repositories\n'
+            "]"
+        )
+        contrib_lines: list[str] = []
+        for username, name in contributors.items():
+            contrib_lines.append(f'{username} = "{name}"')
+        contributors_section = "\n".join(contrib_lines) if contrib_lines else ""
+        click.echo(f"Detected contributors file with {len(contributors)} contributors")
+
+    content = TOML_TEMPLATE.format(
+        organization=organization,
+        repos_section=repos_lines,
+        contributors_section=contributors_section,
+    )
+
+    output_path.write_text(content)
+    click.echo(f"Wrote {output_path}")
+    click.echo()
+    if fmt == "repos":
+        click.echo("Next: run 'contributor-network discover' to find contributors")
+    else:
+        click.echo("Next: run 'contributor-network discover' to find repositories")
