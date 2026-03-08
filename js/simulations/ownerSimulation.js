@@ -93,6 +93,7 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
         )
         // Keep the repo nodes want to stay close to the contributor node
         // so they try to spread out evenly around it
+        .force("charge", d3.forceManyBody().strength(LAYOUT.ownerRepoRepulsion))
         .force("x", d3.forceX().x(d.fx).strength(0.1))
         .force("y", d3.forceY().y(d.fy).strength(0.1));
 

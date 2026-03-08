@@ -92,6 +92,7 @@ export const LAYOUT = {
   // Owner simulation spacing
   ownerCollideStrength: 0.8,
   ownerRepoCollideExtra: 4,
+  ownerRepoRepulsion: -45,
 
   // Collaboration simulation spacing
   collaborationChargeStrength: -200,
