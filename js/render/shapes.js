@@ -263,6 +263,34 @@ export function drawLink(context, SF, l, config, interactionState, calculateLink
       line_width = scale_link_width(link_original.commit_count);
   } // if
 
+  // When a repo is hovered and this is a contributor→owner link,
+  // draw two passes: faded full-width, then bright per-repo width
+  if (
+    interactionState.hoverActive &&
+    interactionState.hoveredNode &&
+    interactionState.hoveredNode.type === "repo" &&
+    interactionState.hoveredNode.data &&
+    interactionState.hoveredNode.data.links_original &&
+    l.source.type === "contributor" &&
+    l.target.type === "owner"
+  ) {
+    let link_original = interactionState.hoveredNode.data.links_original.find(
+      (p) => p.contributor_name === l.source.id,
+    );
+    if (link_original) {
+      context.globalAlpha = 0.25;
+      context.lineWidth = line_width * SF;
+      drawLine(context, SF, l);
+
+      context.globalAlpha = 1.0;
+      context.lineWidth = scale_link_width(link_original.commit_count) * SF;
+      drawLine(context, SF, l);
+
+      context.globalAlpha = 1.0;
+      return;
+    }
+  } // if
+
   context.lineWidth = line_width * SF;
   drawLine(context, SF, l);
 }
