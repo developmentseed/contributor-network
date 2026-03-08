@@ -285,16 +285,7 @@ export function prepareData(data, config, scales) {
   // ============================================================
   // Find repos that share the same owner (owners with multiple repos)
   let owners = nodes
-    .filter(
-      (d) =>
-        d.type === "repo" &&
-        nodes.filter(
-          (n) =>
-            n.id !== d.id &&
-            n.type === "repo" &&
-            n.data.owner === d.data.owner,
-        ).length >= 1,
-    )
+    .filter((d) => d.type === "repo")
     .map((d) => d.data);
 
   // Group by owner and aggregate stats
