@@ -293,7 +293,7 @@ export function prepareData(data, config, scales) {
             n.id !== d.id &&
             n.type === "repo" &&
             n.data.owner === d.data.owner,
-        ).length > 1,
+        ).length >= 1,
     )
     .map((d) => d.data);
 
