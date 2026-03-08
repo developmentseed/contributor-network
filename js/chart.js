@@ -457,7 +457,6 @@ const createContributorNetworkVisual = (
     // Setup interactions AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
-    setupZoom();
   } // function chart
 
   /////////////////////////////////////////////////////////////////
@@ -1376,7 +1375,6 @@ const createContributorNetworkVisual = (
     // Re-setup interaction handlers AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
-    setupZoom();
 
     return chart;
   };
