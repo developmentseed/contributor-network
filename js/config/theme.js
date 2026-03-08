@@ -60,6 +60,7 @@ export const SIZES = {
   // Node radius ranges [min, max]
   contributorRadius: { min: 8, max: 30 },
   repoRadius: { min: 4, max: 20 },
+  ownerRadius: { min: 2, max: 30 },
 
   // Link dimensions
   linkWidth: { min: 1, mid: 2, max: 60 },

@@ -28,6 +28,7 @@ import {
 } from './utils/validation.js';
 import {
   createRepoRadiusScale,
+  createOwnerRadiusScale,
   createContributorRadiusScale,
   createLinkDistanceScale,
   createLinkWidthScale
@@ -319,6 +320,7 @@ const createContributorNetworkVisual = (
 
   /* D3 Scales - using factories from src/js/config/scales.js */
   const scale_repo_radius = createRepoRadiusScale(d3);
+  const scale_owner_radius = createOwnerRadiusScale(d3);
 
   // Based on the number of commits to the central repo
   const scale_contributor_radius = createContributorRadiusScale(d3);
@@ -364,6 +366,7 @@ const createContributorNetworkVisual = (
       },
       {
         scale_repo_radius,
+        scale_owner_radius,
         scale_contributor_radius,
         scale_link_width
       }
@@ -1242,6 +1245,7 @@ const createContributorNetworkVisual = (
       },
       {
         scale_repo_radius,
+        scale_owner_radius,
         scale_contributor_radius,
         scale_link_width
       }

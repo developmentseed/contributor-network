@@ -23,6 +23,7 @@ export {
 export {
   createAllScales,
   createRepoRadiusScale,
+  createOwnerRadiusScale,
   createContributorRadiusScale,
   createLinkDistanceScale,
   createLinkWidthScale,

@@ -22,6 +22,18 @@ export function createRepoRadiusScale(d3) {
 }
 
 /**
+ * Create the owner radius scale.
+ * Maps organization size/importance to visual radius.
+ *
+ * @param {Object} d3 - D3 library reference
+ * @returns {Function} D3 scale function
+ */
+export function createOwnerRadiusScale(d3) {
+  return d3.scaleSqrt()
+    .range([SIZES.ownerRadius.min, SIZES.ownerRadius.max]);
+}
+
+/**
  * Create the contributor radius scale.
  * Maps contributor commit count to visual radius.
  *
