@@ -7,6 +7,8 @@
  * @module simulations/ownerSimulation
  */
 
+import { LAYOUT } from '../config/theme.js';
+
 /**
  * Run force simulation for owner nodes and their connected repositories
  * 
@@ -84,7 +86,7 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
               if (n.id === d.id) {
                 if (d.data.single_contributor) r = d.r + 2;
                 else r = d.r + min(14, max(10, d.r));
-              } else r = n.r + max(2, n.r * 0.2);
+              } else r = n.r + LAYOUT.ownerRepoCollideExtra;
               return r;
             })
             .strength(0),
@@ -103,7 +105,7 @@ export function runOwnerSimulation(nodes, links, d3, getLinkNodeId, sqrt, max, m
       for (let i = 0; i < n_ticks; ++i) {
         simulation.tick();
         //Ramp up collision strength to provide smooth transition
-        simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.8);
+        simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * LAYOUT.ownerCollideStrength);
       } //for i
 
       // Determine the farthest distance of the nodes (including its radius) to the owner node

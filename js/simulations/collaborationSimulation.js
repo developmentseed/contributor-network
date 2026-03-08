@@ -8,6 +8,7 @@
  */
 
 import { setOwnerFont, setRepoFont } from '../render/text.js';
+import { LAYOUT } from '../config/theme.js';
 
 /**
  * Run force simulation for collaboration repositories
@@ -44,7 +45,7 @@ export function runCollaborationSimulation(
       d3
         .forceLink()
         .id((d) => d.id)
-        .distance((d) => scale_link_distance(d.target.degree) * 5),
+        .distance((d) => scale_link_distance(d.target.degree) * LAYOUT.collaborationLinkMultiplier),
     )
     .force(
       "collide",
@@ -57,7 +58,13 @@ export function runCollaborationSimulation(
     )
     .force(
       "charge",
-      d3.forceManyBody()
+      d3.forceManyBody().strength(LAYOUT.collaborationChargeStrength)
+    )
+    .force(
+      "radial",
+      d3.forceRadial()
+        .radius(d => d.type === "owner" ? RADIUS_CONTRIBUTOR * LAYOUT.collaborationRadialFactor : 0)
+        .strength(d => d.type === "owner" ? LAYOUT.collaborationRadialStrength : 0)
     );
 
   // Keep the nodes that are a "contributor" or a repo that has a degree > 1 (and is thus committed to by more than one contributor)
@@ -132,7 +139,7 @@ export function runCollaborationSimulation(
     simulation.tick();
     simulationPlacementConstraints(nodes_central, sqrt, max, RADIUS_CONTRIBUTOR, INNER_RADIUS_FACTOR);
     //Ramp up collision strength to provide smooth transition
-    simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * 0.7);
+    simulation.force("collide").strength(Math.pow(i / n_ticks, 2) * LAYOUT.collaborationCollideStrength);
   } //for i
 
   // Once it's done, fix the positions of the nodes used in the simulation
