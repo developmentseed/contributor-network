@@ -124,6 +124,7 @@ export function prepareData(data, config, scales) {
 
   const {
     scale_repo_radius,
+    scale_owner_radius,
     scale_contributor_radius,
     scale_link_width
   } = scales;
@@ -285,16 +286,7 @@ export function prepareData(data, config, scales) {
   // ============================================================
   // Find repos that share the same owner (owners with multiple repos)
   let owners = nodes
-    .filter(
-      (d) =>
-        d.type === "repo" &&
-        nodes.filter(
-          (n) =>
-            n.id !== d.id &&
-            n.type === "repo" &&
-            n.data.owner === d.data.owner,
-        ).length > 1,
-    )
+    .filter((d) => d.type === "repo")
     .map((d) => d.data);
 
   // Group by owner and aggregate stats
@@ -500,6 +492,14 @@ export function prepareData(data, config, scales) {
     scale_repo_radius.domain([0, 10]); // fallback for empty dataset
   }
 
+  // Owner radius uses the same star data but a separate scale for different sizing
+  const ownerStars = owners.map((d) => d.stars);
+  if (ownerStars.length > 0) {
+    scale_owner_radius.domain(d3.extent(ownerStars));
+  } else {
+    scale_owner_radius.domain([0, 10]);
+  }
+
   // Base contributor radius on total commit counts across all repos
   const contributorCommits = contributors.map((c) => {
     const contributorLinks = processedLinks.filter(
@@ -548,7 +548,7 @@ export function prepareData(data, config, scales) {
       d.r = scale_repo_radius(d.data.stars);
     } else {
       // "owner"
-      d.r = scale_repo_radius(d.data.stars);
+      d.r = scale_owner_radius(d.data.stars);
     }
 
     d.color = d.data.color;

@@ -60,6 +60,7 @@ export const SIZES = {
   // Node radius ranges [min, max]
   contributorRadius: { min: 8, max: 30 },
   repoRadius: { min: 4, max: 20 },
+  ownerRadius: { min: 2, max: 30 },
 
   // Link dimensions
   linkWidth: { min: 1, mid: 2, max: 60 },
@@ -72,7 +73,7 @@ export const SIZES = {
 export const LAYOUT = {
   // Central node positioning
   centralRadius: 35,  // The radius of the central repository node
-  innerRadiusFactor: 0.7,  // The factor of RADIUS_CONTRIBUTOR outside of which inner repos are not allowed to go
+  innerRadiusFactor: 0.85,  // The factor of RADIUS_CONTRIBUTOR outside of which inner repos are not allowed to go
 
   // Contributor ring positioning
   contributorPadding: 20,  // Default, overridden by config
@@ -86,7 +87,19 @@ export const LAYOUT = {
   linkWidthExponent: 0.75,
 
   // Collision detection
-  bboxPadding: 4
+  bboxPadding: 4,
+
+  // Owner simulation spacing
+  ownerCollideStrength: 0.8,
+  ownerRepoCollideExtra: 4,
+  ownerRepoRepulsion: -45,
+
+  // Collaboration simulation spacing
+  collaborationChargeStrength: -200,
+  collaborationLinkMultiplier: 10,
+  collaborationCollideStrength: 0.7,
+  collaborationRadialStrength: 0.5,
+  collaborationRadialFactor: 0.55
 };
 
 /**

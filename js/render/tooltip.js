@@ -10,13 +10,31 @@ import {
   renderLicense,
   renderArchivedBadge,
   REPO_CARD_CONFIG,
-  getCommunityHealthLabel
 } from './repoCard.js';
 import { setFont, renderText } from './text.js';
 import { min } from '../utils/helpers.js';
 
+const TOOLTIP_PADDING = 18;
+const OWNER_MAX_REPOS = 12;
+
 /**
- * Calculates the height required for a repository tooltip based on all content
+ * Draws a subtle horizontal divider between tooltip sections
+ */
+function drawSectionDivider(context, y, W, x, SF) {
+  context.save();
+  context.globalAlpha = 0.22;
+  context.strokeStyle = '#443F3F';
+  context.lineWidth = Math.round(SF);
+  context.beginPath();
+  context.moveTo((x - W / 2 + TOOLTIP_PADDING) * SF, Math.round(y * SF) + 0.5);
+  context.lineTo((x + W / 2 - TOOLTIP_PADDING) * SF, Math.round(y * SF) + 0.5);
+  context.stroke();
+  context.restore();
+}
+
+/**
+ * Calculates the height required for a repository tooltip.
+ * Mirrors the exact y-advances in drawTooltip's render code.
  * @param {Object} d - Node data
  * @param {Object} interactionState - Interaction state object
  * @param {number} SF - Scale factor
@@ -25,84 +43,70 @@ import { min } from '../utils/helpers.js';
  * @param {Function} formatDigit - Digit formatting function
  * @returns {number} Required height in pixels
  */
-function calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatDateExact, formatDigit) {
+function calculateRepoTooltipHeight(d, interactionState) {
   const config = REPO_CARD_CONFIG;
-  const line_height = 1.2; // Line height for main tooltip sections
-  let height = 0;
+  let y = 0;
 
-  // Header section
-  height += 22; // Top padding (balanced)
-  height += 15 * line_height; // "Repository" label (15px font * 1.2 line height = 18px)
-  height += 22; // Spacing (balanced)
+  // Header: type label at y=26, then y += 30
+  y += 26;
+  y += 30;
 
-  // Title section (owner/name) - two lines
-  height += 19 * line_height; // Owner line (19px font * 1.2 = 22.8px)
-  height += 19 * line_height; // Name line (19px font * 1.2 = 22.8px)
-  height += 50; // Spacing to dates (matches render: y += 50 accounts for name at y+22.8 plus padding)
+  // Owner/name: owner at y, name at y+26.4, then y += 58 from owner position
+  y += 58;
 
-  // Dates section
-  height += 14 * line_height; // Created date (14px font * 1.2 = 16.8px)
-  height += 14 * line_height; // Updated date (14px font * 1.2 = 16.8px)
-  height += 24; // Spacing before stats (balanced)
+  // Dates: created at y, y += 26, updated at y, y += 36
+  y += 26;
+  y += 36;
 
-  // Stats line
-  height += config.headerFontSize * line_height; // Stats line (15px font * 1.2 = 18px)
-  // Note: renderLanguages will add its own sectionSpacing (24px) before it
+  // Stats: renderStatsLine doesn't advance y
 
-  // Languages section (if present)
-  // renderLanguages adds sectionSpacing, then label, then value lines
+  // Languages section
   if (d.data.languages && d.data.languages.length > 0) {
-    height += config.sectionSpacing; // 20px spacing (added by renderLanguages)
-    height += config.labelFontSize * config.lineHeight + 4; // Label line (11px * 1.4 + 4 = 19.4px)
-    height += config.valueFontSize * config.lineHeight; // Languages line (11.5px * 1.4 = 16.1px)
+    y += config.sectionSpacing;
+    y += config.valueFontSize * config.lineHeight + 4;
+    y += config.valueFontSize * config.lineHeight;
     if (d.data.languages.length > 3) {
-      height += config.valueFontSize * config.lineHeight; // "& X more" line (11.5px * 1.4 = 16.1px)
+      y += config.valueFontSize * config.lineHeight;
     }
   }
 
-  // Community metrics section (if present)
-  // renderCommunityMetrics adds sectionSpacing, then label, then contributor count, then health, optionally bus factor
+  // Community metrics section (health line removed)
   if (d.data.totalContributors && d.data.totalContributors > 0) {
-    height += config.sectionSpacing; // 20px spacing (added by renderCommunityMetrics)
-    height += config.labelFontSize * config.lineHeight + 4; // Label line (11px * 1.4 + 4 = 19.4px)
-    height += config.valueFontSize * config.lineHeight; // Contributors line (11.5px * 1.4 = 16.1px)
-    height += config.valueFontSize * config.lineHeight; // Health line (11.5px * 1.4 = 16.1px)
+    y += config.sectionSpacing;
+    y += config.valueFontSize * config.lineHeight + 4;
     if (d.data.devseedContributors === 1 && d.data.totalContributors > 0) {
-      height += config.valueFontSize * config.lineHeight; // Bus factor warning (11.5px * 1.4 = 16.1px)
+      y += config.valueFontSize * config.lineHeight;
+      y += config.valueFontSize * config.lineHeight;
+    } else {
+      y += config.valueFontSize * config.lineHeight;
     }
   }
 
-  // License section (if present)
-  // renderLicense adds sectionSpacing, then license text
+  // License section
   if (d.data.license) {
-    height += config.sectionSpacing; // 20px spacing (added by renderLicense)
-    height += config.valueFontSize * config.lineHeight; // License line (11.5px * 1.4 = 16.1px)
+    y += config.sectionSpacing;
+    y += config.valueFontSize * config.lineHeight;
   }
 
-  // Archived badge (if present)
-  // renderArchivedBadge adds sectionSpacing, then archived text
+  // Archived badge
   if (d.data.archived) {
-    height += config.sectionSpacing; // 20px spacing (added by renderArchivedBadge)
-    height += config.valueFontSize * config.lineHeight; // Archived line (11.5px * 1.4 = 16.1px)
+    y += config.sectionSpacing;
+    y += config.valueFontSize * config.lineHeight;
   }
 
-  // Clicked contributor section (if active)
+  // Clicked contributor section
   if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
     const link = interactionState.clickedNode.data.links_original?.find((l) => l.repo === d.id);
     if (link) {
-      height += 34; // Spacing
-      height += 14 * line_height; // "X commits by" line (14px font * 1.2 = 16.8px)
-      height += 20; // Spacing
-      height += 14 * line_height; // Contributor name (14px font * 1.2 = 16.8px)
-      height += 22; // Spacing
-      height += 14 * line_height; // Date range line (14px font * 1.2 = 16.8px)
+      y += 24;
+      y += 15;
+      y += 17;
     }
   }
 
-  // Bottom padding
-  height += 12;
+  y += 16;
 
-  return Math.ceil(height);
+  return Math.ceil(y);
 }
 
 /**
@@ -120,29 +124,28 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
   const config = REPO_CARD_CONFIG;
   let maxWidth = 0;
 
-  // Measure title text
-  setFont(context, 18 * SF, 700, "normal");
+  setFont(context, 22 * SF, 700, "normal");
   let width = context.measureText(d.data.owner).width * 1.25;
   if (width > maxWidth) maxWidth = width;
   width = context.measureText(d.data.name).width * 1.25;
   if (width > maxWidth) maxWidth = width;
 
-  // Measure date text
-  setFont(context, 14 * SF, 400, "normal");
+  setFont(context, 16 * SF, 400, "normal");
   width = context.measureText(`Created in ${formatDate(d.data.createdAt)}`).width * 1.25;
   if (width > maxWidth) maxWidth = width;
   width = context.measureText(`Last updated in ${formatDate(d.data.updatedAt)}`).width * 1.25;
   if (width > maxWidth) maxWidth = width;
 
-  // Measure stats line
   setFont(context, config.headerFontSize * SF, 400, 'normal');
   const stars = d.data.stars < 10 ? String(d.data.stars) : formatDigit(d.data.stars);
   const forks = d.data.forks < 10 ? String(d.data.forks) : formatDigit(d.data.forks);
   const watchers = (d.data.watchers || 0) < 10 ? String(d.data.watchers || 0) : formatDigit(d.data.watchers || 0);
-  width = context.measureText(`${stars} stars | ${forks} forks | ${watchers} watchers`).width * 1.25;
+  // Estimate: number text widths + drawn icon widths + gaps (28px between groups)
+  const statsNumWidth = context.measureText(`★  ${stars}      ${forks}      ${watchers}`).width * 1.25;
+  const statsIconWidth = config.headerFontSize * SF * (0.18 * 6 + 0.55 * 2);
+  width = statsNumWidth + statsIconWidth;
   if (width > maxWidth) maxWidth = width;
 
-  // Measure languages text
   if (d.data.languages && d.data.languages.length > 0) {
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     let langText = '';
@@ -158,7 +161,6 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
     }
   }
 
-  // Measure community metrics text
   if (d.data.totalContributors && d.data.totalContributors > 0) {
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     const total = d.data.totalContributors;
@@ -167,33 +169,24 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
     width = context.measureText(`${total} contributors (${devseed} DevSeed, ${external} community)`).width * 1.25;
     if (width > maxWidth) maxWidth = width;
 
-    const ratio = d.data.communityRatio || 0;
-    const healthPercent = Math.round(ratio * 100);
-    const healthLabel = getCommunityHealthLabel(ratio);
-    width = context.measureText(`Community Health: ${healthPercent}% (${healthLabel})`).width * 1.25;
-    if (width > maxWidth) maxWidth = width;
-
     if (devseed === 1 && total > 0) {
       width = context.measureText('⚠ Single DevSeed maintainer').width * 1.25;
       if (width > maxWidth) maxWidth = width;
     }
   }
 
-  // Measure license text
   if (d.data.license) {
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     width = context.measureText(`License: ${d.data.license}`).width * 1.25;
     if (width > maxWidth) maxWidth = width;
   }
 
-  // Measure archived badge text
   if (d.data.archived) {
     setFont(context, config.valueFontSize * SF, 400, 'italic');
     width = context.measureText('📦 Archived').width * 1.25;
     if (width > maxWidth) maxWidth = width;
   }
 
-  // Measure clicked contributor section (if active)
   if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
     const link = interactionState.clickedNode.data.links_original?.find((l) => l.repo === d.id);
     if (link) {
@@ -220,11 +213,9 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
     }
   }
 
-  // Add padding (40px on each side = 80px total)
   maxWidth = maxWidth / SF + 80;
 
-  // Ensure minimum width
-  return Math.max(maxWidth, 320);
+  return Math.max(maxWidth, 280);
 }
 
 /**
@@ -245,93 +236,73 @@ function calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate,
  * @param {Function} formatDateExact - Exact date formatting function
  * @param {Function} formatDigit - Digit formatting function
  */
-export function drawTooltip(context, d, config, interactionState, central_repo, formatDate, formatDateExact, formatDigit) {
-  const { SF, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER, min } = config;
-  
+export function drawTooltip(context, d, config, interactionState, _central_repo, formatDate, formatDateExact, formatDigit) {
+  const { SF, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER } = config;
+
   let line_height = 1.2;
   let font_size;
   let text;
 
-  // Figure out the base x and y position of the tooltip
   const x_base = d.x;
   const y_base =
     d.y + (d.y < 0 ? 1 : -1) * (d.max_radius ? d.max_radius : d.r);
 
-  /////////////////////////////////////////////////////////////
-  // Calculate required dimensions dynamically
   let H, W;
 
   if (d.type === "contributor") {
-    // Contributor tooltip
     H = 100;
     W = 320;
   } else if (d.type === "owner") {
-    // Owner tooltip - keep existing logic for now
-    H = 116;
+    H = 155;
     W = 320;
   } else if (d.type === "repo") {
-    // Repository tooltip - use dynamic calculations
-    // Calculate height dynamically based on all content
-    H = calculateRepoTooltipHeight(d, interactionState, SF, formatDate, formatDateExact, formatDigit);
-    // Calculate width dynamically based on all text content
+    H = calculateRepoTooltipHeight(d, interactionState);
     W = calculateRepoTooltipWidth(context, d, interactionState, SF, formatDate, formatDateExact, formatDigit);
   } else {
     H = 116;
     W = 320;
   }
 
-  // Write all the repos for the "owner" nodes, but make sure they are not wider than the box and save each line to write out
   if (d.type === "owner") {
-    font_size = 14;
+    const sortedRepos = [...d.connected_node_cloud].sort((a, b) => (b.data.forks || 0) - (a.data.forks || 0));
+    const visibleRepos = sortedRepos.slice(0, OWNER_MAX_REPOS);
+
+    font_size = 15;
     setFont(context, font_size * SF, 400, "normal");
     d.text_lines = [];
     text = "";
-    d.connected_node_cloud.forEach((repo, i) => {
-      // Check the length of the new text to add
-      let new_repo = `${repo.data.name}${i < d.connected_node_cloud.length - 1 ? ", " : ""
-        }`;
-      // If it's longer, push the current text to the array and start a new one
-      if (
-        context.measureText(`${text}${new_repo}`).width * 1.25 >
-        0.85 * W * SF
-      ) {
-        d.text_lines.push(text);
+    visibleRepos.forEach((repo, i) => {
+      let new_repo = `${repo.data.name}${i < visibleRepos.length - 1 ? ' · ' : ''}`;
+      if (context.measureText(`${text}${new_repo}`).width * 1.25 > 0.85 * W * SF) {
+        d.text_lines.push(text.replace(/ · $/, ''));
         text = new_repo;
       } else {
         text += new_repo;
-      } // else
-    }); // forEach
-    // Add the final possible bit
-    if (text !== "") d.text_lines.push(text);
-    // Update the height of the tooltip
-    H += d.text_lines.length * (font_size * line_height);
-    
-    // Recalculate width for owner tooltips based on text lines
+      }
+    });
+    if (text !== "") d.text_lines.push(text.replace(/ · $/, ''));
+
+    const hiddenRepoCount = d.connected_node_cloud.length - OWNER_MAX_REPOS;
+    let lineCount = d.text_lines.length;
+    if (hiddenRepoCount > 0) lineCount += 1;
+    H += lineCount * (font_size * 1.4);
+
     let tW = 0;
-    setFont(context, 20 * SF, 700, "normal");
+    setFont(context, 22 * SF, 700, "normal");
     tW = context.measureText(d.data.owner).width * 1.25;
-    // Check if any of the "repo lines" are longer than the owner's name
-    setFont(context, 14 * SF, 400, "normal");
+    setFont(context, 15 * SF, 400, "normal");
     d.text_lines.forEach((t) => {
       let line_width = context.measureText(t).width * 1.25;
       if (line_width > tW) tW = line_width;
-    }); // forEach
-    // Update the max width if the text is wider
+    });
     if (tW + 40 * SF > W * SF) W = tW / SF + 40;
   } else if (d.type === "contributor") {
-    // Recalculate width for contributor tooltips
     setFont(context, 20 * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
     let tW = context.measureText(text).width * 1.25;
-    // Update the max width if the text is wider
     if (tW + 40 * SF > W * SF) W = tW / SF + 40;
   }
-  // For repo tooltips, width and height are already calculated dynamically above
 
-  /////////////////////////////////////////////////////////////////
-  // If the hovered node is above half of the page, place the tooltip below the node
-  // Note: d.x and d.y are in the centered coordinate system (relative to center at 0,0)
-  // The context has already been translated to (WIDTH/2, HEIGHT/2) in drawHoverState
   let H_OFFSET = d.y < 0 ? 20 : -H - 20;
   context.save();
   context.translate(x_base * SF, (y_base + H_OFFSET) * SF);
@@ -344,7 +315,6 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   else if (d.type === "owner") COL = COLOR_OWNER;
 
   // Background rectangle
-  // Debug: Ensure we're using a visible color
   const bgColor = COLOR_BACKGROUND || "#f7f7f7";
   const rectX = (x - W / 2) * SF;
   const rectY = y * SF;
@@ -356,16 +326,18 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   context.fillRect(rectX, rectY, rectW, rectH);
   context.shadowBlur = 0;
 
-  // Line along the side
+  // Left accent bar (vertical, 4px wide, full height)
   context.fillStyle = COL;
-  context.fillRect((x - W / 2 - 1) * SF, (y - 1) * SF, (W + 2) * SF, 6 * SF);
+  context.fillRect((x - W / 2) * SF, y * SF, 4 * SF, H * SF);
 
-  // Textual settings
-  context.textAlign = "center";
+  context.textAlign = "left";
   context.textBaseline = "middle";
 
-  // Contributor, owner or repo
-  y = 22; // Balanced
+  // x position for left-aligned text (padding from left edge, clears the accent bar)
+  const xLeft = x - W / 2 + TOOLTIP_PADDING;
+
+  // Node type label
+  y = 26;
   font_size = 15;
   setFont(context, font_size * SF, 400, "italic");
   context.fillStyle = COL;
@@ -373,129 +345,141 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
   if (d.type === "contributor") text = "Contributor";
   else if (d.type === "repo") text = "Repository";
   else if (d.type === "owner") text = "Owner";
-  renderText(context, text, x * SF, y * SF, 2.5 * SF);
+  renderText(context, text, xLeft * SF, y * SF, 2.5 * SF);
 
   context.fillStyle = COLOR_TEXT;
-  y += 22; // Balanced
+  y += 30;
 
   if (d.type === "contributor") {
-    // The contributor's name
     font_size = 20;
     setFont(context, font_size * SF, 700, "normal");
     text = d.data ? d.data.contributor_name : d.author_name;
-    renderText(context, text, x * SF, y * SF, 1.25 * SF);
+    renderText(context, text, xLeft * SF, y * SF, 1.25 * SF);
   } else if (d.type === "owner") {
-    // The name
-    font_size = 20;
+    // Org name
+    font_size = 22;
     setFont(context, font_size * SF, 700, "normal");
-    renderText(context, d.data.owner, x * SF, y * SF, 1.25 * SF);
+    renderText(context, d.data.owner, xLeft * SF, y * SF, 1.25 * SF);
 
-    // Which repos fall under this owner in this visual
-    y += 34;
+    // Repo count subtitle
+    y += 28;
+    font_size = 14;
+    context.globalAlpha = 0.6;
+    setFont(context, font_size * SF, 400, "normal");
+    const repoCount = d.connected_node_cloud.length;
+    renderText(context, `${repoCount} ${repoCount === 1 ? 'repository' : 'repositories'}`, xLeft * SF, y * SF, 1.25 * SF);
+
+    // Divider
+    drawSectionDivider(context, y + 14, W, x, SF);
+
+    // "Repositories" section label
+    y += 30;
     font_size = 14;
     context.globalAlpha = 0.6;
     setFont(context, font_size * SF, 400, "italic");
-    renderText(context, "Included repositories", x * SF, y * SF, 2 * SF);
+    renderText(context, "Repositories", xLeft * SF, y * SF, 2 * SF);
 
-    // Write out all the repositories
-    font_size = 14;
-    y += font_size * line_height + 4;
+    // Repo list
+    font_size = 15;
+    y += font_size * 1.4 + 4;
     context.globalAlpha = 0.9;
     setFont(context, font_size * SF, 400, "normal");
-    d.text_lines.forEach((l, i) => {
-      renderText(context, l, x * SF, y * SF, 1.25 * SF);
-      y += font_size * line_height;
-    }); // forEach
+    d.text_lines.forEach((l) => {
+      renderText(context, l, xLeft * SF, y * SF, 1.25 * SF);
+      y += font_size * 1.4;
+    });
+
+    // "& X more" truncation line
+    const hiddenCount = d.connected_node_cloud.length - OWNER_MAX_REPOS;
+    if (hiddenCount > 0) {
+      context.globalAlpha = 0.5;
+      setFont(context, font_size * SF, 400, "italic");
+      renderText(context, `& ${hiddenCount} more`, xLeft * SF, y * SF, 1.25 * SF);
+      context.globalAlpha = 0.9;
+    }
   } else if (d.type === "repo") {
-    // The repo's name and owner
-    font_size = 19;
+    // Owner/name title
+    font_size = 22;
     setFont(context, font_size * SF, 700, "normal");
-    renderText(context, `${d.data.owner}/`, x * SF, y * SF, 1.25 * SF);
+    renderText(context, `${d.data.owner}/`, xLeft * SF, y * SF, 1.25 * SF);
     renderText(
       context,
       d.data.name,
-      x * SF,
+      xLeft * SF,
       (y + line_height * font_size) * SF,
       1.25 * SF,
     );
 
-    // The creation date
-    // Note: name was rendered at y + line_height*font_size, so we need to move past it plus add spacing
-    y += 50;
-    font_size = 14;
+    // Dates
+    y += 58;
+    font_size = 16;
     context.globalAlpha = 0.7;
     setFont(context, font_size * SF, 400, "normal");
-    renderText(
-      context,
-      `Created in ${formatDate(d.data.createdAt)}`,
-      x * SF,
-      y * SF,
-      1.25 * SF,
-    );
-    // The most recent updated date
-    y += font_size * line_height;
-    renderText(
-      context,
-      `Last updated in ${formatDate(d.data.updatedAt)}`,
-      x * SF,
-      y * SF,
-      1.25 * SF,
-    );
+    renderText(context, `Created in ${formatDate(d.data.createdAt)}`, xLeft * SF, y * SF, 1.25 * SF);
+    y += 26;
+    renderText(context, `Last updated in ${formatDate(d.data.updatedAt)}`, xLeft * SF, y * SF, 1.25 * SF);
 
-    // ============================================================
-    // Repo Card Sections (using modular components)
-    // ============================================================
+    // Divider separating dates from stats
+    drawSectionDivider(context, y + 18, W, x, SF);
 
-    // Stats line: stars, forks, watchers
-    y += 24; // Balanced
-    renderStatsLine(context, d.data, x, y, SF, formatDigit);
+    // Stats
+    y += 36;
+    renderStatsLine(context, d.data, xLeft, y, SF, formatDigit);
 
-    // Languages section
-    y = renderLanguages(context, d.data, x, y, SF);
+    // Divider separating stats block from detail sections
+    const statsY = y;
+    drawSectionDivider(context, y + 17, W, x, SF);
+    y = renderLanguages(context, d.data, xLeft, y, SF);
 
-    // Community metrics section
-    y = renderCommunityMetrics(context, d.data, x, y, SF);
+    // Community metrics — only draw divider if a previous section rendered
+    if (d.data.totalContributors && d.data.totalContributors > 0) {
+      if (y > statsY) drawSectionDivider(context, y + 4, W, x, SF);
+    }
+    y = renderCommunityMetrics(context, d.data, xLeft, y, SF);
 
-    // License (if available)
-    y = renderLicense(context, d.data, x, y, SF);
+    // License — only draw divider if a previous section rendered
+    if (d.data.license) {
+      if (y > statsY) drawSectionDivider(context, y + 4, W, x, SF);
+    }
+    y = renderLicense(context, d.data, xLeft, y, SF);
 
-    // Archived badge (if applicable)
-    y = renderArchivedBadge(context, d.data, x, y, SF);
+    // Archived badge — only draw divider if a previous section rendered
+    if (d.data.archived) {
+      if (y > statsY) drawSectionDivider(context, y + 4, W, x, SF);
+    }
+    y = renderArchivedBadge(context, d.data, xLeft, y, SF);
 
-    // Reset context for potential click section
     context.fillStyle = COLOR_TEXT;
     context.globalAlpha = 0.9;
 
-    // First and last commit the the hovered repo if a click is active
+    // Clicked contributor section
     if (interactionState.clickActive && interactionState.clickedNode && interactionState.clickedNode.type === "contributor") {
-      // Get the first and last commit of the contributor to this repo
       let link = interactionState.clickedNode.data.links_original.find(
         (l) => l.repo === d.id,
       );
-      // Skip if link doesn't exist (contributor not connected to this repo)
       if (!link) return;
       let num_commits = link.commit_count;
 
-      y += 24; // Spacing before clicked section
+      y += 24;
       font_size = 14;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "italic");
       text = num_commits === 1 ? "1 commit by" : `${num_commits} commits by`;
-      renderText(context, text, x * SF, y * SF, 2 * SF);
+      renderText(context, text, xLeft * SF, y * SF, 2 * SF);
 
-      y += 15; // Spacing to contributor name
+      y += 15;
       font_size = 14;
       context.globalAlpha = 0.9;
       setFont(context, font_size * SF, 700, "normal");
       renderText(
         context,
         interactionState.clickedNode.data.contributor_name,
-        x * SF,
+        xLeft * SF,
         y * SF,
         1.25 * SF,
       );
 
-      y += 17; // Spacing to date range
+      y += 17;
       font_size = 14;
       context.globalAlpha = 0.6;
       setFont(context, font_size * SF, 400, "normal");
@@ -512,9 +496,9 @@ export function drawTooltip(context, d, config, interactionState, central_repo, 
         text = `Between ${formatDate(link.commit_sec_min)} / ${formatDate(
           link.commit_sec_max,
         )}`;
-      renderText(context, text, x * SF, y * SF, 1.25 * SF);
-    } // if
-  } // else
+      renderText(context, text, xLeft * SF, y * SF, 1.25 * SF);
+    }
+  }
 
   context.restore();
 }

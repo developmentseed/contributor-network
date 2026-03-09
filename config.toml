@@ -55,7 +55,6 @@ repositories = [
     "developmentseed/openeo-udp",
     "developmentseed/stac-map",
     "source-cooperative/source.coop",
-    "beatrizbsperes/eopf-101",
     "NASA-IMPACT/csda-client",
     "NASA-IMPACT/veda-config",
     "developmentseed/eo-predictor",
@@ -99,7 +98,6 @@ aliziel = "Ali Z"
 alukach = "Anthony Lukach"
 anayeaye = "Alexandra Kirk"
 batpad = "Sanjay Bhangar"
-beatrizbsperes = "Beatriz Peres"
 benbovy = "Benoît Bovy"
 bitner = "David Bitner"
 botanical = "Jennifer Tran"

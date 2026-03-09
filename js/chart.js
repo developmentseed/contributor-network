@@ -28,6 +28,7 @@ import {
 } from './utils/validation.js';
 import {
   createRepoRadiusScale,
+  createOwnerRadiusScale,
   createContributorRadiusScale,
   createLinkDistanceScale,
   createLinkWidthScale
@@ -319,6 +320,7 @@ const createContributorNetworkVisual = (
 
   /* D3 Scales - using factories from src/js/config/scales.js */
   const scale_repo_radius = createRepoRadiusScale(d3);
+  const scale_owner_radius = createOwnerRadiusScale(d3);
 
   // Based on the number of commits to the central repo
   const scale_contributor_radius = createContributorRadiusScale(d3);
@@ -364,6 +366,7 @@ const createContributorNetworkVisual = (
       },
       {
         scale_repo_radius,
+        scale_owner_radius,
         scale_contributor_radius,
         scale_link_width
       }
@@ -454,7 +457,6 @@ const createContributorNetworkVisual = (
     // Setup interactions AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
-    setupZoom();
   } // function chart
 
   /////////////////////////////////////////////////////////////////
@@ -826,6 +828,17 @@ const createContributorNetworkVisual = (
     let alpha;
     if (interactionState.hoverActive) alpha = l.target.special_type ? 0.3 : 0.7;
     else alpha = l.target.special_type ? 0.15 : scale_alpha(links.length);
+
+    // Scale down opacity for links converging on high-degree owner nodes
+    // to prevent overlapping links from compounding into an opaque mass
+    if (l.target.type === "owner" && l.target.degree > 5) {
+      const scale_density = d3.scaleLinear()
+        .domain([5, 15, 40])
+        .range([1, 0.5, 0.25])
+        .clamp(true);
+      alpha *= scale_density(l.target.degree);
+    }
+
     createGradient(l, alpha);
 
     function createGradient(l, alpha) {
@@ -1242,6 +1255,7 @@ const createContributorNetworkVisual = (
       },
       {
         scale_repo_radius,
+        scale_owner_radius,
         scale_contributor_radius,
         scale_link_width
       }
@@ -1372,7 +1386,6 @@ const createContributorNetworkVisual = (
     // Re-setup interaction handlers AFTER resize so they have correct WIDTH/HEIGHT/SF values
     setupHover();
     setupClick();
-    setupZoom();
 
     return chart;
   };
