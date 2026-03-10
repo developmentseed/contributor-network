@@ -3,6 +3,7 @@ import { createContributorNetworkVisual } from "./chart";
 
 interface Config {
   organization_name?: string;
+  organization_nickname?: string;
   contributor_padding?: number;
   contributors?: Record<string, string>;
   title?: string;
@@ -18,6 +19,7 @@ if (!configResponse.ok) {
 const config: Config = await configResponse.json();
 
 const organizationName = config.organization_name || "Development Seed";
+const orgNickname = config.organization_nickname || organizationName;
 const contributor_padding = config.contributor_padding || 20;
 
 const masterContributors: Record<string, string> = config.contributors || {};
@@ -51,7 +53,8 @@ const contributorNetworkVisual = createContributorNetworkVisual(
   container,
   contributor_padding,
   masterContributors,
-  displayNameToUsername
+  displayNameToUsername,
+  orgNickname,
 );
 contributorNetworkVisual.width(size).height(size);
 

@@ -29,6 +29,8 @@ export interface RepoData {
   devseedContributors: number;
   externalContributors: number;
   communityRatio: number;
+  totalCommits?: number;
+  orgCommits?: number;
   createdAt: Date;
   updatedAt: Date;
   languages: string[];
@@ -46,6 +48,7 @@ export interface RepoData {
   repo_has_discussions?: string | boolean;
   repo_archived?: string | boolean;
   repo_total_contributors?: string;
+  repo_total_commits?: string;
   repo_devseed_contributors?: string;
   repo_external_contributors?: string;
   repo_community_ratio?: string;

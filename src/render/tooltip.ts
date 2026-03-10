@@ -27,6 +27,7 @@ interface TooltipConfig {
   COLOR_REPO: string;
   COLOR_OWNER: string;
   min: (...values: number[]) => number;
+  orgNickname?: string;
 }
 
 /**
@@ -81,6 +82,9 @@ function calculateRepoTooltipHeight(
   if (data.totalContributors && data.totalContributors > 0) {
     y += config.sectionSpacing;
     y += config.valueFontSize * config.lineHeight + 4;
+    if (data.totalCommits && data.totalCommits > 0) {
+      y += config.valueFontSize * config.lineHeight;
+    }
     if (data.devseedContributors === 1 && data.totalContributors > 0) {
       y += config.valueFontSize * config.lineHeight;
       y += config.valueFontSize * config.lineHeight;
@@ -131,7 +135,9 @@ function calculateRepoTooltipWidth(
   formatDate: (value: Date) => string,
   formatDateExact: (value: Date) => string,
   formatDigit: (value: number) => string,
+  orgNickname?: string,
 ): number {
+  const org = orgNickname ?? 'DevSeed';
   const config = REPO_CARD_CONFIG;
   let maxWidth = 0;
 
@@ -195,13 +201,22 @@ function calculateRepoTooltipWidth(
     const external = data.externalContributors || 0;
     width =
       context.measureText(
-        `${total} contributors (${devseed} DevSeed, ${external} community)`,
+        `${total} contributors (${devseed} ${org}, ${external} community)`,
       ).width * 1.25;
     if (width > maxWidth) maxWidth = width;
 
+    if (data.totalCommits && data.totalCommits > 0) {
+      const orgPct = Math.round((data.orgCommits || 0) / data.totalCommits * 100);
+      width =
+        context.measureText(
+          `${data.totalCommits.toLocaleString()} total commits (${orgPct}% from ${org})`,
+        ).width * 1.25;
+      if (width > maxWidth) maxWidth = width;
+    }
+
     if (devseed === 1 && total > 0) {
       width =
-        context.measureText('⚠ Single DevSeed maintainer').width * 1.25;
+        context.measureText(`⚠ Single ${org} maintainer`).width * 1.25;
       if (width > maxWidth) maxWidth = width;
     }
   }
@@ -282,7 +297,7 @@ export function drawTooltip(
   formatDateExact: (value: Date) => string,
   formatDigit: (value: number) => string,
 ): void {
-  const { SF, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER } =
+  const { SF, COLOR_BACKGROUND, COLOR_TEXT, COLOR_CONTRIBUTOR, COLOR_REPO, COLOR_OWNER, orgNickname } =
     config;
 
   let line_height = 1.2;
@@ -298,7 +313,7 @@ export function drawTooltip(
   let H: number, W: number;
 
   if (d.type === 'contributor') {
-    H = 100;
+    H = 125;
     W = 320;
   } else if (d.type === 'owner') {
     H = 155;
@@ -313,6 +328,7 @@ export function drawTooltip(
       formatDate,
       formatDateExact,
       formatDigit,
+      orgNickname,
     );
   } else {
     H = 116;
@@ -365,6 +381,12 @@ export function drawTooltip(
     text = nodeData.contributor_name ?? nodeData.author_name;
     let tW = context.measureText(text).width * 1.25;
     if (tW + 40 * SF > W * SF) W = tW / SF + 40;
+    const repoCount = (nodeData.links_original as LinkData[] | undefined)?.length ?? 0;
+    const totalCommits = (nodeData.total_commits as number) || 0;
+    setFont(context, 14 * SF, 400, 'normal');
+    const statsText = `${repoCount} ${repoCount === 1 ? 'repo' : 'repos'} · ${totalCommits.toLocaleString()} commits`;
+    tW = context.measureText(statsText).width * 1.25;
+    if (tW + 40 * SF > W * SF) W = tW / SF + 40;
   }
 
   let H_OFFSET = d.y < 0 ? 20 : -H - 20;
@@ -415,6 +437,16 @@ export function drawTooltip(
     setFont(context, font_size * SF, 700, 'normal');
     text = nodeData.contributor_name ?? nodeData.author_name;
     renderText(context, text, xLeft * SF, y * SF, 1.25 * SF);
+
+    y += 26;
+    const contribRepoCount = (nodeData.links_original as LinkData[] | undefined)?.length ?? 0;
+    const contribTotalCommits = (nodeData.total_commits as number) || 0;
+    font_size = 14;
+    context.globalAlpha = 0.6;
+    setFont(context, font_size * SF, 400, 'normal');
+    text = `${contribRepoCount} ${contribRepoCount === 1 ? 'repo' : 'repos'} · ${contribTotalCommits.toLocaleString()} commits`;
+    renderText(context, text, xLeft * SF, y * SF, 1.25 * SF);
+    context.globalAlpha = 1;
   } else if (d.type === 'owner') {
     font_size = 22;
     setFont(context, font_size * SF, 700, 'normal');
@@ -509,7 +541,7 @@ export function drawTooltip(
     if (nodeData.totalContributors && nodeData.totalContributors > 0) {
       if (y > statsY) drawSectionDivider(context, y + 4, W, x, SF);
     }
-    y = renderCommunityMetrics(context, repoData, xLeft, y, SF);
+    y = renderCommunityMetrics(context, repoData, xLeft, y, SF, orgNickname);
 
     if (nodeData.license) {
       if (y > statsY) drawSectionDivider(context, y + 4, W, x, SF);

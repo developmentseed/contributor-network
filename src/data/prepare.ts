@@ -325,6 +325,8 @@ export function prepareData(
         contributors.find((r) => r.contributor_name === l.contributor_name),
       )
       .filter((c): c is ContributorData => c !== undefined);
+    d.totalCommits = d.repo_total_commits ? +d.repo_total_commits : undefined;
+    d.orgCommits = d3.sum(d.links_original, (l) => l.commit_count);
   });
 
   let owners: OwnerData[] = [];

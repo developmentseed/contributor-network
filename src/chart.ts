@@ -108,7 +108,8 @@ export const createContributorNetworkVisual = (
   container: HTMLElement,
   contributor_padding: number,
   masterContributorsList: Record<string, string>,
-  displayNameMap: Record<string, string>
+  displayNameMap: Record<string, string>,
+  orgNickname: string = 'DevSeed',
 ): ChartFunction => {
   const PI = Math.PI;
   const TAU = PI * 2;
@@ -887,6 +888,7 @@ export const createContributorNetworkVisual = (
       COLOR_REPO,
       COLOR_OWNER,
       min,
+      orgNickname,
     };
     drawTooltipModule(
       ctx,
