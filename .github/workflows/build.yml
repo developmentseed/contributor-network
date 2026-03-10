@@ -38,6 +38,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: build-data
+          fetch-depth: 0
       - name: Create PR
         run: gh pr create --fill
         env:
