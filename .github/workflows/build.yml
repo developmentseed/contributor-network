@@ -9,17 +9,9 @@ permissions:
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v2
-        id: generate-token
-        with:
-          app-id: ${{ secrets.DS_RELEASE_BOT_ID }}
-          private-key: ${{ secrets.DS_RELEASE_BOT_PRIVATE_KEY }}
       - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.generate-token.outputs.token }}
       - uses: astral-sh/setup-uv@v6
       - name: Build
         run: |
@@ -31,6 +23,19 @@ jobs:
           git add .
           git commit -m "chore: update data"
           git push -u origin build-data
+
+  create-pr:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: generate-token
+        with:
+          app-id: ${{ secrets.DS_RELEASE_BOT_ID }}
+          private-key: ${{ secrets.DS_RELEASE_BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@v6
+        with:
+          ref: build-data
       - name: Create PR
         run: gh pr create --fill
         env:
