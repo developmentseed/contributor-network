@@ -3,6 +3,7 @@
   "author": "Pete Gadomski",
   "description": "An interactive visualization of contributors to Development Seed code and their connections to other repositories",
   "organization_name": "Development Seed",
+  "organization_nickname": "DevSeed",
   "contributor_padding": 20,
   "contributors": {
     "AMSCamacho": "Angela Camacho",
