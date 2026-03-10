@@ -21,7 +21,7 @@ jobs:
         id: release-please
         with:
           token: ${{ steps.generate-token.outputs.token }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         token: ${{ steps.generate-token.outputs.token }}
       - uses: astral-sh/setup-uv@v6
       - name: Build
