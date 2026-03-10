@@ -60,6 +60,8 @@ repositories = [
     "developmentseed/eo-predictor",
     "EOPF-Explorer/landing-page",
     "EOPF-Explorer/narratives",
+    "EOPF-Explorer/data-model",
+    "EOPF-Explorer/data-pipeline",
     "developmentseed/deck.gl-raster",
     "MAAP-Project/maap-eoapi",
     "MAAP-Project/maap-documentation",
@@ -128,6 +130,7 @@ kimmurph = "Kim Murphy"
 kylebarron = "Kyle Barron"
 leothomas = "Leo Thomas"
 lillythomas = "Lilly Thomas"
+lhoupert = "Loïc Houpert"
 maxrjones = "Max Jones"
 martham93 = "Martha Morrissey"
 olafveerman = "Olaf Veerman"
