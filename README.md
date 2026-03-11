@@ -8,17 +8,22 @@ This visual is derived from the excellent [ORCA top-contributor-network](https:/
 
 ## Usage
 
-To view the site on http://localhost:8000:
+To view the site locally with hot module replacement:
 
 ```sh
-python -m http.server 8000
+npm run dev
 ```
 
 ## Development
 
-Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and a GitHub personal access token with `public_repo` scope (e.g. via `gh auth token` if you have the [Github CLI](https://cli.github.com/)).
+Get [uv](https://docs.astral.sh/uv/getting-started/installation/), [Node.js](https://nodejs.org/) 18+, and a GitHub personal access token with `public_repo` scope (e.g. via `gh auth token` if you have the [Github CLI](https://cli.github.com/)).
 
-If you've only made changes to the javascript, you can rebuild the site with:
+```sh
+uv sync
+npm install
+```
+
+If you've only made changes to the frontend, you can rebuild the site with:
 
 ```sh
 uv run contributor-network build
@@ -64,8 +69,8 @@ uv run contributor-network fetch
 # 5. Build the site
 uv run contributor-network build
 
-# 7. Preview locally
-cd dist && python -m http.server 8000
+# 6. Preview locally
+npm run preview
 ```
 
 ### Tests
@@ -73,6 +78,12 @@ cd dist && python -m http.server 8000
 ```shell
 npm test
 uv run pytest
+```
+
+### Type checking
+
+```shell
+npm run typecheck
 ```
 
 ### Lints

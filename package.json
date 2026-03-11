@@ -1,12 +1,26 @@
 {
   "name": "contributor-network-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Frontend visualization for the Contributor Network",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/vitest/vitest.mjs"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "d3-bboxCollide": "^1.0.4",
+    "d3-delaunay": "^6.0.4"
   },
   "devDependencies": {
-    "vitest": "^1.6.0"
+    "@types/d3": "^7.4.3",
+    "@types/d3-delaunay": "^6.0.4",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
   }
 }
