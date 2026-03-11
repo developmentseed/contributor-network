@@ -13,12 +13,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
       - uses: astral-sh/ruff-action@v3
       - name: Format
         run: ruff format --check --diff
-      - name: Type check
+      - name: Type check (Python)
         run: uv run mypy
-      - name: Test
+      - name: Test (Python)
         run: uv run pytest
+      - name: Type check (TypeScript)
+        run: npm run typecheck
+      - name: Test (TypeScript)
+        run: npm test
       - name: Build
         run: uv run contributor-network build

@@ -35,7 +35,7 @@ npm install          # Install JavaScript dependencies
 
 ### View Locally
 ```bash
-python -m http.server 8000
+npm run dev
 # Open http://localhost:8000/
 ```
 
@@ -44,7 +44,7 @@ python -m http.server 8000
 export GITHUB_TOKEN="your_token_here"
 uv run contributor-network data       # Fetch from GitHub
 uv run contributor-network csvs       # Generate CSVs
-uv run contributor-network build assets/data dist  # Build static site
+uv run contributor-network build      # Build static site (runs Vite)
 ```
 
 ---
@@ -56,24 +56,30 @@ uv run contributor-network build assets/data dist  # Build static site
 # Run CLI commands
 uv run contributor-network data             # Fetch contribution data from GitHub
 uv run contributor-network csvs             # Generate CSVs from JSON
-uv run contributor-network build assets/data dist   # Build static site to dist/
+uv run contributor-network build            # Build static site to dist/ (runs Vite)
 uv run contributor-network discover         # Find new repositories to track
 uv run contributor-network list-contributors # Display all configured contributors
 
-# JavaScript testing
-npm test                                    # Run Vitest
-npm run build                              # Bundle JavaScript
+# Frontend development
+npm run dev                                # Start Vite dev server
+npm test                                   # Run Vitest
+npm run build                             # Build frontend (tsc + vite)
+npm run typecheck                         # TypeScript type checking
 ```
 
 ### Quality Checks
 ```bash
-# Python: as in CI
+# Python
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy
 uv run pytest
 
-# Auto-fix issues
+# TypeScript
+npm run typecheck
+npm test
+
+# Auto-fix
 uv run ruff format .
 uv run ruff check --fix .
 ```
@@ -92,50 +98,57 @@ python/                     # Python backend (CLI)
   tests/                    # Python tests
   templates/                # Jinja2 HTML templates
 
-src/js/                     # JavaScript frontend (modular)
-  index.js                  # Barrel exports (re-exports all modules)
-  visualization/
-    index.js                # Main visualization factory
+src/                        # TypeScript frontend (built with Vite)
+  main.ts                   # App entry point
+  chart.ts                  # Main visualization factory
+  types.ts                  # Shared TypeScript types
+  index.ts                  # Barrel exports
   config/
-    theme.js                # Colors, fonts, layout constants
-    scales.js               # D3 scale factories
+    theme.ts                # Colors, fonts, layout constants
+    scales.ts               # D3 scale factories
   data/
-    filter.js               # Filtering logic
+    filter.ts               # Filtering logic
+    prepare.ts              # Data preparation for visualization
   interaction/
-    hover.js                # Hover event handling
-    click.js                # Click event handling
-    findNode.js             # Node detection via Delaunay
+    hover.ts                # Hover event handling
+    click.ts                # Click event handling
+    findNode.ts             # Node detection via Delaunay
+    zoom.ts                 # Zoom/pan handling
   layout/
-    resize.js               # Canvas resize handling
+    positioning.ts          # Contributor node positioning
+    resize.ts               # Canvas resize handling
   render/
-    canvas.js               # Canvas setup
-    shapes.js               # Shape drawing utilities
-    text.js                 # Text rendering
-    tooltip.js              # Tooltip rendering
-    labels.js               # Node labels
-    repoCard.js             # Repo details card
+    canvas.ts               # Canvas setup
+    shapes.ts               # Shape drawing utilities
+    text.ts                 # Text rendering
+    draw.ts                 # Main draw orchestrator
+    tooltip.ts              # Tooltip rendering
+    labels.ts               # Node labels
+    repoCard.ts             # Repo details card
   simulations/
-    ownerSimulation.js      # Owner node forces
-    contributorSimulation.js # Contributor node forces
-    collaborationSimulation.js # Collaboration link forces
-    remainingSimulation.js  # Remaining/community node forces
+    ownerSimulation.ts      # Owner node forces
+    contributorSimulation.ts # Contributor node forces
+    collaborationSimulation.ts # Collaboration link forces
   state/
-    filterState.js          # Filter state
-    interactionState.js     # Hover/click state
+    filterState.ts          # Filter state
+    interactionState.ts     # Hover/click state
   utils/
-    helpers.js              # Math utilities
-    formatters.js           # Date/number formatting
-    validation.js           # Data validation
-    debug.js                # Debug logging
-  __tests__/                # Unit tests
+    helpers.ts              # Math utilities
+    formatters.ts           # Date/number formatting
+    validation.ts           # Data validation
+    debug.ts                # Debug logging
+  __tests__/                # Vitest unit tests
 
-assets/
-  data/                     # JSON data files (generated)
+public/
+  data/                     # JSON/CSV data files (generated)
   css/                      # Stylesheets
   img/                      # Images
 
-index.html                  # Main entry point
+index.html                  # Main entry point (Vite processes this)
 config.toml                 # Repository and contributor config
+tsconfig.json               # TypeScript configuration
+vite.config.ts              # Vite build configuration
+vitest.config.ts            # Vitest test configuration
 ```
 
 ---
@@ -145,7 +158,7 @@ config.toml                 # Repository and contributor config
 - **`python/contributor_network/cli.py`** - Click-based CLI with 5 subcommands
 - **`python/contributor_network/client.py`** - GitHub API client wrapper
 - **`python/contributor_network/models.py`** - Pydantic data models (Repo, Link, etc.)
-- **`src/js/index.js`** - Main visualization orchestrator (still being refactored)
+- **`src/chart.ts`** - Main visualization factory (1400+ lines)
 - **`config.toml`** - Configuration: which repos to track, who are contributors
 - **`index.html`** - Static HTML that loads the visualization
 
@@ -160,12 +173,12 @@ config.toml                 # Repository and contributor config
 - Click for CLI commands
 - Docstrings on public functions
 
-### JavaScript
-- ES6 modules (no transpilation)
+### TypeScript
+- TypeScript with strict mode, built with Vite
+- D3 installed via npm (not CDN)
 - Modular architecture: each module <300 lines
-- JSDoc comments on exported functions
 - Tests with Vitest
-- No external build step for development (changes auto-available in browser)
+- `npm run dev` for development with HMR
 
 ---
 
@@ -206,15 +219,15 @@ The visualization uses multiple composited canvas layers for performance: main (
 
 ### Code Patterns
 
-- All JS modules export **functions, not classes**
+- All TS modules export **functions, not classes**
 - State updates are **immutable** (e.g., `state = setHovered(state, node)`)
-- All magic numbers and constants are **centralized** in `config/theme.js`
+- All magic numbers and constants are **centralized** in `src/config/theme.ts`
 
 ### Dependencies
 
 **Python:** click, pydantic, pygithub, requests, tomli, pytest
 
-**JavaScript:** d3, vitest
+**TypeScript:** d3, d3-delaunay, d3-bboxCollide, vite, vitest, typescript
 
 ---
 
@@ -235,7 +248,7 @@ Development Seed colors:
 - **Aquamarine** (#2E86AB): Secondary blue
 - **Base** (#443F3F): Text color
 
-Configured in `src/js/config/theme.js`.
+Configured in `src/config/theme.ts`.
 
 ---
 
@@ -245,7 +258,7 @@ Configured in `src/js/config/theme.js`.
 1. Edit `config.toml` - add repo to `[repositories]` section
 2. Run `uv run contributor-network data` to fetch GitHub data
 3. Run `uv run contributor-network csvs` to generate CSVs
-4. Run `uv run contributor-network build assets/data dist` to rebuild site
+4. Run `uv run contributor-network build` to rebuild site
 
 ### Add a New Contributor
 1. Edit `config.toml` - add to `[contributors.devseed]` or `[contributors.alumni]`
@@ -253,26 +266,22 @@ Configured in `src/js/config/theme.js`.
 
 ### Making Frontend Changes
 
-JavaScript files in `src/js/` are auto-available to the browser without a build step during development.
-
-1. Make changes to files in `src/js/`
-2. Refresh http://localhost:8000/ in your browser
-3. Run tests to verify: `npm test`
-
-**Note:** If you modify `src/js/chart.js` (the main visualization), it compiles to `chart.js` in the root. If you add new modules to `src/js/`, export them from `src/js/index.js`.
+1. Run `npm run dev` for the Vite dev server with HMR
+2. Make changes to files in `src/`
+3. Run `npm test` to verify
 
 ### Customizing the Visualization
 
-- **Colors & Fonts**: Edit `src/js/config/theme.js`
-- **Layout Constants**: Edit the `LAYOUT` object in `src/js/config/theme.js`
-- **Filters Available**: Check `src/js/state/filterState.js`
-- **Data Filtering Logic**: See `src/js/data/filter.js`
+- **Colors & Fonts**: Edit `src/config/theme.ts`
+- **Layout Constants**: Edit the `LAYOUT` object in `src/config/theme.ts`
+- **Filters Available**: Check `src/state/filterState.ts`
+- **Data Filtering Logic**: See `src/data/filter.ts`
 
 ### Debug Visualization Issues
 - Open DevTools (F12)
 - Look for `debug-contributor-network` flag in console
 - Check network tab to see what data was loaded
-- See `src/js/utils/debug.js` for debug utilities
+- See `src/utils/debug.ts` for debug utilities
 
 ### Debug Python Issues
 
@@ -312,8 +321,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 brew install uv
 ```
 
-### Changes to `src/js/` aren't showing up
-1. Make sure you're running `python -m http.server 8000`
+### Changes to `src/` aren't showing up
+1. Make sure you're running `npm run dev`
 2. Hard-refresh your browser: Ctrl+Shift+R (or Cmd+Shift+R on Mac)
 3. Check that the file was actually saved
 
@@ -336,4 +345,4 @@ uv run pytest -v
 
 ---
 
-**Last Updated**: February 2026
+**Last Updated**: March 2026

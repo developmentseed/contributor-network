@@ -1,5 +1,5 @@
 import json
-import shutil
+import subprocess
 from collections import defaultdict
 from csv import DictWriter
 from pathlib import Path
@@ -16,7 +16,7 @@ DEFAULT_CONFIG_PATH = "config.toml"
 directory = click.option(
     "--directory",
     type=click.Path(path_type=Path),
-    default=ROOT / "assets" / "data",
+    default=ROOT / "public" / "data",
     help="The data directory",
 )
 destination = click.option(
@@ -141,38 +141,8 @@ def build(
         writer.writeheader()
         writer.writerows(links)
 
-    destination.mkdir(parents=True, exist_ok=True)
-
-    assets_dest = destination / "assets"
-    assets_dest.mkdir(parents=True, exist_ok=True)
-
-    css_dest = assets_dest / "css"
-    css_dest.mkdir(parents=True, exist_ok=True)
-    shutil.copy(ROOT / "assets" / "css" / "style.css", css_dest / "style.css")
-
-    lib_dest = assets_dest / "lib"
-    lib_dest.mkdir(parents=True, exist_ok=True)
-    for path in (ROOT / "assets" / "lib").glob("**/*.js"):
-        shutil.copy(path, lib_dest / path.name)
-
-    img_dest = assets_dest / "img"
-    img_dest.mkdir(parents=True, exist_ok=True)
-    for path in (ROOT / "assets" / "img").glob("**/*.*"):
-        shutil.copy(path, img_dest / path.name)
-
-    data_dest = assets_dest / "data"
+    data_dest = directory
     data_dest.mkdir(parents=True, exist_ok=True)
-    for file_name in ["top_contributors.csv", "repositories.csv", "links.csv"]:
-        shutil.copy(directory / file_name, data_dest / file_name)
-
-    js_dest = destination / "js"
-    js_dest.mkdir(parents=True, exist_ok=True)
-    js_source = ROOT / "js"
-    if js_source.exists():
-        shutil.copytree(js_source, js_dest, dirs_exist_ok=True)
-        print(f"Copied js modules to {js_dest}")
-    else:
-        print("Warning: js directory not found")
 
     config_json = {
         "title": config.title,
@@ -187,8 +157,9 @@ def build(
     )
     print(f"Generated config.json in {data_dest}")
 
-    shutil.copy(ROOT / "index.html", destination / "index.html")
-    print(f"Copied index.html to {destination}")
+    print("Running Vite build...")
+    subprocess.run(["npm", "run", "build"], cwd=ROOT, check=True)
+    print(f"Vite build complete, output in {destination}")
 
 
 @main.command()
