@@ -149,6 +149,7 @@ def build(
         "author": config.author,
         "description": config.description,
         "organization_name": config.organization_name,
+        "organization_nickname": config.organization_nickname,
         "contributor_padding": config.contributor_padding,
         "contributors": config.all_contributors,
     }

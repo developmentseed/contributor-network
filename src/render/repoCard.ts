@@ -28,9 +28,11 @@ export interface RepoCardData {
   watchers?: number;
   languages?: string[];
   totalContributors?: number;
-  devseedContributors?: number;
+  orgContributors?: number;
   externalContributors?: number;
   communityRatio?: number;
+  totalCommits?: number;
+  orgCommits?: number;
   license?: string | null;
   archived?: boolean;
   [key: string]: unknown;
@@ -279,8 +281,10 @@ export function renderCommunityMetrics(
   x: number,
   y: number,
   SF: number,
+  orgNickname?: string,
 ): number {
   const config = REPO_CARD_CONFIG;
+  const org = orgNickname ?? 'DevSeed';
 
   if (!data.totalContributors || data.totalContributors === 0) {
     return y;
@@ -297,24 +301,36 @@ export function renderCommunityMetrics(
   setFont(context, config.valueFontSize * SF, 400, 'normal');
 
   const total = data.totalContributors;
-  const devseed = data.devseedContributors || 0;
+  const orgContributors = data.orgContributors || 0;
   const external = data.externalContributors || 0;
 
   renderText(
     context,
-    `${total} contributors (${devseed} DevSeed, ${external} community)`,
+    `${total} contributors (${orgContributors} ${org}, ${external} community)`,
     x * SF,
     y * SF,
     1.25 * SF,
   );
 
-  if (devseed === 1 && total > 0) {
+  if (data.totalCommits && data.totalCommits > 0) {
+    y += config.valueFontSize * config.lineHeight;
+    const orgPct = Math.round((data.orgCommits || 0) / data.totalCommits * 100);
+    renderText(
+      context,
+      `${data.totalCommits.toLocaleString()} total commits (${orgPct}% from ${org})`,
+      x * SF,
+      y * SF,
+      1.25 * SF,
+    );
+  }
+
+  if (orgContributors === 1 && total > 0) {
     y += config.valueFontSize * config.lineHeight;
     context.globalAlpha = config.warningOpacity;
     setFont(context, config.valueFontSize * SF, 400, 'italic');
     renderText(
       context,
-      '⚠ Single DevSeed maintainer',
+      `⚠ Single ${org} maintainer`,
       x * SF,
       y * SF,
       1.25 * SF,

@@ -187,7 +187,7 @@ export function prepareData(
     d.archived = d.repo_archived === "true" || d.repo_archived === true;
 
     d.totalContributors = +(d.repo_total_contributors ?? 0);
-    d.devseedContributors = +(d.repo_devseed_contributors ?? 0);
+    d.orgContributors = +(d.repo_devseed_contributors ?? 0);
     d.externalContributors = +(d.repo_external_contributors ?? 0);
     d.communityRatio = +(d.repo_community_ratio ?? 0);
 
@@ -325,6 +325,8 @@ export function prepareData(
         contributors.find((r) => r.contributor_name === l.contributor_name),
       )
       .filter((c): c is ContributorData => c !== undefined);
+    d.totalCommits = d.repo_total_commits ? +d.repo_total_commits : undefined;
+    d.orgCommits = d3.sum(d.links_original, (l) => l.commit_count);
   });
 
   let owners: OwnerData[] = [];

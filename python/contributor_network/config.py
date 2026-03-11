@@ -21,6 +21,7 @@ class Config(BaseModel):
         author: Author attribution
         description: Description shown on the page
         organization_name: Name of the organization (e.g., "Development Seed")
+        organization_nickname: Short name used in tooltips (e.g., "DevSeed")
         repositories: List of GitHub repos to track (format: "owner/repo")
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
@@ -31,6 +32,7 @@ class Config(BaseModel):
     author: str
     description: str
     organization_name: str
+    organization_nickname: str = ""
     repositories: list[str]
     contributors: dict[
         str, dict[str, str]
