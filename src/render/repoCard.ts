@@ -28,7 +28,7 @@ export interface RepoCardData {
   watchers?: number;
   languages?: string[];
   totalContributors?: number;
-  devseedContributors?: number;
+  orgContributors?: number;
   externalContributors?: number;
   communityRatio?: number;
   totalCommits?: number;
@@ -301,12 +301,12 @@ export function renderCommunityMetrics(
   setFont(context, config.valueFontSize * SF, 400, 'normal');
 
   const total = data.totalContributors;
-  const devseed = data.devseedContributors || 0;
+  const orgContributors = data.orgContributors || 0;
   const external = data.externalContributors || 0;
 
   renderText(
     context,
-    `${total} contributors (${devseed} ${org}, ${external} community)`,
+    `${total} contributors (${orgContributors} ${org}, ${external} community)`,
     x * SF,
     y * SF,
     1.25 * SF,
@@ -324,7 +324,7 @@ export function renderCommunityMetrics(
     );
   }
 
-  if (devseed === 1 && total > 0) {
+  if (orgContributors === 1 && total > 0) {
     y += config.valueFontSize * config.lineHeight;
     context.globalAlpha = config.warningOpacity;
     setFont(context, config.valueFontSize * SF, 400, 'italic');

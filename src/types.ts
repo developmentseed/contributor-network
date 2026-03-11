@@ -26,7 +26,7 @@ export interface RepoData {
   hasDiscussions: boolean;
   archived: boolean;
   totalContributors: number;
-  devseedContributors: number;
+  orgContributors: number;
   externalContributors: number;
   communityRatio: number;
   totalCommits?: number;

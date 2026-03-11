@@ -85,7 +85,7 @@ function calculateRepoTooltipHeight(
     if (data.totalCommits && data.totalCommits > 0) {
       y += config.valueFontSize * config.lineHeight;
     }
-    if (data.devseedContributors === 1 && data.totalContributors > 0) {
+    if (data.orgContributors === 1 && data.totalContributors > 0) {
       y += config.valueFontSize * config.lineHeight;
       y += config.valueFontSize * config.lineHeight;
     } else {
@@ -197,11 +197,11 @@ function calculateRepoTooltipWidth(
   if (data.totalContributors && data.totalContributors > 0) {
     setFont(context, config.valueFontSize * SF, 400, 'normal');
     const total = data.totalContributors;
-    const devseed = data.devseedContributors || 0;
+    const orgContributors = data.orgContributors || 0;
     const external = data.externalContributors || 0;
     width =
       context.measureText(
-        `${total} contributors (${devseed} ${org}, ${external} community)`,
+        `${total} contributors (${orgContributors} ${org}, ${external} community)`,
       ).width * 1.25;
     if (width > maxWidth) maxWidth = width;
 
@@ -214,7 +214,7 @@ function calculateRepoTooltipWidth(
       if (width > maxWidth) maxWidth = width;
     }
 
-    if (devseed === 1 && total > 0) {
+    if (orgContributors === 1 && total > 0) {
       width =
         context.measureText(`⚠ Single ${org} maintainer`).width * 1.25;
       if (width > maxWidth) maxWidth = width;
