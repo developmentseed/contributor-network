@@ -41,6 +41,7 @@ export function runOwnerSimulation(
         (n) => n.type === "repo",
       );
 
+
       const links_connected = links.filter(
         (l) =>
           getLinkNodeId(l.source) === d.id && nodes_connected.find((n) => n.id === getLinkNodeId(l.target)),
