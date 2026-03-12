@@ -96,6 +96,19 @@ export interface VisualizationNode {
   r: number;
   color: string;
   neighbors?: VisualizationNode[];
+
+  // Set by d3 force simulations
+  fx?: number | null;
+  fy?: number | null;
+
+  // Set by ownerSimulation / contributorSimulation
+  max_radius?: number;
+  connected_node_cloud?: VisualizationNode[];
+  connected_single_repo?: VisualizationNode[];
+  node_central?: boolean;
+  bbox?: [[number, number], [number, number]];
+  contributor_angle?: number;
+  neighbor_links?: LinkData[];
 }
 
 export interface InteractionState {
