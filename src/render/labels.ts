@@ -44,8 +44,8 @@ export function drawNodeLabel(
   if (d.type === 'contributor') {
     context.textBaseline = 'middle';
 
-    const contributor_angle = (d as any).contributor_angle as number;
-    const max_radius = (d as any).max_radius as number;
+    const contributor_angle = d.contributor_angle!;
+    const max_radius = d.max_radius!;
 
     context.save();
     context.translate(d.x * SF, d.y * SF);

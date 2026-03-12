@@ -23,8 +23,8 @@ export function runOwnerSimulation(
   nodes
     .filter((d) => d.type === "owner")
     .forEach((d) => {
-      d.x = (d as any).fx = 0;
-      d.y = (d as any).fy = 0;
+      d.x = d.fx = 0;
+      d.y = d.fy = 0;
     });
 
   nodes
@@ -37,9 +37,10 @@ export function runOwnerSimulation(
           ) || n.id === d.id,
       );
 
-      (d as any).connected_node_cloud = nodes_connected.filter(
+      d.connected_node_cloud = nodes_connected.filter(
         (n) => n.type === "repo",
       );
+
 
       const links_connected = links.filter(
         (l) =>
@@ -47,8 +48,8 @@ export function runOwnerSimulation(
       );
 
       nodes_connected.forEach((n) => {
-        n.x = (d as any).fx + Math.random() * (Math.random() > 0.5 ? 1 : -1);
-        n.y = (d as any).fy + Math.random() * (Math.random() > 0.5 ? 1 : -1);
+        n.x = d.fx! + Math.random() * (Math.random() > 0.5 ? 1 : -1);
+        n.y = d.fy! + Math.random() * (Math.random() > 0.5 ? 1 : -1);
       });
 
       const simulation = d3
@@ -75,8 +76,8 @@ export function runOwnerSimulation(
             .strength(0),
         )
         .force("charge", d3.forceManyBody().strength(LAYOUT.ownerRepoRepulsion))
-        .force("x", d3.forceX<VisualizationNode>().x((d as any).fx).strength(0.1))
-        .force("y", d3.forceY<VisualizationNode>().y((d as any).fy).strength(0.1));
+        .force("x", d3.forceX<VisualizationNode>().x(d.fx!).strength(0.1))
+        .force("y", d3.forceY<VisualizationNode>().y(d.fy!).strength(0.1));
 
       simulation.nodes(nodes_connected).stop();
 
@@ -88,13 +89,13 @@ export function runOwnerSimulation(
         (simulation.force("collide") as d3.ForceCollide<VisualizationNode>).strength(Math.pow(i / n_ticks, 2) * LAYOUT.ownerCollideStrength);
       }
 
-      (d as any).max_radius = d3.max(nodes_connected, (n) =>
+      d.max_radius = d3.max(nodes_connected, (n) =>
         sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2),
       );
       const max_radius_node = nodes_connected.find(
-        (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === (d as any).max_radius,
+        (n) => sqrt((n.x - d.x) ** 2 + (n.y - d.y) ** 2) === d.max_radius,
       );
-      (d as any).max_radius = max((d as any).max_radius + max_radius_node!.r, d.r);
+      d.max_radius = max(d.max_radius! + max_radius_node!.r, d.r);
 
       delete (d as any).fx;
       delete (d as any).fy;

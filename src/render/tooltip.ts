@@ -305,7 +305,7 @@ export function drawTooltip(
   let text: string;
 
   const nodeData = d.data as Record<string, any>;
-  const max_radius = nodeData.max_radius as number | undefined;
+  const max_radius = d.max_radius;
 
   const x_base = d.x;
   const y_base = d.y + (d.y < 0 ? 1 : -1) * (max_radius ? max_radius : d.r);
@@ -336,7 +336,7 @@ export function drawTooltip(
   }
 
   if (d.type === 'owner') {
-    const connected_node_cloud = (nodeData.connected_node_cloud || []) as VisualizationNode[];
+    const connected_node_cloud = (d.connected_node_cloud || []);
     const sortedRepos = [...connected_node_cloud].sort(
       (a, b) =>
         ((b.data as Record<string, any>).forks || 0) -
@@ -456,7 +456,7 @@ export function drawTooltip(
     font_size = 14;
     context.globalAlpha = 0.6;
     setFont(context, font_size * SF, 400, 'normal');
-    const connected_node_cloud = (nodeData.connected_node_cloud || []) as VisualizationNode[];
+    const connected_node_cloud = (d.connected_node_cloud || []);
     const repoCount = connected_node_cloud.length;
     renderText(
       context,

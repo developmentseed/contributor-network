@@ -58,16 +58,16 @@ export function positionContributorNodes(
 
   const contributorNodes = nodes.filter((d) => d.type === "contributor");
   contributorNodes.forEach((d) => {
-    if (!(d as any).max_radius || !isFinite((d as any).max_radius) || (d as any).max_radius <= 0) {
-      (d as any).max_radius = d.r || 20;
+    if (!d.max_radius || !isFinite(d.max_radius) || d.max_radius <= 0) {
+      d.max_radius = d.r || 20;
     }
-    if (!(d as any).connected_single_repo) {
-      (d as any).connected_single_repo = [];
+    if (!d.connected_single_repo) {
+      d.connected_single_repo = [];
     }
   });
 
   let sum_radius = contributorNodes
-    .reduce((acc, curr) => acc + (curr as any).max_radius * 2, 0);
+    .reduce((acc, curr) => acc + curr.max_radius! * 2, 0);
   sum_radius += contributors.length * CONTRIBUTOR_PADDING;
   let RADIUS_CONTRIBUTOR = sum_radius / TAU;
 
@@ -87,18 +87,18 @@ export function positionContributorNodes(
 
   let angle = 0;
   contributorNodes.forEach((d, i) => {
-    if ((d as any).connected_single_repo && (d as any).connected_single_repo.length > 0) {
-      (d as any).connected_single_repo.forEach((repo: VisualizationNode) => {
+    if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+      d.connected_single_repo.forEach((repo: VisualizationNode) => {
         repo.x -= d.x;
         repo.y -= d.y;
       });
     }
 
     if (i < 3) {
-      console.log(`Contributor ${i} "${d.id}": max_radius=${(d as any).max_radius}, r=${d.r}, center=(${CENTER_X}, ${CENTER_Y})`);
+      console.log(`Contributor ${i} "${d.id}": max_radius=${d.max_radius}, r=${d.r}, center=(${CENTER_X}, ${CENTER_Y})`);
     }
 
-    const contributor_arc = (d as any).max_radius * 2 + CONTRIBUTOR_PADDING;
+    const contributor_arc = d.max_radius! * 2 + CONTRIBUTOR_PADDING;
     let contributor_angle: number;
     if (useEvenSpacing) {
       contributor_angle = evenAngleIncrement / 2;
@@ -113,19 +113,19 @@ export function positionContributorNodes(
     d.y =
       CENTER_Y +
       radius_drawn * sin(angle + contributor_angle - PI / 2);
-    (d as any).contributor_angle = angle + contributor_angle - PI / 2;
+    d.contributor_angle = angle + contributor_angle - PI / 2;
     angle += useEvenSpacing ? evenAngleIncrement : contributor_angle * 2;
 
-    (d as any).fx = d.x;
-    (d as any).fy = d.y;
+    d.fx = d.x;
+    d.fy = d.y;
 
-    if ((d as any).connected_single_repo && (d as any).connected_single_repo.length > 0) {
-      (d as any).connected_single_repo.forEach((repo: VisualizationNode) => {
+    if (d.connected_single_repo && d.connected_single_repo.length > 0) {
+      d.connected_single_repo.forEach((repo: VisualizationNode) => {
         repo.x += d.x;
         repo.y += d.y;
 
-        (repo as any).fx = repo.x;
-        (repo as any).fy = repo.y;
+        repo.fx = repo.x;
+        repo.fy = repo.y;
       });
     }
   });

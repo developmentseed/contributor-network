@@ -45,7 +45,7 @@ export function runCollaborationSimulation(
     )
     .force(
       "collide",
-      bboxCollide<VisualizationNode>((d) => (d as any).bbox)
+      bboxCollide<VisualizationNode>((d) => d.bbox!)
         .strength(0)
         .iterations(1),
     )
@@ -69,14 +69,14 @@ export function runCollaborationSimulation(
         d.degree > 1),
   );
   nodes_central.forEach((d) => {
-    (d as any).node_central = true;
+    d.node_central = true;
   });
 
   nodes_central.forEach((d) => {
     if (d.type === "contributor") {
-      (d as any).bbox = [
-        [-(d as any).max_radius, -(d as any).max_radius],
-        [(d as any).max_radius, (d as any).max_radius],
+      d.bbox = [
+        [-d.max_radius!, -d.max_radius!],
+        [d.max_radius!, d.max_radius!],
       ];
       return;
     }
@@ -98,11 +98,11 @@ export function runCollaborationSimulation(
       text_size.fontBoundingBoxAscent + text_size.fontBoundingBoxDescent;
     if (d.type === "repo") text_height *= 2;
 
-    const r = d.type === "owner" ? (d as any).max_radius : d.r;
+    const r = d.type === "owner" ? d.max_radius! : d.r;
     const top = max(r, d.r + text_height);
     const w = max(r * 2, text_size.width * 1.25) + 14;
 
-    (d as any).bbox = [
+    d.bbox = [
       [-w / 2, -top],
       [w / 2, r],
     ];
@@ -126,15 +126,15 @@ export function runCollaborationSimulation(
   }
 
   nodes_central.forEach((d) => {
-    (d as any).fx = d.x;
-    (d as any).fy = d.y;
+    d.fx = d.x;
+    d.fy = d.y;
   });
 
   nodes
     .filter((d) => d.type === "owner")
     .forEach((d) => {
-      if ((d as any).connected_node_cloud && (d as any).connected_node_cloud.length > 0) {
-        (d as any).connected_node_cloud.forEach((repo: VisualizationNode) => {
+      if (d.connected_node_cloud && d.connected_node_cloud.length > 0) {
+        d.connected_node_cloud.forEach((repo: VisualizationNode) => {
           repo.x = d.x + repo.x;
           repo.y = d.y + repo.y;
         });

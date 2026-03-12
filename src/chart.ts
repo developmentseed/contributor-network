@@ -739,8 +739,8 @@ export const createContributorNetworkVisual = (
   ): void {
     ctx.save();
 
-    if ((d as any).neighbor_links === undefined) {
-      (d as any).neighbor_links = links.filter(
+    if (d.neighbor_links === undefined) {
+      d.neighbor_links = links.filter(
         (l) =>
           (l.source as VisualizationNode).id === d.id ||
           (l.target as VisualizationNode).id === d.id
@@ -785,7 +785,7 @@ export const createContributorNetworkVisual = (
 
                 if (node) {
                   d.neighbors!.push(node);
-                  if (link) (d as any).neighbor_links.push(link);
+                  if (link) d.neighbor_links!.push(link);
                 }
               }
             });
@@ -794,8 +794,8 @@ export const createContributorNetworkVisual = (
       }
     }
 
-    if ((d as any).neighbor_links) {
-      (d as any).neighbor_links.forEach((l: LinkData) => {
+    if (d.neighbor_links) {
+      d.neighbor_links.forEach((l: LinkData) => {
         if (l && l.source && l.target) drawLinkWrapper(ctx, SF, l);
       });
     }
@@ -808,14 +808,14 @@ export const createContributorNetworkVisual = (
         if (n) drawNodeWrapper(ctx, SF, n);
       });
       d.neighbors.forEach((n) => {
-        if (n && (n as any).node_central) drawNodeLabelWrapper(ctx, n);
+        if (n && n.node_central) drawNodeLabelWrapper(ctx, n);
       });
     }
 
     drawNodeWrapper(ctx, SF, d);
     drawHoverRingWrapper(ctx, d);
 
-    if ((d as any).node_central && d.type === "contributor")
+    if (d.node_central && d.type === "contributor")
       drawNodeLabelWrapper(ctx, d);
 
     if (DO_TOOLTIP) drawTooltipWrapper(ctx, d);
