@@ -169,10 +169,6 @@ document.fonts.ready.then(() => {
 const filterToggle = document.getElementById("filter-toggle");
 const filterHeader = document.getElementById("filter-header");
 if (filterToggle && filterHeader) {
-  if (window.innerWidth <= 768) {
-    filterHeader.classList.add("collapsed");
-    filterToggle.setAttribute("aria-expanded", "false");
-  }
   filterToggle.addEventListener("click", () => {
     const expanded = filterToggle.getAttribute("aria-expanded") === "true";
     filterToggle.setAttribute("aria-expanded", String(!expanded));
