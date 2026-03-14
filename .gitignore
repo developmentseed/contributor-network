@@ -71,6 +71,9 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# AI agent planning docs
+docs/superpowers/
+
 # PyBuilder
 .pybuilder/
 target/
