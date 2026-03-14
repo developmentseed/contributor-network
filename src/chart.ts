@@ -695,12 +695,12 @@ export const createContributorNetworkVisual = (
 
   function setupHover(): void {
     const config = {
-      PIXEL_RATIO,
-      WIDTH,
-      HEIGHT,
-      SF,
-      RADIUS_CONTRIBUTOR,
-      CONTRIBUTOR_RING_WIDTH,
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
       sqrt,
     };
     const delaunayData: DelaunayDataProxy = {
@@ -825,12 +825,12 @@ export const createContributorNetworkVisual = (
 
   function setupClick(): void {
     const config = {
-      PIXEL_RATIO,
-      WIDTH,
-      HEIGHT,
-      SF,
-      RADIUS_CONTRIBUTOR,
-      CONTRIBUTOR_RING_WIDTH,
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
       sqrt,
     };
     const delaunayData: DelaunayDataProxy = {
