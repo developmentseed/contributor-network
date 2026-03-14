@@ -43,6 +43,9 @@
         </div>
 
         <div id="chart-filters">
+            <button id="filter-toggle" aria-expanded="true" aria-controls="filter-header">
+                Filters <span id="filter-toggle-icon">&#9650;</span>
+            </button>
             <div id="filter-header">
                 <label for="org-select">Organization:</label>
                 <select id="org-select">
@@ -75,6 +78,11 @@
 
         <div id="chart-container">
             <p id="chart-loading" style="text-align: center; padding-top: 2em; color: var(--color-text); font-style: italic;">Loading visualization...</p>
+            <div id="zoom-controls">
+                <button id="zoom-in" aria-label="Zoom in">+</button>
+                <button id="zoom-reset" aria-label="Reset zoom">&#8634;</button>
+                <button id="zoom-out" aria-label="Zoom out">&minus;</button>
+            </div>
         </div>
 
     </div>

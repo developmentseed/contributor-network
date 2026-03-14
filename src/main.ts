@@ -43,7 +43,7 @@ function getChartDimensions(): number {
   if (availableWidth < 400) {
     availableWidth = Math.min(window.innerWidth - 40, 1400 - 40);
   }
-  return Math.max(availableWidth, 600);
+  return Math.max(availableWidth, 320);
 }
 
 let size = getChartDimensions();
@@ -165,6 +165,20 @@ document.fonts.ready.then(() => {
         '<p style="color: red; padding: 20px;">Error loading data files. Make sure CSV files exist in data/.</p>';
     });
 });
+
+const filterToggle = document.getElementById("filter-toggle");
+const filterHeader = document.getElementById("filter-header");
+if (filterToggle && filterHeader) {
+  if (window.innerWidth <= 768) {
+    filterHeader.classList.add("collapsed");
+    filterToggle.setAttribute("aria-expanded", "false");
+  }
+  filterToggle.addEventListener("click", () => {
+    const expanded = filterToggle.getAttribute("aria-expanded") === "true";
+    filterToggle.setAttribute("aria-expanded", String(!expanded));
+    filterHeader.classList.toggle("collapsed", expanded);
+  });
+}
 
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 window.addEventListener("resize", function () {
