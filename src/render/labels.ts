@@ -5,6 +5,7 @@
 
 import { setContributorFont, setOwnerFont, setRepoFont, renderText } from './text';
 import type { VisualizationNode } from '../types';
+import { MOBILE_BREAKPOINT } from '../config/theme';
 
 interface LabelConfig {
   SF: number;
@@ -26,7 +27,7 @@ export function drawNodeLabel(
 ): void {
   const { SF, COLOR_TEXT, COLOR_BACKGROUND, COLOR_REPO_MAIN, PI } = config;
 
-  if ((d.type === 'repo' || d.type === 'owner') && window.innerWidth <= 768) {
+  if ((d.type === 'repo' || d.type === 'owner') && window.innerWidth <= MOBILE_BREAKPOINT) {
     return;
   }
 

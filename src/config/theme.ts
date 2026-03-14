@@ -1,3 +1,5 @@
+export const MOBILE_BREAKPOINT = 768;
+
 interface RadiusRange {
   min: number;
   max: number;

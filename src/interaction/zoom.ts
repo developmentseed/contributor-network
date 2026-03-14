@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import type { ZoomState, VisualizationConfig } from '../types';
+import { MOBILE_BREAKPOINT } from '../config/theme';
 
 export interface SetupZoomOptions {
   canvasSelector: string;
@@ -25,7 +26,7 @@ export function setupZoom(
   state.zoomMovedAt = 0;
   state.zoomStartTransform = d3.zoomIdentity;
 
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   const zoomBehavior = d3
     .zoom()
     .filter((event: Event) => event.type !== 'wheel' && event.type !== 'dblclick')
