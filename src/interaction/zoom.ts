@@ -25,10 +25,11 @@ export function setupZoom(
   state.zoomMovedAt = 0;
   state.zoomStartTransform = d3.zoomIdentity;
 
+  const isMobile = window.innerWidth <= 768;
   const zoomBehavior = d3
     .zoom()
     .filter((event: Event) => event.type !== 'wheel' && event.type !== 'dblclick')
-    .scaleExtent([0.4, 6])
+    .scaleExtent(isMobile ? [0.6, 3] : [0.4, 6])
     .on('start', () => {
       state.zoomPanning = true;
       state.zoomMoved = false;
