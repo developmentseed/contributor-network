@@ -51,8 +51,10 @@ export function findNode(
     return [null, false];
   }
 
+  const isTouchCapable = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const hoverRadius = isTouchCapable ? 70 : 50;
   const dist = sqrt((d.x - mx) ** 2 + (d.y - my) ** 2);
-  const FOUND = dist < d.r + (interactionState.clickActive ? 10 : 50);
+  const FOUND = dist < d.r + (interactionState.clickActive ? 10 : hoverRadius);
 
   return [d, FOUND];
 }
