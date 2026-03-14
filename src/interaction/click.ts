@@ -57,6 +57,8 @@ export function setupClick(options: SetupClickOptions): void {
   } = options;
   const { WIDTH, HEIGHT } = config;
 
+  const isTouchCapable = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
   const element = document.querySelector(canvasSelector) as Element;
   d3.select(element).on('click', function (this: Element, event: MouseEvent) {
     if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
@@ -77,6 +79,10 @@ export function setupClick(options: SetupClickOptions): void {
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
 
     if (FOUND && d) {
+      if (isTouchCapable && interactionState.hoveredNode !== d) {
+        return;
+      }
+
       setClicked(interactionState, d);
 
       delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;

@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import type { ZoomState, VisualizationConfig } from '../types';
+import { MOBILE_BREAKPOINT } from '../config/theme';
 
 export interface SetupZoomOptions {
   canvasSelector: string;
@@ -25,10 +26,11 @@ export function setupZoom(
   state.zoomMovedAt = 0;
   state.zoomStartTransform = d3.zoomIdentity;
 
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   const zoomBehavior = d3
     .zoom()
     .filter((event: Event) => event.type !== 'wheel' && event.type !== 'dblclick')
-    .scaleExtent([0.4, 6])
+    .scaleExtent(isMobile ? [0.6, 3] : [0.4, 6])
     .on('start', () => {
       state.zoomPanning = true;
       state.zoomMoved = false;
@@ -59,42 +61,6 @@ export function setupZoom(
   if (!canvasElement) {
     console.warn('setupZoom: canvas element not found:', canvasSelector);
     return zoomBehavior;
-  }
-
-  function getZoomCenter(): [number, number] {
-    const rect = canvasElement!.getBoundingClientRect();
-    return [rect.width / 2, rect.height / 2];
-  }
-
-  const zoomInBtn = document.getElementById('zoom-in');
-  const zoomOutBtn = document.getElementById('zoom-out');
-  const zoomResetBtn = document.getElementById('zoom-reset');
-
-  if (zoomInBtn) {
-    zoomInBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.scaleBy as any, 1.2, getZoomCenter());
-    };
-  }
-
-  if (zoomOutBtn) {
-    zoomOutBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.scaleBy as any, 1 / 1.2, getZoomCenter());
-    };
-  }
-
-  if (zoomResetBtn) {
-    zoomResetBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.transform as any, d3.zoomIdentity);
-    };
   }
 
   return zoomBehavior;

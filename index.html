@@ -43,7 +43,10 @@
         </div>
 
         <div id="chart-filters">
-            <div id="filter-header">
+            <button id="filter-toggle" aria-expanded="false" aria-controls="filter-header">
+                Filters <span id="filter-toggle-icon">&#9650;</span>
+            </button>
+            <div id="filter-header" class="collapsed">
                 <label for="org-select">Organization:</label>
                 <select id="org-select">
                     <option value="">-- All Organizations --</option>
