@@ -62,42 +62,6 @@ export function setupZoom(
     return zoomBehavior;
   }
 
-  function getZoomCenter(): [number, number] {
-    const rect = canvasElement!.getBoundingClientRect();
-    return [rect.width / 2, rect.height / 2];
-  }
-
-  const zoomInBtn = document.getElementById('zoom-in');
-  const zoomOutBtn = document.getElementById('zoom-out');
-  const zoomResetBtn = document.getElementById('zoom-reset');
-
-  if (zoomInBtn) {
-    zoomInBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.scaleBy as any, 1.2, getZoomCenter());
-    };
-  }
-
-  if (zoomOutBtn) {
-    zoomOutBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.scaleBy as any, 1 / 1.2, getZoomCenter());
-    };
-  }
-
-  if (zoomResetBtn) {
-    zoomResetBtn.onclick = () => {
-      zoomTarget
-        .transition()
-        .duration(150)
-        .call(zoomBehavior.transform as any, d3.zoomIdentity);
-    };
-  }
-
   return zoomBehavior;
 }
 
