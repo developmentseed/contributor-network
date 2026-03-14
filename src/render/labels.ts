@@ -25,7 +25,10 @@ export function drawNodeLabel(
   DO_CENTRAL_OUTSIDE: boolean = false,
 ): void {
   const { SF, COLOR_TEXT, COLOR_BACKGROUND, COLOR_REPO_MAIN, PI } = config;
-  const TAU = PI * 2;
+
+  if ((d.type === 'repo' || d.type === 'owner') && window.innerWidth <= 768) {
+    return;
+  }
 
   context.fillStyle = COLOR_TEXT;
   context.lineWidth = 2 * SF;
