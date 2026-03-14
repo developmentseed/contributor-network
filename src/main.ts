@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
+import { MOBILE_BREAKPOINT } from "./config/theme";
 
 interface Config {
   organization_name?: string;
