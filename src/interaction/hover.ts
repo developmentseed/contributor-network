@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { findNode as findNodeAtPosition } from './findNode';
 import { drawWithZoomTransform } from './zoom';
+import { isTouchDevice } from '../utils/helpers';
 import type {
   VisualizationConfig,
   DelaunayData,
@@ -20,10 +21,6 @@ export interface SetupHoverOptions {
   clearHover: (state: InteractionState) => void;
   drawHoverState: (context: CanvasRenderingContext2D, node: VisualizationNode) => void;
   zoomState?: ZoomState | null;
-}
-
-function isTouchDevice(): boolean {
-  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
 function handlePointerHover(
@@ -93,31 +90,17 @@ export function setupHover(options: SetupHoverOptions): void {
   const element = document.querySelector(canvasSelector) as Element;
 
   d3.select(element).on('mousemove', function (this: Element, event: MouseEvent) {
+    if (isTouchDevice()) return;
     const [mx, my] = d3.pointer(event, this);
     handlePointerHover(mx, my, options);
   });
 
   d3.select(element).on('mouseleave', function () {
+    if (isTouchDevice()) return;
     contextHover.clearRect(0, 0, WIDTH, HEIGHT);
     clearHover(interactionState);
     if (!interactionState.clickActive) {
       canvas.style.opacity = '1';
     }
   });
-
-  if (isTouchDevice()) {
-    const canvasEl = element as HTMLElement;
-    canvasEl.addEventListener(
-      'touchstart',
-      (event: TouchEvent) => {
-        if (event.touches.length !== 1) return;
-        const touch = event.touches[0];
-        const rect = canvasEl.getBoundingClientRect();
-        const mx = touch.clientX - rect.left;
-        const my = touch.clientY - rect.top;
-        handlePointerHover(mx, my, options);
-      },
-      { passive: true },
-    );
-  }
 }
