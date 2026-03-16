@@ -208,6 +208,7 @@ function setupMobileLayout(): void {
     if (drawer.dataset.mode === 'tooltip') return;
     const expanded = drawer.dataset.expanded === 'true';
     drawer.dataset.expanded = String(!expanded);
+    drawerHandle.setAttribute('aria-expanded', String(!expanded));
   });
 }
 

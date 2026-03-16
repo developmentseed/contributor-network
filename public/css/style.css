@@ -583,9 +583,9 @@ li#item-remaining::before {
         color: var(--color-repo-main);
         font-size: 16px;
         font-weight: 700;
-        width: 36px;
-        height: 36px;
-        border-radius: 18px;
+        width: 44px;
+        height: 44px;
+        border-radius: 22px;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -658,6 +658,10 @@ li#item-remaining::before {
         padding: 8px 16px;
         min-height: 56px;
         box-sizing: border-box;
+        width: 100%;
+        background: none;
+        border: none;
+        font: inherit;
         cursor: pointer;
     }
 
