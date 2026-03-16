@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
+import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
 
 interface Config {
   organization_name?: string;
@@ -38,6 +39,11 @@ const container = document.getElementById("chart-container")!;
 const wrapper = document.getElementById("chart-wrapper")!;
 
 function getChartDimensions(): number {
+  if (window.innerWidth <= MOBILE_BREAKPOINT) {
+    const availableWidth = window.innerWidth;
+    const availableHeight = window.innerHeight - MOBILE_DRAWER_PEEK_HEIGHT;
+    return Math.min(availableWidth, availableHeight);
+  }
   const wrapperRect = wrapper.getBoundingClientRect();
   let availableWidth = wrapperRect.width - 40;
   if (availableWidth < 400) {
@@ -147,6 +153,7 @@ document.fonts.ready.then(() => {
       const loadingEl = document.getElementById("chart-loading");
       if (loadingEl) loadingEl.remove();
       contributorNetworkVisual(values);
+      setupMobileLayout();
 
       const formatDateLong = d3.utcFormat("%B %-e, %Y");
       const most_recent_commit = d3.max(
@@ -165,6 +172,44 @@ document.fonts.ready.then(() => {
         '<p style="color: red; padding: 20px;">Error loading data files. Make sure CSV files exist in data/.</p>';
     });
 });
+
+function setupMobileLayout(): void {
+  if (window.innerWidth > MOBILE_BREAKPOINT) return;
+
+  // Move intro content into info overlay
+  const infoContent = document.getElementById('mobile-info-content')!;
+  const chartTitle = document.getElementById('chart-title')!;
+  const chartIntroText = document.getElementById('chart-intro-text')!;
+  infoContent.appendChild(chartTitle);
+  infoContent.appendChild(chartIntroText);
+
+  // Move filters into drawer (#filter-stats is a child of #filter-header, so it moves too)
+  const drawerFilters = document.getElementById('mobile-drawer-filters')!;
+  const filterHeader = document.getElementById('filter-header')!;
+  drawerFilters.appendChild(filterHeader);
+  filterHeader.classList.remove('collapsed');
+
+  // Info overlay open/close
+  const infoBtn = document.getElementById('mobile-info-btn')!;
+  const infoOverlay = document.getElementById('mobile-info-overlay')!;
+  const infoClose = document.getElementById('mobile-info-close')!;
+
+  infoBtn.addEventListener('click', () => infoOverlay.classList.add('active'));
+  infoClose.addEventListener('click', () => infoOverlay.classList.remove('active'));
+  infoOverlay.addEventListener('click', (e) => {
+    if (e.target === infoOverlay) infoOverlay.classList.remove('active');
+  });
+
+  // Drawer expand/collapse
+  const drawer = document.getElementById('mobile-drawer')!;
+  const drawerHandle = document.getElementById('mobile-drawer-handle')!;
+
+  drawerHandle.addEventListener('click', () => {
+    if (drawer.dataset.mode === 'tooltip') return;
+    const expanded = drawer.dataset.expanded === 'true';
+    drawer.dataset.expanded = String(!expanded);
+  });
+}
 
 const filterToggle = document.getElementById("filter-toggle");
 const filterHeader = document.getElementById("filter-header");
