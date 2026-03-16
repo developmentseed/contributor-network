@@ -70,6 +70,8 @@ import {
 } from "./state/interactionState";
 import { setupHover as setupHoverInteraction } from "./interaction/hover";
 import { setupClick as setupClickInteraction } from "./interaction/click";
+import { setupTouch } from "./interaction/touch";
+import { isTouchDevice } from "./utils/helpers";
 import {
   setupZoom as setupZoomModule,
   applyZoomTransform,
@@ -308,6 +310,7 @@ export const createContributorNetworkVisual = (
 
     setupHover();
     setupClick();
+    setupTouchInteraction();
   }
 
   function redrawAll(): void {
@@ -867,6 +870,55 @@ export const createContributorNetworkVisual = (
     });
   }
 
+  function setupTouchInteraction(): void {
+    if (!isTouchDevice()) return;
+    const tooltipEl = document.getElementById('mobile-tooltip');
+    const tooltipContentEl = document.getElementById('mobile-tooltip-content');
+    if (!tooltipEl || !tooltipContentEl) return;
+    const config = {
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
+      sqrt,
+    };
+    const delaunayData: DelaunayDataProxy = {
+      get delaunay() {
+        return delaunay;
+      },
+      set delaunay(val) {
+        delaunay = val;
+      },
+      get nodesDelaunay() {
+        return nodes_delaunay;
+      },
+      set nodesDelaunay(val) {
+        nodes_delaunay = val;
+      },
+    };
+    setupTouch({
+      canvasSelector: "#canvas-hover",
+      config,
+      delaunayData,
+      interactionState,
+      canvas,
+      contextClick: context_click,
+      contextHover: context_hover,
+      nodes,
+      setClicked,
+      clearClick,
+      clearHover,
+      setDelaunay,
+      drawHoverState,
+      zoomState,
+      tooltipEl,
+      tooltipContentEl,
+      orgNickname,
+    });
+  }
+
   function setupZoom(): void {
     setupZoomModule({
       canvasSelector: "#canvas-hover",
@@ -1068,6 +1120,7 @@ export const createContributorNetworkVisual = (
 
     setupHover();
     setupClick();
+    setupTouchInteraction();
 
     return chart as ChartFunction;
   };
