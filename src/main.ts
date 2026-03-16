@@ -211,6 +211,38 @@ function setupMobileLayout(): void {
     drawerHandle.setAttribute('aria-expanded', String(!expanded));
   });
 
+  // Swipe gestures on drawer
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  const SWIPE_THRESHOLD = 30;
+
+  drawer.addEventListener('touchstart', (e: TouchEvent) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  drawer.addEventListener('touchend', (e: TouchEvent) => {
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+    if (elapsed > 300 || Math.abs(deltaY) < SWIPE_THRESHOLD) return;
+
+    if (deltaY < 0) {
+      // Swipe up → expand
+      if (drawer.dataset.mode === 'filters') {
+        drawer.dataset.expanded = 'true';
+        drawerHandle.setAttribute('aria-expanded', 'true');
+      }
+    } else {
+      // Swipe down → collapse or dismiss tooltip
+      if (drawer.dataset.mode === 'tooltip') {
+        document.getElementById('mobile-drawer-tooltip-close')?.click();
+      } else {
+        drawer.dataset.expanded = 'false';
+        drawerHandle.setAttribute('aria-expanded', 'false');
+      }
+    }
+  }, { passive: true });
+
   // Pan hint — show once on first visit
   const PAN_HINT_KEY = 'cn-pan-hint-shown';
   if (!localStorage.getItem(PAN_HINT_KEY)) {
