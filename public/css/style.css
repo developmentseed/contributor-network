@@ -504,7 +504,13 @@ li#item-remaining::before {
     }
 
     #filter-toggle {
-        display: block;
+        display: flex;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 44px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
     }
 
     #filter-header {
@@ -542,4 +548,108 @@ li#item-remaining::before {
     .double-column .header {
         grid-column-end: 2;
     }
+}
+
+/*************************************/
+/********** MOBILE TOOLTIP ***********/
+/*************************************/
+
+#mobile-tooltip {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--color-background);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid transparent;
+    max-height: 50vh;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 16px 16px 24px 16px;
+    box-sizing: border-box;
+    font-family: 'Roboto', 'Antarctica', sans-serif;
+    color: var(--color-text);
+}
+
+#mobile-tooltip.active {
+    display: block;
+}
+
+#mobile-tooltip[data-node-type="contributor"] {
+    border-left-color: var(--color-contributor);
+}
+
+#mobile-tooltip[data-node-type="repo"] {
+    border-left-color: var(--color-repo);
+}
+
+#mobile-tooltip[data-node-type="owner"] {
+    border-left-color: var(--color-owner);
+}
+
+#mobile-tooltip-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+}
+
+#mobile-tooltip-content {
+    padding-right: 44px; /* avoid overlap with close button */
+}
+
+#mobile-tooltip-content .tooltip-type-label {
+    font-size: 13px;
+    font-style: italic;
+    opacity: 0.7;
+    margin: 0 0 4px 0;
+}
+
+#mobile-tooltip-content .tooltip-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    word-break: break-word;
+}
+
+#mobile-tooltip-content .tooltip-subtitle {
+    font-size: 14px;
+    opacity: 0.6;
+    margin: 0 0 8px 0;
+}
+
+#mobile-tooltip-content .tooltip-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(68, 63, 63, 0.12);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#mobile-tooltip-content .tooltip-section-label {
+    font-size: 12px;
+    font-style: italic;
+    opacity: 0.6;
+    margin: 0 0 4px 0;
+}
+
+#mobile-tooltip-content .tooltip-warning {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+#mobile-tooltip-content .tooltip-archived {
+    font-style: italic;
+    opacity: 0.7;
 }
