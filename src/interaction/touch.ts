@@ -35,6 +35,8 @@ export interface SetupTouchOptions {
   tooltipEl: HTMLElement;
   tooltipContentEl: HTMLElement;
   orgNickname?: string;
+  onTooltipShow?: () => void;
+  onTooltipDismiss?: () => void;
 }
 
 /**
@@ -212,8 +214,8 @@ export function setupTouch(options: SetupTouchOptions): void {
       nodes.map((n) => [n.x, n.y] as [number, number]),
     );
     setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
-    tooltipEl.classList.remove('active');
     activeNode = null;
+    options.onTooltipDismiss?.();
   }
 
   const canvasEl = document.querySelector(canvasSelector) as HTMLElement;
@@ -262,13 +264,13 @@ export function setupTouch(options: SetupTouchOptions): void {
 
       tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname);
       tooltipEl.dataset.nodeType = d.type;
-      tooltipEl.classList.add('active');
+      options.onTooltipShow?.();
       activeNode = d;
     },
     { passive: true },
   );
 
-  const closeBtn = tooltipEl.querySelector('#mobile-tooltip-close');
+  const closeBtn = tooltipEl.querySelector('#mobile-drawer-tooltip-close');
   closeBtn?.addEventListener('click', () => {
     dismiss();
   });
