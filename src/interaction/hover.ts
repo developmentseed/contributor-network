@@ -74,7 +74,8 @@ function handlePointerHover(
 
 /**
  * Sets up hover interaction handlers on the canvas.
- * On touch devices, adds touchstart listener so tapping shows the hover/tooltip state.
+ * Mouse events are guarded on touch devices to prevent synthetic mouse events
+ * from clearing hover state. Touch interaction is handled separately.
  */
 export function setupHover(options: SetupHoverOptions): void {
   const {
