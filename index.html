@@ -78,9 +78,23 @@
 
         <div id="chart-container">
             <p id="chart-loading" style="text-align: center; padding-top: 2em; color: var(--color-text); font-style: italic;">Loading visualization...</p>
-            <div id="mobile-tooltip">
-                <button id="mobile-tooltip-close" aria-label="Close">×</button>
-                <div id="mobile-tooltip-content"></div>
+            <button id="mobile-info-btn" aria-label="About this visualization">ⓘ</button>
+        </div>
+
+        <div id="mobile-info-overlay">
+            <button id="mobile-info-close" aria-label="Close">×</button>
+            <div id="mobile-info-content"></div>
+        </div>
+
+        <div id="mobile-drawer" data-mode="filters" data-expanded="false">
+            <div id="mobile-drawer-handle">
+                <div class="handle-bar"></div>
+                <span id="mobile-drawer-label">Filters</span>
+            </div>
+            <div id="mobile-drawer-filters"></div>
+            <div id="mobile-drawer-tooltip">
+                <button id="mobile-drawer-tooltip-close" aria-label="Close">×</button>
+                <div id="mobile-drawer-tooltip-content"></div>
             </div>
         </div>
 
