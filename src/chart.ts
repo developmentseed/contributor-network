@@ -931,12 +931,24 @@ export const createContributorNetworkVisual = (
   }
 
   function setupZoom(): void {
-    setupZoomModule({
+    const zoomBehavior = setupZoomModule({
       canvasSelector: "#canvas-hover",
       state: zoomState,
       redrawAll,
       ZOOM_CLICK_SUPPRESS_MS,
     });
+
+    const INITIAL_SCALE = 1.2;
+    const cx = width / 2;
+    const cy = height / 2;
+    const tx = cx - INITIAL_SCALE * cx;
+    const ty = cy - INITIAL_SCALE * cy;
+    const initialTransform = d3.zoomIdentity.translate(tx, ty).scale(INITIAL_SCALE);
+    const zoomTarget = d3.select("#canvas-hover");
+    zoomTarget.call(zoomBehavior as any).call(
+      (zoomBehavior as any).transform,
+      initialTransform,
+    );
   }
 
   function drawTooltipWrapper(
