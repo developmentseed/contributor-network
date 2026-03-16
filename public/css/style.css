@@ -468,6 +468,11 @@ li#item-remaining::before {
     width: 100%;
 }
 
+/* Mobile-only elements — hidden on desktop */
+#mobile-info-btn,
+#mobile-info-overlay,
+#mobile-drawer { display: none; }
+
 /* Responsive: Stack on small screens */
 @media (max-width: 768px) {
     #chart-introduction {
@@ -756,8 +761,3 @@ li#item-remaining::before {
     #mobile-drawer[data-node-type="owner"] { border-left: 4px solid var(--color-owner); }
     #mobile-drawer[data-mode="filters"] { border-left: none; }
 }
-
-/* Mobile-only elements — hidden on desktop */
-#mobile-info-btn,
-#mobile-info-overlay,
-#mobile-drawer { display: none; }
