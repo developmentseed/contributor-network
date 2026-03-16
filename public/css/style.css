@@ -628,6 +628,10 @@ li#item-remaining::before {
         cursor: pointer;
     }
 
+    #mobile-info-content {
+        padding-top: 48px;
+    }
+
     /* Bottom drawer */
     #mobile-drawer {
         display: block;
