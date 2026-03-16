@@ -38,22 +38,22 @@ if (config.description)
 const container = document.getElementById("chart-container")!;
 const wrapper = document.getElementById("chart-wrapper")!;
 
-function getChartDimensions(): number {
+function getChartDimensions(): { width: number; height: number } {
   if (window.innerWidth <= MOBILE_BREAKPOINT) {
-    const availableWidth = window.innerWidth;
     const availableHeight = window.innerHeight - MOBILE_DRAWER_PEEK_HEIGHT;
-    return Math.min(availableWidth, availableHeight);
+    return { width: window.innerWidth, height: availableHeight };
   }
   const wrapperRect = wrapper.getBoundingClientRect();
   let availableWidth = wrapperRect.width - 40;
   if (availableWidth < 400) {
     availableWidth = Math.min(window.innerWidth - 40, 1400 - 40);
   }
-  return Math.max(availableWidth, 320);
+  const s = Math.max(availableWidth, 320);
+  return { width: s, height: s };
 }
 
-let size = getChartDimensions();
-container.style.height = size + "px";
+let dims = getChartDimensions();
+container.style.height = dims.height + "px";
 
 const contributorNetworkVisual = createContributorNetworkVisual(
   container,
@@ -62,7 +62,7 @@ const contributorNetworkVisual = createContributorNetworkVisual(
   displayNameToUsername,
   orgNickname,
 );
-contributorNetworkVisual.width(size).height(size);
+contributorNetworkVisual.width(dims.width).height(dims.height);
 
 const promises = [
   d3.csv("data/top_contributors.csv"),
@@ -210,6 +210,17 @@ function setupMobileLayout(): void {
     drawer.dataset.expanded = String(!expanded);
     drawerHandle.setAttribute('aria-expanded', String(!expanded));
   });
+
+  // Pan hint — show once on first visit
+  const PAN_HINT_KEY = 'cn-pan-hint-shown';
+  if (!localStorage.getItem(PAN_HINT_KEY)) {
+    const hint = document.getElementById('mobile-pan-hint');
+    if (hint) {
+      hint.style.display = 'flex';
+      localStorage.setItem(PAN_HINT_KEY, '1');
+      setTimeout(() => hint.remove(), 3000);
+    }
+  }
 }
 
 const filterToggle = document.getElementById("filter-toggle");
@@ -227,9 +238,9 @@ window.addEventListener("resize", function () {
   if (resizeTimer) clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (contributorNetworkVisual) {
-      const newSize = getChartDimensions();
-      container.style.height = newSize + "px";
-      contributorNetworkVisual.width(newSize).height(newSize).resize();
+      const newDims = getChartDimensions();
+      container.style.height = newDims.height + "px";
+      contributorNetworkVisual.width(newDims.width).height(newDims.height).resize();
     }
   }, 300);
 });

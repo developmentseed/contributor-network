@@ -471,7 +471,8 @@ li#item-remaining::before {
 /* Mobile-only elements — hidden on desktop */
 #mobile-info-btn,
 #mobile-info-overlay,
-#mobile-drawer { display: none; }
+#mobile-drawer,
+#mobile-pan-hint { display: none; }
 
 /* Responsive: Stack on small screens */
 @media (max-width: 768px) {
@@ -570,6 +571,65 @@ li#item-remaining::before {
         bottom: 56px;
         min-height: unset;
         padding: 0;
+    }
+
+    /* Edge fade gradient overlay */
+    #chart-container::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 56px;
+        pointer-events: none;
+        z-index: 5;
+        background:
+            linear-gradient(to right, var(--color-background) 0%, transparent 15%),
+            linear-gradient(to left, var(--color-background) 0%, transparent 15%),
+            linear-gradient(to bottom, var(--color-background) 0%, transparent 12%),
+            linear-gradient(to top, var(--color-background) 0%, transparent 12%);
+    }
+
+    /* Pan hint */
+    #mobile-pan-hint {
+        display: none;
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 6;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        pointer-events: none;
+        animation: panHintFade 2.5s ease-in-out forwards;
+    }
+
+    .pan-hint-icon {
+        font-size: 32px;
+        animation: panMotion 2s ease-in-out infinite;
+    }
+
+    .pan-hint-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-text);
+        opacity: 0.8;
+    }
+
+    @keyframes panHintFade {
+        0% { opacity: 0; }
+        15% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    @keyframes panMotion {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(8px, -4px); }
+        50% { transform: translate(-6px, 6px); }
+        75% { transform: translate(4px, 2px); }
+        100% { transform: translate(0, 0); }
     }
 
     /* Info button */
