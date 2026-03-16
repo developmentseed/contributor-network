@@ -119,3 +119,10 @@ export const sqrt: (x: number) => number = Math.sqrt;
 export const abs: (x: number) => number = Math.abs;
 export const floor: (x: number) => number = Math.floor;
 export const ceil: (x: number) => number = Math.ceil;
+
+/**
+ * Returns true if the current device supports touch input.
+ */
+export function isTouchDevice(): boolean {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
