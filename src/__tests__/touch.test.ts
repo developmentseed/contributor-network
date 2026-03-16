@@ -149,7 +149,7 @@ describe('renderMobileTooltip — repo', () => {
 
   it('shows archived badge when archived', () => {
     const node = makeRepoNode();
-    (node.data as Record<string, unknown>).archived = true;
+    (node.data as unknown as Record<string, unknown>).archived = true;
     const html = renderMobileTooltip(node);
     expect(html).toContain('Archived');
   });
