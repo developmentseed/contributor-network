@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { findNode as findNodeAtPosition } from './findNode';
 import { shouldSuppressClick, drawWithZoomTransform } from './zoom';
+import { isTouchDevice } from '../utils/helpers';
 import type {
   VisualizationConfig,
   DelaunayData,
@@ -57,10 +58,10 @@ export function setupClick(options: SetupClickOptions): void {
   } = options;
   const { WIDTH, HEIGHT } = config;
 
-  const isTouchCapable = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
   const element = document.querySelector(canvasSelector) as Element;
   d3.select(element).on('click', function (this: Element, event: MouseEvent) {
+    if (isTouchDevice()) return;
+
     if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
       return;
     }
@@ -79,10 +80,6 @@ export function setupClick(options: SetupClickOptions): void {
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
 
     if (FOUND && d) {
-      if (isTouchCapable && interactionState.hoveredNode !== d) {
-        return;
-      }
-
       setClicked(interactionState, d);
 
       delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
