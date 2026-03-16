@@ -1,0 +1,128 @@
+name: S3 Preview Bucket - Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  BUCKET_NAME: ds-preview-contributor-network-${{ github.event.number }}
+  AWS_ROLE_ARN: arn:aws:iam::552819999234:role/contributor-network-gh-actions
+  AWS_REGION: us-west-2
+  DIST_DIRECTORY: dist
+
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: uv run contributor-network build
+      - uses: actions/upload-artifact@v6
+        with:
+          path: ${{ env.DIST_DIRECTORY }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v5
+        with:
+          path: ${{ env.DIST_DIRECTORY }}
+      - name: Check if bucket exists
+        id: check_bucket
+        run: |
+          if aws s3 ls "s3://${{ env.BUCKET_NAME }}" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "Bucket does not exist."
+            echo "::set-output name=exists::false"
+          else
+            echo "Bucket exists."
+            echo "::set-output name=exists::true"
+          fi
+      - name: Create S3 bucket
+        if: steps.check_bucket.outputs.exists == 'false'
+        run: |
+          aws s3 mb s3://${{ env.BUCKET_NAME }}
+      - name: Enable static website hosting
+        if: steps.check_bucket.outputs.exists == 'false'
+        run: |
+          aws s3 website \
+          s3://${{ env.BUCKET_NAME }} \
+          --index-document index.html \
+          --error-document index.html
+      - name: Sync files
+        run: |
+          aws s3 sync \
+            ./${{env.DIST_DIRECTORY}} s3://${{ env.BUCKET_NAME }} \
+            --delete \
+            --quiet
+      - name: Make bucket public access
+        if: steps.check_bucket.outputs.exists == 'false'
+        run: |
+          aws s3api delete-public-access-block --bucket ${{ env.BUCKET_NAME }}
+      - name: Add bucket policy for public access
+        if: steps.check_bucket.outputs.exists == 'false'
+        run: |
+          echo '{
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Sid": "PublicReadGetObject",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::${{ env.BUCKET_NAME }}/*"
+            }]
+          }' > bucket-policy.json
+          aws s3api put-bucket-policy --bucket ${{ env.BUCKET_NAME }} --policy file://bucket-policy.json
+      - name: Check for existing preview comment
+        id: check_comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+            });
+            const existingComment = comments.data.find(comment => comment.body.includes('Preview deployed to S3!'));
+            if (existingComment) {
+              console.log('Deployment comment already exists:', existingComment.html_url);
+              core.setOutput('should_post_comment', 'false');
+              return existingComment.html_url;
+            } else {
+              core.setOutput('should_post_comment', 'true');
+              return '';
+            }
+      - name: Post comment with preview URL
+        if: steps.check_comment.outputs.should_post_comment == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const websiteUrl = `http://${{ env.BUCKET_NAME }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com/`;
+            const pullRequestNumber = context.payload.pull_request.number;
+            const message = `✨ Preview deployed to S3! Visit ${websiteUrl}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pullRequestNumber,
+              body: message
+            });

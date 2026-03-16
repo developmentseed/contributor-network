@@ -1,0 +1,41 @@
+name: S3 Preview Bucket - Remove
+
+on:
+  pull_request_target:
+    types: [closed]
+
+env:
+  BUCKET_NAME: ds-preview-contributor-network-${{ github.event.number }}
+  AWS_ROLE_ARN: arn:aws:iam::552819999234:role/contributor-network-gh-actions
+  AWS_REGION: us-west-2
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  remove:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Check if bucket exists
+        id: check_bucket
+        run: |
+          if aws s3 ls "s3://${{ env.BUCKET_NAME }}" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "Bucket does not exist."
+            echo "::set-output name=exists::false"
+          else
+            echo "Bucket exists."
+            echo "::set-output name=exists::true"
+          fi
+      - name: Empty the bucket
+        if: steps.check_bucket.outputs.exists == 'true'
+        run: |
+          aws s3 rm s3://$BUCKET_NAME --recursive --quiet
+      - name: Remove the bucket
+        if: steps.check_bucket.outputs.exists == 'true'
+        run: |
+          aws s3 rb s3://$BUCKET_NAME
