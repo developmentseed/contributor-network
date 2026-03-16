@@ -28,7 +28,7 @@ export function findNode(
     config;
   const { delaunay, nodesDelaunay } = delaunayData;
 
-  if (zoomTransform && zoomTransform.k !== 1) {
+  if (zoomTransform && (zoomTransform.k !== 1 || zoomTransform.x !== 0 || zoomTransform.y !== 0)) {
     const mxDevice = mx * PIXEL_RATIO;
     const myDevice = my * PIXEL_RATIO;
     mx = ((mxDevice - zoomTransform.x * PIXEL_RATIO) / zoomTransform.k - WIDTH / 2) / SF;
