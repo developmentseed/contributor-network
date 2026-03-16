@@ -571,6 +571,8 @@ li#item-remaining::before {
         bottom: 56px;
         min-height: unset;
         padding: 0;
+        overflow: hidden;
+        touch-action: none;
     }
 
     /* Edge fade gradient overlay */

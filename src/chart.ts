@@ -26,7 +26,7 @@ import type {
   ZoomState,
   PreparedData,
 } from "./types";
-import { COLORS, LAYOUT } from "./config/theme";
+import { COLORS, LAYOUT, MOBILE_BREAKPOINT } from "./config/theme";
 import {
   getLinkNodeId,
   resolveLinkReferences,
@@ -311,6 +311,7 @@ export const createContributorNetworkVisual = (
     setupHover();
     setupClick();
     setupTouchInteraction();
+    if (window.innerWidth <= MOBILE_BREAKPOINT) setupZoom();
   }
 
   function redrawAll(): void {
@@ -1131,6 +1132,7 @@ export const createContributorNetworkVisual = (
     setupHover();
     setupClick();
     setupTouchInteraction();
+    if (window.innerWidth <= MOBILE_BREAKPOINT) setupZoom();
 
     return chart as ChartFunction;
   };

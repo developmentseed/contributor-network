@@ -41,7 +41,8 @@ const wrapper = document.getElementById("chart-wrapper")!;
 function getChartDimensions(): { width: number; height: number } {
   if (window.innerWidth <= MOBILE_BREAKPOINT) {
     const availableHeight = window.innerHeight - MOBILE_DRAWER_PEEK_HEIGHT;
-    return { width: window.innerWidth, height: availableHeight };
+    // Square canvas sized to height — overflows width, user pans to explore
+    return { width: availableHeight, height: availableHeight };
   }
   const wrapperRect = wrapper.getBoundingClientRect();
   let availableWidth = wrapperRect.width - 40;
