@@ -872,9 +872,10 @@ export const createContributorNetworkVisual = (
 
   function setupTouchInteraction(): void {
     if (!isTouchDevice()) return;
-    const tooltipEl = document.getElementById('mobile-tooltip');
-    const tooltipContentEl = document.getElementById('mobile-tooltip-content');
-    if (!tooltipEl || !tooltipContentEl) return;
+    const drawer = document.getElementById('mobile-drawer');
+    const tooltipContentEl = document.getElementById('mobile-drawer-tooltip-content');
+    if (!drawer || !tooltipContentEl) return;
+    const tooltipEl = drawer;
     const config = {
       get PIXEL_RATIO() { return PIXEL_RATIO; },
       get WIDTH() { return WIDTH; },
@@ -916,6 +917,15 @@ export const createContributorNetworkVisual = (
       tooltipEl,
       tooltipContentEl,
       orgNickname,
+      onTooltipShow: () => {
+        drawer.dataset.mode = 'tooltip';
+        drawer.dataset.expanded = 'true';
+      },
+      onTooltipDismiss: () => {
+        drawer.dataset.mode = 'filters';
+        drawer.dataset.expanded = 'false';
+        drawer.removeAttribute('data-node-type');
+      },
     });
   }
 
