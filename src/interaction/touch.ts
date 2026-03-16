@@ -176,10 +176,102 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+let activeNode: VisualizationNode | null = null;
+
 /**
  * Sets up touch interaction handlers on the canvas for mobile devices.
  * Manages a DOM tooltip and canvas highlight state via a single touchstart handler.
  */
-export function setupTouch(_options: SetupTouchOptions): void {
-  // Implementation in Task 8
+export function setupTouch(options: SetupTouchOptions): void {
+  const {
+    canvasSelector,
+    config,
+    delaunayData,
+    interactionState,
+    canvas,
+    contextClick,
+    contextHover,
+    nodes,
+    setClicked,
+    clearClick,
+    clearHover,
+    setDelaunay,
+    drawHoverState,
+    tooltipEl,
+    tooltipContentEl,
+    orgNickname,
+  } = options;
+  const { WIDTH, HEIGHT } = config;
+
+  function dismiss(): void {
+    clearClick(interactionState);
+    clearHover(interactionState);
+    contextClick.clearRect(0, 0, WIDTH, HEIGHT);
+    contextHover.clearRect(0, 0, WIDTH, HEIGHT);
+    canvas.style.opacity = '1';
+    delaunayData.nodesDelaunay = nodes;
+    delaunayData.delaunay = d3.Delaunay.from(
+      nodes.map((n) => [n.x, n.y] as [number, number]),
+    );
+    setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
+    tooltipEl.classList.remove('active');
+    activeNode = null;
+  }
+
+  const canvasEl = document.querySelector(canvasSelector) as HTMLElement;
+  canvasEl.addEventListener(
+    'touchstart',
+    (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const rect = canvasEl.getBoundingClientRect();
+      const mx = touch.clientX - rect.left;
+      const my = touch.clientY - rect.top;
+
+      const zoomTransform = options.zoomState?.zoomTransform ?? null;
+      const [d, FOUND] = findNode(mx, my, config, delaunayData, interactionState, zoomTransform);
+
+      if (!FOUND || !d) {
+        dismiss();
+        return;
+      }
+
+      if (activeNode === d) {
+        dismiss();
+        return;
+      }
+
+      // SELECT: new node
+      clearClick(interactionState);
+      clearHover(interactionState);
+      contextClick.clearRect(0, 0, WIDTH, HEIGHT);
+      contextHover.clearRect(0, 0, WIDTH, HEIGHT);
+
+      setClicked(interactionState, d);
+
+      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
+      delaunayData.delaunay = d3.Delaunay.from(
+        delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
+      );
+      setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
+
+      canvas.style.opacity = d.type === 'contributor' ? '0.15' : '0.3';
+
+      drawWithZoomTransform(contextClick, config, options.zoomState ?? null, () => {
+        drawHoverState(contextClick, d, false);
+      });
+      contextHover.clearRect(0, 0, WIDTH, HEIGHT);
+
+      tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname);
+      tooltipEl.dataset.nodeType = d.type;
+      tooltipEl.classList.add('active');
+      activeNode = d;
+    },
+    { passive: true },
+  );
+
+  const closeBtn = tooltipEl.querySelector('#mobile-tooltip-close');
+  closeBtn?.addEventListener('click', () => {
+    dismiss();
+  });
 }
