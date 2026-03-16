@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import { findNode } from './findNode';
 import { drawWithZoomTransform } from './zoom';
-import { isTouchDevice } from '../utils/helpers';
 import type {
   VisualizationConfig,
   DelaunayData,
@@ -176,8 +175,6 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
-let activeNode: VisualizationNode | null = null;
-
 /**
  * Sets up touch interaction handlers on the canvas for mobile devices.
  * Manages a DOM tooltip and canvas highlight state via a single touchstart handler.
@@ -202,6 +199,7 @@ export function setupTouch(options: SetupTouchOptions): void {
     orgNickname,
   } = options;
   const { WIDTH, HEIGHT } = config;
+  let activeNode: VisualizationNode | null = null;
 
   function dismiss(): void {
     clearClick(interactionState);
