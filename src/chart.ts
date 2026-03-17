@@ -632,11 +632,12 @@ export const createContributorNetworkVisual = (
 
     let alpha: number;
     if (interactionState.hoverActive || interactionState.clickActive)
-      alpha = (target as any).special_type ? 0.3 : 0.7;
+      alpha = (target as any).special_type ? 0.5 : 0.9;
     else
       alpha = (target as any).special_type ? 0.15 : scale_alpha(links.length);
 
-    if (target.type === "owner" && target.degree > 5) {
+    const isActive = interactionState.hoverActive || interactionState.clickActive;
+    if (!isActive && target.type === "owner" && target.degree > 5) {
       const scale_density = d3
         .scaleLinear()
         .domain([5, 15, 40])
