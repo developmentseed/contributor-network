@@ -923,6 +923,7 @@ export const createContributorNetworkVisual = (
         drawer.dataset.expanded = 'true';
         const selLabel = document.getElementById('mobile-drawer-selection-label');
         if (selLabel) selLabel.textContent = node.label || node.id;
+        container.classList.add('node-selected');
       },
       onTooltipDismiss: () => {
         drawer.dataset.mode = 'filters';
@@ -930,6 +931,7 @@ export const createContributorNetworkVisual = (
         drawer.removeAttribute('data-node-type');
         const selLabel = document.getElementById('mobile-drawer-selection-label');
         if (selLabel) selLabel.textContent = '';
+        container.classList.remove('node-selected');
       },
     });
   }

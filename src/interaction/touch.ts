@@ -277,7 +277,7 @@ export function setupTouch(options: SetupTouchOptions): void {
       );
       setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
 
-      canvas.style.opacity = d.type === 'contributor' ? '0.15' : '0.3';
+      canvas.style.opacity = d.type === 'contributor' ? '0.3' : '0.5';
 
       drawWithZoomTransform(contextClick, config, options.zoomState ?? null, () => {
         drawHoverState(contextClick, d, false);
