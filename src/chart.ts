@@ -631,7 +631,7 @@ export const createContributorNetworkVisual = (
       .clamp(true);
 
     let alpha: number;
-    if (interactionState.hoverActive)
+    if (interactionState.hoverActive || interactionState.clickActive)
       alpha = (target as any).special_type ? 0.3 : 0.7;
     else
       alpha = (target as any).special_type ? 0.15 : scale_alpha(links.length);
@@ -910,7 +910,6 @@ export const createContributorNetworkVisual = (
       contextHover: context_hover,
       nodes,
       setClicked,
-      setHovered,
       clearClick,
       clearHover,
       setDelaunay,
