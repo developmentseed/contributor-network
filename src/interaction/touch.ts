@@ -222,34 +222,32 @@ export function setupTouch(options: SetupTouchOptions): void {
   const canvasEl = document.querySelector(canvasSelector) as HTMLElement;
   const TAP_MOVE_THRESHOLD = 10;
   const TAP_TIME_THRESHOLD = 300;
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchStartTime = 0;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerStartTime = 0;
 
   canvasEl.addEventListener(
-    'touchstart',
-    (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      touchStartX = event.touches[0].clientX;
-      touchStartY = event.touches[0].clientY;
-      touchStartTime = Date.now();
+    'pointerdown',
+    (event: PointerEvent) => {
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      pointerStartTime = Date.now();
     },
     { passive: true },
   );
 
   canvasEl.addEventListener(
-    'touchend',
-    (event: TouchEvent) => {
-      const touch = event.changedTouches[0];
-      const dx = touch.clientX - touchStartX;
-      const dy = touch.clientY - touchStartY;
-      const elapsed = Date.now() - touchStartTime;
+    'pointerup',
+    (event: PointerEvent) => {
+      const dx = event.clientX - pointerStartX;
+      const dy = event.clientY - pointerStartY;
+      const elapsed = Date.now() - pointerStartTime;
 
       if (elapsed > TAP_TIME_THRESHOLD || Math.sqrt(dx * dx + dy * dy) > TAP_MOVE_THRESHOLD) return;
 
       const rect = canvasEl.getBoundingClientRect();
-      const mx = touch.clientX - rect.left;
-      const my = touch.clientY - rect.top;
+      const mx = event.clientX - rect.left;
+      const my = event.clientY - rect.top;
 
       const zoomTransform = options.zoomState?.zoomTransform ?? null;
       const [d, FOUND] = findNode(mx, my, config, delaunayData, interactionState, zoomTransform);

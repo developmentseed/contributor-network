@@ -71,7 +71,6 @@ import {
 import { setupHover as setupHoverInteraction } from "./interaction/hover";
 import { setupClick as setupClickInteraction } from "./interaction/click";
 import { setupTouch } from "./interaction/touch";
-import { isTouchDevice } from "./utils/helpers";
 import {
   setupZoom as setupZoomModule,
   applyZoomTransform,
@@ -873,7 +872,7 @@ export const createContributorNetworkVisual = (
   }
 
   function setupTouchInteraction(): void {
-    if (!isTouchDevice()) return;
+    if (window.innerWidth > MOBILE_BREAKPOINT) return;
     const drawer = document.getElementById('mobile-drawer');
     const tooltipContentEl = document.getElementById('mobile-drawer-tooltip-content');
     if (!drawer || !tooltipContentEl) return;

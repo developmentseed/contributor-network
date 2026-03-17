@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { findNode as findNodeAtPosition } from './findNode';
 import { shouldSuppressClick, drawWithZoomTransform } from './zoom';
-import { isTouchDevice } from '../utils/helpers';
+import { MOBILE_BREAKPOINT } from '../config/theme';
 import type {
   VisualizationConfig,
   DelaunayData,
@@ -60,7 +60,7 @@ export function setupClick(options: SetupClickOptions): void {
 
   const element = document.querySelector(canvasSelector) as Element;
   d3.select(element).on('click', function (this: Element, event: MouseEvent) {
-    if (isTouchDevice()) return;
+    if (window.innerWidth <= MOBILE_BREAKPOINT) return;
 
     if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
       return;
