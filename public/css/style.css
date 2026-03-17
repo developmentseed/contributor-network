@@ -708,12 +708,12 @@ li#item-remaining::before {
         max-height: 56px;
         overflow: hidden;
         box-sizing: border-box;
-        touch-action: none;
     }
 
     #mobile-drawer[data-expanded="true"] {
         max-height: 40vh;
         overflow-y: auto;
+        overscroll-behavior: contain;
     }
 
     #mobile-drawer-handle {
@@ -729,6 +729,7 @@ li#item-remaining::before {
         border: none;
         font: inherit;
         cursor: pointer;
+        touch-action: none;
     }
 
     .handle-bar {

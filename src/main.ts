@@ -211,17 +211,17 @@ function setupMobileLayout(): void {
     drawerHandle.setAttribute('aria-expanded', String(!expanded));
   });
 
-  // Swipe gestures on drawer
+  // Swipe gestures on drawer handle
   let touchStartY = 0;
   let touchStartTime = 0;
   const SWIPE_THRESHOLD = 30;
 
-  drawer.addEventListener('touchstart', (e: TouchEvent) => {
+  drawerHandle.addEventListener('touchstart', (e: TouchEvent) => {
     touchStartY = e.touches[0].clientY;
     touchStartTime = Date.now();
   }, { passive: true });
 
-  drawer.addEventListener('touchend', (e: TouchEvent) => {
+  drawerHandle.addEventListener('touchend', (e: TouchEvent) => {
     const deltaY = e.changedTouches[0].clientY - touchStartY;
     const elapsed = Date.now() - touchStartTime;
     if (elapsed > 300 || Math.abs(deltaY) < SWIPE_THRESHOLD) return;
@@ -238,7 +238,7 @@ function setupMobileLayout(): void {
   }, { passive: true });
 
   // Pan hint — show once on first visit
-  const PAN_HINT_KEY = 'cn-pan-hint-shown';
+  const PAN_HINT_KEY = 'cn-pan-hint-v2';
   if (!localStorage.getItem(PAN_HINT_KEY)) {
     const hint = document.getElementById('mobile-pan-hint');
     if (hint) {
