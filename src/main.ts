@@ -154,7 +154,8 @@ document.fonts.ready.then(() => {
       const loadingEl = document.getElementById("chart-loading");
       if (loadingEl) loadingEl.remove();
       contributorNetworkVisual(values);
-      setupMobileLayout();
+      handleLayoutResize();
+      window.addEventListener('resize', handleLayoutResize);
 
       const formatDateLong = d3.utcFormat("%B %-e, %Y");
       const most_recent_commit = d3.max(
@@ -173,6 +174,31 @@ document.fonts.ready.then(() => {
         '<p style="color: red; padding: 20px;">Error loading data files. Make sure CSV files exist in data/.</p>';
     });
 });
+
+let isMobileLayout = false;
+
+function handleLayoutResize(): void {
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+  if (isMobile && !isMobileLayout) {
+    setupMobileLayout();
+  } else if (!isMobile && isMobileLayout) {
+    restoreDesktopLayout();
+  }
+}
+
+function restoreDesktopLayout(): void {
+  const chartIntro = document.getElementById('chart-introduction');
+  const chartTitle = document.getElementById('chart-title');
+  const chartIntroText = document.getElementById('chart-intro-text');
+  const chartFilters = document.getElementById('chart-filters');
+  const filterHeader = document.getElementById('filter-header');
+
+  if (chartIntro && chartTitle) chartIntro.insertBefore(chartTitle, chartIntro.firstChild);
+  if (chartIntro && chartIntroText) chartIntro.appendChild(chartIntroText);
+  if (chartFilters && filterHeader) chartFilters.appendChild(filterHeader);
+
+  isMobileLayout = false;
+}
 
 function setupMobileLayout(): void {
   if (window.innerWidth > MOBILE_BREAKPOINT) return;
@@ -247,6 +273,8 @@ function setupMobileLayout(): void {
       setTimeout(() => hint.remove(), 3000);
     }
   }
+
+  isMobileLayout = true;
 }
 
 const filterToggle = document.getElementById("filter-toggle");
