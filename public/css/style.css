@@ -737,11 +737,12 @@ li#item-remaining::before {
         touch-action: none;
     }
 
-    .handle-bar {
-        width: 32px;
-        height: 4px;
-        background: #ccc;
-        border-radius: 2px;
+    .handle-chevron {
+        transition: transform 0.2s ease;
+    }
+
+    #mobile-drawer[data-expanded="true"] .handle-chevron {
+        transform: rotate(180deg);
     }
 
     #mobile-drawer-label {
