@@ -91,6 +91,7 @@ export function setupClick(options: SetupClickOptions): void {
       drawWithZoomTransform(contextClick, config, options.zoomState ?? null, () => {
         drawHoverState(contextClick, d, false);
       });
+      clearHover(interactionState);
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
     } else {
       clearClick(interactionState);
