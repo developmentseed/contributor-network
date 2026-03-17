@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { findNode as findNodeAtPosition } from './findNode';
 import { shouldSuppressClick, drawWithZoomTransform } from './zoom';
+import { MOBILE_BREAKPOINT } from '../config/theme';
 import type {
   VisualizationConfig,
   DelaunayData,
@@ -17,7 +18,7 @@ export interface SetupClickOptions {
   canvas: HTMLCanvasElement;
   contextClick: CanvasRenderingContext2D;
   contextHover: CanvasRenderingContext2D;
-  nodes: VisualizationNode[];
+  getNodes: () => VisualizationNode[];
   setClicked: (state: InteractionState, node: VisualizationNode) => void;
   clearClick: (state: InteractionState) => void;
   clearHover: (state: InteractionState) => void;
@@ -48,7 +49,7 @@ export function setupClick(options: SetupClickOptions): void {
     canvas,
     contextClick,
     contextHover,
-    nodes,
+    getNodes,
     setClicked,
     clearClick,
     clearHover,
@@ -59,6 +60,8 @@ export function setupClick(options: SetupClickOptions): void {
 
   const element = document.querySelector(canvasSelector) as Element;
   d3.select(element).on('click', function (this: Element, event: MouseEvent) {
+    if (window.innerWidth <= MOBILE_BREAKPOINT) return;
+
     if (options.zoomState && shouldSuppressClick(options.zoomState, options.ZOOM_CLICK_SUPPRESS_MS)) {
       return;
     }
@@ -79,7 +82,7 @@ export function setupClick(options: SetupClickOptions): void {
     if (FOUND && d) {
       setClicked(interactionState, d);
 
-      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
+      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : getNodes();
       delaunayData.delaunay = d3.Delaunay.from(
         delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
       );
@@ -88,12 +91,13 @@ export function setupClick(options: SetupClickOptions): void {
       drawWithZoomTransform(contextClick, config, options.zoomState ?? null, () => {
         drawHoverState(contextClick, d, false);
       });
+      clearHover(interactionState);
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
     } else {
       clearClick(interactionState);
       clearHover(interactionState);
 
-      delaunayData.nodesDelaunay = nodes;
+      delaunayData.nodesDelaunay = getNodes();
       delaunayData.delaunay = d3.Delaunay.from(
         delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
       );

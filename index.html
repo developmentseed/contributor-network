@@ -43,7 +43,10 @@
         </div>
 
         <div id="chart-filters">
-            <div id="filter-header">
+            <button id="filter-toggle" aria-expanded="false" aria-controls="filter-header">
+                Filters <span id="filter-toggle-icon">&#9650;</span>
+            </button>
+            <div id="filter-header" class="collapsed">
                 <label for="org-select">Organization:</label>
                 <select id="org-select">
                     <option value="">-- All Organizations --</option>
@@ -75,6 +78,29 @@
 
         <div id="chart-container">
             <p id="chart-loading" style="text-align: center; padding-top: 2em; color: var(--color-text); font-style: italic;">Loading visualization...</p>
+            <button id="mobile-info-btn" aria-label="About this visualization">ⓘ</button>
+            <div id="mobile-pan-hint" aria-hidden="true">
+                <span class="pan-hint-icon">👆</span>
+                <span class="pan-hint-text">Pan to explore</span>
+            </div>
+        </div>
+
+        <div id="mobile-info-overlay">
+            <button id="mobile-info-close" aria-label="Close">×</button>
+            <div id="mobile-info-content"></div>
+        </div>
+
+        <div id="mobile-drawer" data-mode="filters" data-expanded="false">
+            <button id="mobile-drawer-handle" aria-expanded="false" aria-controls="mobile-drawer-filters">
+                <svg class="handle-chevron" width="20" height="12" viewBox="0 0 20 12" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,10 10,2 18,10"/></svg>
+                <span id="mobile-drawer-label">Filters</span>
+                <span id="mobile-drawer-selection-label"></span>
+            </button>
+            <div id="mobile-drawer-filters"></div>
+            <div id="mobile-drawer-tooltip">
+                <button id="mobile-drawer-tooltip-close" aria-label="Close">×</button>
+                <div id="mobile-drawer-tooltip-content"></div>
+            </div>
         </div>
 
     </div>

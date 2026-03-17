@@ -1,3 +1,6 @@
+export const MOBILE_BREAKPOINT = 768;
+export const MOBILE_DRAWER_PEEK_HEIGHT = 56;
+
 interface RadiusRange {
   min: number;
   max: number;

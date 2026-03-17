@@ -26,7 +26,7 @@ import type {
   ZoomState,
   PreparedData,
 } from "./types";
-import { COLORS, LAYOUT } from "./config/theme";
+import { COLORS, LAYOUT, MOBILE_BREAKPOINT } from "./config/theme";
 import {
   getLinkNodeId,
   resolveLinkReferences,
@@ -70,6 +70,7 @@ import {
 } from "./state/interactionState";
 import { setupHover as setupHoverInteraction } from "./interaction/hover";
 import { setupClick as setupClickInteraction } from "./interaction/click";
+import { setupTouch } from "./interaction/touch";
 import {
   setupZoom as setupZoomModule,
   applyZoomTransform,
@@ -308,6 +309,8 @@ export const createContributorNetworkVisual = (
 
     setupHover();
     setupClick();
+    setupTouchInteraction();
+    if (window.innerWidth <= MOBILE_BREAKPOINT) setupZoom();
   }
 
   function redrawAll(): void {
@@ -627,12 +630,13 @@ export const createContributorNetworkVisual = (
       .clamp(true);
 
     let alpha: number;
-    if (interactionState.hoverActive)
-      alpha = (target as any).special_type ? 0.3 : 0.7;
+    if (interactionState.hoverActive || interactionState.clickActive)
+      alpha = (target as any).special_type ? 0.5 : 0.9;
     else
       alpha = (target as any).special_type ? 0.15 : scale_alpha(links.length);
 
-    if (target.type === "owner" && target.degree > 5) {
+    const isActive = interactionState.hoverActive || interactionState.clickActive;
+    if (!isActive && target.type === "owner" && target.degree > 5) {
       const scale_density = d3
         .scaleLinear()
         .domain([5, 15, 40])
@@ -695,12 +699,12 @@ export const createContributorNetworkVisual = (
 
   function setupHover(): void {
     const config = {
-      PIXEL_RATIO,
-      WIDTH,
-      HEIGHT,
-      SF,
-      RADIUS_CONTRIBUTOR,
-      CONTRIBUTOR_RING_WIDTH,
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
       sqrt,
     };
     const delaunayData: DelaunayDataProxy = {
@@ -825,12 +829,12 @@ export const createContributorNetworkVisual = (
 
   function setupClick(): void {
     const config = {
-      PIXEL_RATIO,
-      WIDTH,
-      HEIGHT,
-      SF,
-      RADIUS_CONTRIBUTOR,
-      CONTRIBUTOR_RING_WIDTH,
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
       sqrt,
     };
     const delaunayData: DelaunayDataProxy = {
@@ -856,7 +860,7 @@ export const createContributorNetworkVisual = (
       canvas,
       contextClick: context_click,
       contextHover: context_hover,
-      nodes,
+      getNodes: () => nodes,
       setClicked,
       clearClick,
       clearHover,
@@ -867,13 +871,90 @@ export const createContributorNetworkVisual = (
     });
   }
 
+  function setupTouchInteraction(): void {
+    if (window.innerWidth > MOBILE_BREAKPOINT) return;
+    const drawer = document.getElementById('mobile-drawer');
+    const tooltipContentEl = document.getElementById('mobile-drawer-tooltip-content');
+    if (!drawer || !tooltipContentEl) return;
+    const tooltipEl = drawer;
+    const config = {
+      get PIXEL_RATIO() { return PIXEL_RATIO; },
+      get WIDTH() { return WIDTH; },
+      get HEIGHT() { return HEIGHT; },
+      get SF() { return SF; },
+      get RADIUS_CONTRIBUTOR() { return RADIUS_CONTRIBUTOR; },
+      get CONTRIBUTOR_RING_WIDTH() { return CONTRIBUTOR_RING_WIDTH; },
+      sqrt,
+    };
+    const delaunayData: DelaunayDataProxy = {
+      get delaunay() {
+        return delaunay;
+      },
+      set delaunay(val) {
+        delaunay = val;
+      },
+      get nodesDelaunay() {
+        return nodes_delaunay;
+      },
+      set nodesDelaunay(val) {
+        nodes_delaunay = val;
+      },
+    };
+    setupTouch({
+      canvasSelector: "#canvas-hover",
+      config,
+      delaunayData,
+      interactionState,
+      canvas,
+      contextClick: context_click,
+      contextHover: context_hover,
+      getNodes: () => nodes,
+      setClicked,
+      clearClick,
+      clearHover,
+      setDelaunay,
+      drawHoverState,
+      zoomState,
+      tooltipEl,
+      tooltipContentEl,
+      orgNickname,
+      onTooltipShow: (node: VisualizationNode) => {
+        drawer.dataset.mode = 'tooltip';
+        drawer.dataset.expanded = 'true';
+        const selLabel = document.getElementById('mobile-drawer-selection-label');
+        if (selLabel) selLabel.textContent = node.label || node.id;
+        container.classList.add('node-selected');
+      },
+      onTooltipDismiss: () => {
+        drawer.dataset.mode = 'filters';
+        drawer.dataset.expanded = 'false';
+        drawer.removeAttribute('data-node-type');
+        const selLabel = document.getElementById('mobile-drawer-selection-label');
+        if (selLabel) selLabel.textContent = '';
+        container.classList.remove('node-selected');
+      },
+    });
+  }
+
   function setupZoom(): void {
-    setupZoomModule({
+    const zoomBehavior = setupZoomModule({
       canvasSelector: "#canvas-hover",
       state: zoomState,
       redrawAll,
       ZOOM_CLICK_SUPPRESS_MS,
     });
+
+    const INITIAL_SCALE = 1.2;
+    const cx = width / 2;
+    const cy = height / 2;
+    const tx = cx - INITIAL_SCALE * cx;
+    const ty = cy - INITIAL_SCALE * cy;
+    const initialTransform = d3.zoomIdentity.translate(tx, ty).scale(INITIAL_SCALE);
+    const zoomTarget = d3.select("#canvas-hover");
+    zoomTarget.call(zoomBehavior as any).call(
+      (zoomBehavior as any).transform,
+      initialTransform,
+    );
   }
 
   function drawTooltipWrapper(
@@ -1068,6 +1149,7 @@ export const createContributorNetworkVisual = (
 
     setupHover();
     setupClick();
+    if (window.innerWidth <= MOBILE_BREAKPOINT) setupZoom();
 
     return chart as ChartFunction;
   };

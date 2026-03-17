@@ -101,7 +101,8 @@ export function drawNode(
 ): void {
   const { COLOR_BACKGROUND, max } = config;
 
-  context.shadowBlur = interactionState.hoverActive ? 0 : max(2, d.r * 0.2) * SF;
+  const isActive = interactionState.hoverActive || interactionState.clickActive;
+  context.shadowBlur = isActive ? 0 : max(2, d.r * 0.2) * SF;
   context.shadowColor = '#f7f7f7';
 
   context.fillStyle = d.color;
@@ -109,7 +110,7 @@ export function drawNode(
   context.shadowBlur = 0;
 
   context.strokeStyle = COLOR_BACKGROUND;
-  context.lineWidth = max(interactionState.hoverActive ? 1.5 : 1, d.r * 0.07) * SF;
+  context.lineWidth = max(isActive ? 1.5 : 1, d.r * 0.07) * SF;
   drawCircle(context, d.x, d.y, SF, d.r, true, true);
   context.stroke();
 }
@@ -125,13 +126,15 @@ export function drawNodeArc(
   COLOR_CONTRIBUTOR: string,
   central_repo: VisualizationNode | null,
 ): void {
+  const activeNode = interactionState.hoveredNode ?? interactionState.clickedNode;
+  const isActive = interactionState.hoverActive || interactionState.clickActive;
   if (
-    interactionState.hoverActive &&
-    interactionState.hoveredNode &&
-    interactionState.hoveredNode.type === 'contributor' &&
+    isActive &&
+    activeNode &&
+    activeNode.type === 'contributor' &&
     d.type === 'repo'
   ) {
-    let link = (interactionState.hoveredNode.data as { links_original: LinkData[] }).links_original.find(
+    let link = (activeNode.data as { links_original: LinkData[] }).links_original.find(
       (p) => p.repo === d.id,
     );
     if (link) timeRangeArc(context, SF, d, d, link, COLOR_CONTRIBUTOR, central_repo);
@@ -268,32 +271,35 @@ export function drawLink(
 
   let line_width = scale_link_width(l.commit_count);
 
+  const activeNode = interactionState.hoveredNode ?? interactionState.clickedNode;
+  const isActive = interactionState.hoverActive || interactionState.clickActive;
+
   if (
-    interactionState.hoverActive &&
-    interactionState.hoveredNode &&
-    interactionState.hoveredNode.type === 'contributor' &&
-    interactionState.hoveredNode.data &&
-    (interactionState.hoveredNode.data as { links_original?: LinkData[] }).links_original &&
+    isActive &&
+    activeNode &&
+    activeNode.type === 'contributor' &&
+    activeNode.data &&
+    (activeNode.data as { links_original?: LinkData[] }).links_original &&
     source.type === 'owner' &&
     target.type === 'repo'
   ) {
     let link_original = (
-      interactionState.hoveredNode.data as { links_original: LinkData[] }
+      activeNode.data as { links_original: LinkData[] }
     ).links_original.find((p) => p.repo === target.id);
     if (link_original) line_width = scale_link_width(link_original.commit_count);
   }
 
   if (
-    interactionState.hoverActive &&
-    interactionState.hoveredNode &&
-    interactionState.hoveredNode.type === 'repo' &&
-    interactionState.hoveredNode.data &&
-    (interactionState.hoveredNode.data as { links_original?: LinkData[] }).links_original &&
+    isActive &&
+    activeNode &&
+    activeNode.type === 'repo' &&
+    activeNode.data &&
+    (activeNode.data as { links_original?: LinkData[] }).links_original &&
     source.type === 'contributor' &&
     target.type === 'owner'
   ) {
     let link_original = (
-      interactionState.hoveredNode.data as { links_original: LinkData[] }
+      activeNode.data as { links_original: LinkData[] }
     ).links_original.find((p) => p.contributor_name === source.id);
     if (link_original) {
       context.globalAlpha = 0.25;

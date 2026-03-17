@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
+import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
 
 interface Config {
   organization_name?: string;
@@ -37,17 +38,23 @@ if (config.description)
 const container = document.getElementById("chart-container")!;
 const wrapper = document.getElementById("chart-wrapper")!;
 
-function getChartDimensions(): number {
+function getChartDimensions(): { width: number; height: number } {
+  if (window.innerWidth <= MOBILE_BREAKPOINT) {
+    const availableHeight = window.innerHeight - MOBILE_DRAWER_PEEK_HEIGHT;
+    // Square canvas sized to height — overflows width, user pans to explore
+    return { width: availableHeight, height: availableHeight };
+  }
   const wrapperRect = wrapper.getBoundingClientRect();
   let availableWidth = wrapperRect.width - 40;
   if (availableWidth < 400) {
     availableWidth = Math.min(window.innerWidth - 40, 1400 - 40);
   }
-  return Math.max(availableWidth, 600);
+  const s = Math.max(availableWidth, 320);
+  return { width: s, height: s };
 }
 
-let size = getChartDimensions();
-container.style.height = size + "px";
+let dims = getChartDimensions();
+container.style.height = dims.height + "px";
 
 const contributorNetworkVisual = createContributorNetworkVisual(
   container,
@@ -56,7 +63,7 @@ const contributorNetworkVisual = createContributorNetworkVisual(
   displayNameToUsername,
   orgNickname,
 );
-contributorNetworkVisual.width(size).height(size);
+contributorNetworkVisual.width(dims.width).height(dims.height);
 
 const promises = [
   d3.csv("data/top_contributors.csv"),
@@ -147,6 +154,8 @@ document.fonts.ready.then(() => {
       const loadingEl = document.getElementById("chart-loading");
       if (loadingEl) loadingEl.remove();
       contributorNetworkVisual(values);
+      handleLayoutResize();
+      window.addEventListener('resize', handleLayoutResize);
 
       const formatDateLong = d3.utcFormat("%B %-e, %Y");
       const most_recent_commit = d3.max(
@@ -166,14 +175,126 @@ document.fonts.ready.then(() => {
     });
 });
 
+let isMobileLayout = false;
+
+function handleLayoutResize(): void {
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+  if (isMobile && !isMobileLayout) {
+    setupMobileLayout();
+  } else if (!isMobile && isMobileLayout) {
+    restoreDesktopLayout();
+  }
+}
+
+function restoreDesktopLayout(): void {
+  const chartIntro = document.getElementById('chart-introduction');
+  const chartTitle = document.getElementById('chart-title');
+  const chartIntroText = document.getElementById('chart-intro-text');
+  const chartFilters = document.getElementById('chart-filters');
+  const filterHeader = document.getElementById('filter-header');
+
+  if (chartIntro && chartTitle) chartIntro.insertBefore(chartTitle, chartIntro.firstChild);
+  if (chartIntro && chartIntroText) chartIntro.appendChild(chartIntroText);
+  if (chartFilters && filterHeader) chartFilters.appendChild(filterHeader);
+
+  isMobileLayout = false;
+}
+
+function setupMobileLayout(): void {
+  if (window.innerWidth > MOBILE_BREAKPOINT) return;
+
+  // Move intro content into info overlay
+  const infoContent = document.getElementById('mobile-info-content')!;
+  const chartTitle = document.getElementById('chart-title')!;
+  const chartIntroText = document.getElementById('chart-intro-text')!;
+  infoContent.appendChild(chartTitle);
+  infoContent.appendChild(chartIntroText);
+
+  // Move filters into drawer (#filter-stats is a child of #filter-header, so it moves too)
+  const drawerFilters = document.getElementById('mobile-drawer-filters')!;
+  const filterHeader = document.getElementById('filter-header')!;
+  drawerFilters.appendChild(filterHeader);
+  filterHeader.classList.remove('collapsed');
+
+  // Info overlay open/close
+  const infoBtn = document.getElementById('mobile-info-btn')!;
+  const infoOverlay = document.getElementById('mobile-info-overlay')!;
+  const infoClose = document.getElementById('mobile-info-close')!;
+
+  infoBtn.addEventListener('click', () => infoOverlay.classList.add('active'));
+  infoClose.addEventListener('click', () => infoOverlay.classList.remove('active'));
+  infoOverlay.addEventListener('click', (e) => {
+    if (e.target === infoOverlay) infoOverlay.classList.remove('active');
+  });
+
+  // Drawer expand/collapse
+  const drawer = document.getElementById('mobile-drawer')!;
+  const drawerHandle = document.getElementById('mobile-drawer-handle')!;
+
+  drawerHandle.addEventListener('click', () => {
+    const expanded = drawer.dataset.expanded === 'true';
+    drawer.dataset.expanded = String(!expanded);
+    drawerHandle.setAttribute('aria-expanded', String(!expanded));
+  });
+
+  // Swipe gestures on drawer handle
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  const SWIPE_THRESHOLD = 30;
+
+  drawerHandle.addEventListener('touchstart', (e: TouchEvent) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  drawerHandle.addEventListener('touchend', (e: TouchEvent) => {
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+    if (elapsed > 300 || Math.abs(deltaY) < SWIPE_THRESHOLD) return;
+
+    if (deltaY < 0) {
+      // Swipe up → expand
+      drawer.dataset.expanded = 'true';
+      drawerHandle.setAttribute('aria-expanded', 'true');
+    } else {
+      // Swipe down → collapse (keeps selection active in tooltip mode)
+      drawer.dataset.expanded = 'false';
+      drawerHandle.setAttribute('aria-expanded', 'false');
+    }
+  }, { passive: true });
+
+  // Pan hint — show once on first visit
+  const PAN_HINT_KEY = 'cn-pan-hint-v2';
+  if (!localStorage.getItem(PAN_HINT_KEY)) {
+    const hint = document.getElementById('mobile-pan-hint');
+    if (hint) {
+      hint.style.display = 'flex';
+      localStorage.setItem(PAN_HINT_KEY, '1');
+      setTimeout(() => hint.remove(), 3000);
+    }
+  }
+
+  isMobileLayout = true;
+}
+
+const filterToggle = document.getElementById("filter-toggle");
+const filterHeader = document.getElementById("filter-header");
+if (filterToggle && filterHeader) {
+  filterToggle.addEventListener("click", () => {
+    const expanded = filterToggle.getAttribute("aria-expanded") === "true";
+    filterToggle.setAttribute("aria-expanded", String(!expanded));
+    filterHeader.classList.toggle("collapsed", expanded);
+  });
+}
+
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 window.addEventListener("resize", function () {
   if (resizeTimer) clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (contributorNetworkVisual) {
-      const newSize = getChartDimensions();
-      container.style.height = newSize + "px";
-      contributorNetworkVisual.width(newSize).height(newSize).resize();
+      const newDims = getChartDimensions();
+      container.style.height = newDims.height + "px";
+      contributorNetworkVisual.width(newDims.width).height(newDims.height).resize();
     }
   }, 300);
 });

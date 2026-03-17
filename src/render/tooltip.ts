@@ -389,9 +389,23 @@ export function drawTooltip(
     if (tW + 40 * SF > W * SF) W = tW / SF + 40;
   }
 
+  const maxTooltipWidth = (window.innerWidth - 20) / SF;
+  if (W > maxTooltipWidth) W = Math.max(maxTooltipWidth, 200);
+
   let H_OFFSET = d.y < 0 ? 20 : -H - 20;
+
+  let x_clamped = x_base;
+  const canvasHalfW = (context.canvas.width / SF) / 2;
+  const leftEdge = x_clamped - W / 2;
+  const rightEdge = x_clamped + W / 2;
+  if (leftEdge * SF < -canvasHalfW * SF + 10) {
+    x_clamped = -canvasHalfW + W / 2 + 10;
+  } else if (rightEdge * SF > canvasHalfW * SF - 10) {
+    x_clamped = canvasHalfW - W / 2 - 10;
+  }
+
   context.save();
-  context.translate(x_base * SF, (y_base + H_OFFSET) * SF);
+  context.translate(x_clamped * SF, (y_base + H_OFFSET) * SF);
 
   let x = 0;
   let y = 0;

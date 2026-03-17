@@ -25,7 +25,6 @@ export function drawNodeLabel(
   DO_CENTRAL_OUTSIDE: boolean = false,
 ): void {
   const { SF, COLOR_TEXT, COLOR_BACKGROUND, COLOR_REPO_MAIN, PI } = config;
-  const TAU = PI * 2;
 
   context.fillStyle = COLOR_TEXT;
   context.lineWidth = 2 * SF;
