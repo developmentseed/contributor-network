@@ -18,7 +18,7 @@ export interface SetupClickOptions {
   canvas: HTMLCanvasElement;
   contextClick: CanvasRenderingContext2D;
   contextHover: CanvasRenderingContext2D;
-  nodes: VisualizationNode[];
+  getNodes: () => VisualizationNode[];
   setClicked: (state: InteractionState, node: VisualizationNode) => void;
   clearClick: (state: InteractionState) => void;
   clearHover: (state: InteractionState) => void;
@@ -49,7 +49,7 @@ export function setupClick(options: SetupClickOptions): void {
     canvas,
     contextClick,
     contextHover,
-    nodes,
+    getNodes,
     setClicked,
     clearClick,
     clearHover,
@@ -82,7 +82,7 @@ export function setupClick(options: SetupClickOptions): void {
     if (FOUND && d) {
       setClicked(interactionState, d);
 
-      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
+      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : getNodes();
       delaunayData.delaunay = d3.Delaunay.from(
         delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
       );
@@ -96,7 +96,7 @@ export function setupClick(options: SetupClickOptions): void {
       clearClick(interactionState);
       clearHover(interactionState);
 
-      delaunayData.nodesDelaunay = nodes;
+      delaunayData.nodesDelaunay = getNodes();
       delaunayData.delaunay = d3.Delaunay.from(
         delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
       );

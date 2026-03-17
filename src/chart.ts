@@ -861,7 +861,7 @@ export const createContributorNetworkVisual = (
       canvas,
       contextClick: context_click,
       contextHover: context_hover,
-      nodes,
+      getNodes: () => nodes,
       setClicked,
       clearClick,
       clearHover,
@@ -909,7 +909,7 @@ export const createContributorNetworkVisual = (
       canvas,
       contextClick: context_click,
       contextHover: context_hover,
-      nodes,
+      getNodes: () => nodes,
       setClicked,
       clearClick,
       clearHover,
@@ -1150,7 +1150,6 @@ export const createContributorNetworkVisual = (
 
     setupHover();
     setupClick();
-    setupTouchInteraction();
     if (window.innerWidth <= MOBILE_BREAKPOINT) setupZoom();
 
     return chart as ChartFunction;

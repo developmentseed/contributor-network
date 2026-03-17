@@ -17,7 +17,7 @@ export interface SetupTouchOptions {
   canvas: HTMLCanvasElement;
   contextClick: CanvasRenderingContext2D;
   contextHover: CanvasRenderingContext2D;
-  nodes: VisualizationNode[];
+  getNodes: () => VisualizationNode[];
   setClicked: (state: InteractionState, node: VisualizationNode) => void;
   clearClick: (state: InteractionState) => void;
   clearHover: (state: InteractionState) => void;
@@ -190,7 +190,7 @@ export function setupTouch(options: SetupTouchOptions): void {
     canvas,
     contextClick,
     contextHover,
-    nodes,
+    getNodes,
     setClicked,
     clearClick,
     clearHover,
@@ -209,9 +209,10 @@ export function setupTouch(options: SetupTouchOptions): void {
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
     contextHover.clearRect(0, 0, WIDTH, HEIGHT);
     canvas.style.opacity = '1';
-    delaunayData.nodesDelaunay = nodes;
+    const currentNodes = getNodes();
+    delaunayData.nodesDelaunay = currentNodes;
     delaunayData.delaunay = d3.Delaunay.from(
-      nodes.map((n) => [n.x, n.y] as [number, number]),
+      currentNodes.map((n) => [n.x, n.y] as [number, number]),
     );
     setDelaunay(interactionState, delaunayData.delaunay, delaunayData.nodesDelaunay);
     activeNode = null;
@@ -271,7 +272,7 @@ export function setupTouch(options: SetupTouchOptions): void {
 
       setClicked(interactionState, d);
 
-      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
+      delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : getNodes();
       delaunayData.delaunay = d3.Delaunay.from(
         delaunayData.nodesDelaunay.map((n) => [n.x, n.y] as [number, number]),
       );
