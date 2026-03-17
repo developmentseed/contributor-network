@@ -910,6 +910,7 @@ export const createContributorNetworkVisual = (
       contextHover: context_hover,
       nodes,
       setClicked,
+      setHovered,
       clearClick,
       clearHover,
       setDelaunay,

@@ -19,6 +19,7 @@ export interface SetupTouchOptions {
   contextHover: CanvasRenderingContext2D;
   nodes: VisualizationNode[];
   setClicked: (state: InteractionState, node: VisualizationNode) => void;
+  setHovered: (state: InteractionState, node: VisualizationNode | null) => void;
   clearClick: (state: InteractionState) => void;
   clearHover: (state: InteractionState) => void;
   setDelaunay: (
@@ -192,6 +193,7 @@ export function setupTouch(options: SetupTouchOptions): void {
     contextHover,
     nodes,
     setClicked,
+    setHovered,
     clearClick,
     clearHover,
     setDelaunay,
@@ -270,6 +272,7 @@ export function setupTouch(options: SetupTouchOptions): void {
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
 
       setClicked(interactionState, d);
+      setHovered(interactionState, d);
 
       delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : nodes;
       delaunayData.delaunay = d3.Delaunay.from(
