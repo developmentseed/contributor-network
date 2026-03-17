@@ -918,14 +918,18 @@ export const createContributorNetworkVisual = (
       tooltipEl,
       tooltipContentEl,
       orgNickname,
-      onTooltipShow: () => {
+      onTooltipShow: (node: VisualizationNode) => {
         drawer.dataset.mode = 'tooltip';
         drawer.dataset.expanded = 'true';
+        const selLabel = document.getElementById('mobile-drawer-selection-label');
+        if (selLabel) selLabel.textContent = node.label || node.id;
       },
       onTooltipDismiss: () => {
         drawer.dataset.mode = 'filters';
         drawer.dataset.expanded = 'false';
         drawer.removeAttribute('data-node-type');
+        const selLabel = document.getElementById('mobile-drawer-selection-label');
+        if (selLabel) selLabel.textContent = '';
       },
     });
   }

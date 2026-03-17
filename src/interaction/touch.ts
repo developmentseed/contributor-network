@@ -35,7 +35,7 @@ export interface SetupTouchOptions {
   tooltipEl: HTMLElement;
   tooltipContentEl: HTMLElement;
   orgNickname?: string;
-  onTooltipShow?: () => void;
+  onTooltipShow?: (node: VisualizationNode) => void;
   onTooltipDismiss?: () => void;
 }
 
@@ -286,7 +286,7 @@ export function setupTouch(options: SetupTouchOptions): void {
 
       tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname);
       tooltipEl.dataset.nodeType = d.type;
-      options.onTooltipShow?.();
+      options.onTooltipShow?.(d);
       activeNode = d;
     },
     { passive: true },

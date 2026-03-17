@@ -206,7 +206,6 @@ function setupMobileLayout(): void {
   const drawerHandle = document.getElementById('mobile-drawer-handle')!;
 
   drawerHandle.addEventListener('click', () => {
-    if (drawer.dataset.mode === 'tooltip') return;
     const expanded = drawer.dataset.expanded === 'true';
     drawer.dataset.expanded = String(!expanded);
     drawerHandle.setAttribute('aria-expanded', String(!expanded));
@@ -229,18 +228,12 @@ function setupMobileLayout(): void {
 
     if (deltaY < 0) {
       // Swipe up → expand
-      if (drawer.dataset.mode === 'filters') {
-        drawer.dataset.expanded = 'true';
-        drawerHandle.setAttribute('aria-expanded', 'true');
-      }
+      drawer.dataset.expanded = 'true';
+      drawerHandle.setAttribute('aria-expanded', 'true');
     } else {
-      // Swipe down → collapse or dismiss tooltip
-      if (drawer.dataset.mode === 'tooltip') {
-        document.getElementById('mobile-drawer-tooltip-close')?.click();
-      } else {
-        drawer.dataset.expanded = 'false';
-        drawerHandle.setAttribute('aria-expanded', 'false');
-      }
+      // Swipe down → collapse (keeps selection active in tooltip mode)
+      drawer.dataset.expanded = 'false';
+      drawerHandle.setAttribute('aria-expanded', 'false');
     }
   }, { passive: true });
 

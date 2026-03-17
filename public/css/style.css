@@ -708,10 +708,10 @@ li#item-remaining::before {
         max-height: 56px;
         overflow: hidden;
         box-sizing: border-box;
+        touch-action: none;
     }
 
-    #mobile-drawer[data-expanded="true"],
-    #mobile-drawer[data-mode="tooltip"] {
+    #mobile-drawer[data-expanded="true"] {
         max-height: 40vh;
         overflow-y: auto;
     }
@@ -752,6 +752,20 @@ li#item-remaining::before {
     #mobile-drawer[data-mode="filters"] #mobile-drawer-tooltip { display: none; }
     #mobile-drawer[data-mode="tooltip"] #mobile-drawer-filters { display: none; }
     #mobile-drawer[data-mode="tooltip"] #mobile-drawer-label { display: none; }
+
+    #mobile-drawer-selection-label {
+        display: none;
+        font-size: 13px;
+        color: var(--color-text);
+        opacity: 0.7;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60vw;
+    }
+    #mobile-drawer[data-mode="tooltip"][data-expanded="false"] #mobile-drawer-selection-label {
+        display: block;
+    }
 
     /* Drawer tooltip slot */
     #mobile-drawer-tooltip {
