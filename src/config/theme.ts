@@ -163,6 +163,15 @@ export const TIMING: TimingConfig = {
   simulationAlphaDecay: 0.02,
 };
 
+export const DIM = {
+  nodeColor: '#b0b0b0',
+  linkColor: '#d5d5d5',
+  labelColor: '#b0b0b0',
+  nodeOpacity: 0.18,
+  linkOpacity: 0.08,
+  contributorLabelOpacity: 0.22,
+};
+
 export const THEME: ThemeConfig = {
   colors: COLORS,
   fonts: FONTS,

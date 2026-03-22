@@ -82,6 +82,7 @@ export interface LinkData {
   r?: number;
   sign?: boolean;
   to_remove?: boolean;
+  filteredOut?: boolean;
 }
 
 export interface VisualizationNode {
@@ -109,6 +110,7 @@ export interface VisualizationNode {
   bbox?: [[number, number], [number, number]];
   contributor_angle?: number;
   neighbor_links?: LinkData[];
+  filteredOut?: boolean;
 }
 
 export interface InteractionState {
