@@ -491,15 +491,6 @@ li#item-remaining::before {
 }
 
 /* Org Dropdown */
-.org-dropdown-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #888;
-  margin-bottom: 6px;
-}
-
 .org-dropdown-trigger {
   background: white;
   border: 1.5px solid #ddd;
@@ -532,17 +523,6 @@ li#item-remaining::before {
 .org-dropdown-trigger[aria-disabled="true"] {
   opacity: 0.5;
   cursor: default;
-}
-
-.org-dropdown-placeholder {
-  color: #aaa;
-  font-size: 13px;
-}
-
-.org-dropdown-chevron {
-  color: #aaa;
-  font-size: 10px;
-  margin-left: auto;
 }
 
 /* Pills */
@@ -965,6 +945,7 @@ li#item-remaining::before {
 
     #mobile-drawer-label::after {
         content: '';
+        display: inline-block;
         width: 6px;
         height: 6px;
         border-radius: 50%;

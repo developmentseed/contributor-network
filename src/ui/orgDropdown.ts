@@ -61,6 +61,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
 
       const checkbox = document.createElement("span");
       checkbox.className = "org-dropdown-checkbox";
+      checkbox.textContent = "✓";
       const nameSpan = document.createElement("span");
       nameSpan.textContent = org;
 
@@ -129,14 +130,12 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       trigger.appendChild(pill);
     }
 
-    // Show clear all link when 2+ orgs selected
+    // Show clear all button when 2+ orgs selected
     if (selectedOrgs.size >= 2) {
-      const clearLink = document.createElement("a");
+      const clearLink = document.createElement("button");
       clearLink.className = "org-dropdown-clear";
-      clearLink.href = "#";
       clearLink.textContent = "Clear all";
       clearLink.addEventListener("click", (e) => {
-        e.preventDefault();
         e.stopPropagation();
         clearAll();
       });
@@ -146,13 +145,16 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
 
   function toggleOption(org: string, option: HTMLElement): void {
     const isSelected = selectedOrgs.has(org);
+    const checkbox = option.querySelector<HTMLElement>(".org-dropdown-checkbox");
     if (isSelected) {
       selectedOrgs.delete(org);
       option.setAttribute("aria-selected", "false");
+      if (checkbox) checkbox.textContent = "";
       onFilterChange(org, false);
     } else {
       selectedOrgs.add(org);
       option.setAttribute("aria-selected", "true");
+      if (checkbox) checkbox.textContent = "✓";
       onFilterChange(org, true);
     }
     renderTriggerContent();

@@ -1,7 +1,8 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
 import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
-import { createOrgDropdown, OrgDropdown } from './ui/orgDropdown';
+import { createOrgDropdown } from './ui/orgDropdown';
+import type { OrgDropdown } from './ui/orgDropdown';
 
 interface Config {
   organization_name?: string;
