@@ -54,6 +54,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   } else {
     for (const org of organizations) {
       const option = document.createElement("div");
+      option.className = "org-dropdown-flyout-item";
       option.setAttribute("role", "option");
       option.setAttribute("aria-selected", "false");
       option.dataset.org = org;
@@ -79,12 +80,6 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
         } else if (e.key === "Escape" || e.key === "Tab") {
           closeFlyout();
           trigger.focus();
-        } else if (e.key === "ArrowDown") {
-          e.preventDefault();
-          moveFocus(1);
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          moveFocus(-1);
         }
       });
 
@@ -222,8 +217,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   // Outside click handler
   const onOutsideClick = (e: MouseEvent) => {
     if (!wrapper.contains(e.target as Node)) {
-      flyout.classList.remove("open");
-      trigger.setAttribute("aria-expanded", "false");
+      closeFlyout();
     }
   };
   document.addEventListener("mousedown", onOutsideClick);
