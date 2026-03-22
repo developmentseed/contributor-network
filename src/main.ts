@@ -282,6 +282,23 @@ if (filterToggle && filterHeader) {
   });
 }
 
+// Sticky filter bar: add shadow when pinned to viewport top
+const chartFiltersEl = document.getElementById('chart-filters');
+if (chartFiltersEl) {
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  sentinel.style.marginBottom = '-1px';
+  chartFiltersEl.parentNode!.insertBefore(sentinel, chartFiltersEl);
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      chartFiltersEl.classList.toggle('is-stuck', !entry.isIntersecting);
+    },
+    { threshold: 0 },
+  );
+  observer.observe(sentinel);
+}
+
 let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 window.addEventListener("resize", function () {
   if (resizeTimer) clearTimeout(resizeTimer);
