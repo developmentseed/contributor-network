@@ -135,3 +135,71 @@ describe('createOrgDropdown', () => {
     expect(container.querySelector('.org-dropdown-clear')).not.toBeNull();
   });
 });
+
+describe('destroy', () => {
+  it('removes DOM elements and cleans up listeners', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const dropdown = createOrgDropdown({
+      container,
+      organizations: ['alpha'],
+      onFilterChange: vi.fn(),
+    });
+    expect(container.querySelector('[aria-haspopup="listbox"]')).not.toBeNull();
+    dropdown.destroy();
+    expect(container.querySelector('[aria-haspopup="listbox"]')).toBeNull();
+    container.remove();
+  });
+});
+
+describe('keyboard navigation', () => {
+  let container: HTMLDivElement;
+  let onFilterChange: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    onFilterChange = vi.fn();
+    createOrgDropdown({
+      container,
+      organizations: ['alpha', 'beta', 'gamma'],
+      onFilterChange,
+    });
+  });
+
+  afterEach(() => {
+    container.remove();
+  });
+
+  it('opens flyout on Enter key', () => {
+    const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('closes flyout on Escape key', () => {
+    const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    trigger.click(); // open
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('navigates options with ArrowDown/ArrowUp', () => {
+    const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    trigger.click(); // open — focuses options[0]
+    const flyout = container.querySelector('[role="listbox"]') as HTMLElement;
+    const options = container.querySelectorAll('[role="option"]');
+    expect(document.activeElement).toBe(options[0]);
+    flyout.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(options[1]);
+  });
+
+  it('toggles selection with Space on focused option', () => {
+    const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    trigger.click();
+    const options = container.querySelectorAll('[role="option"]');
+    (options[0] as HTMLElement).focus();
+    options[0].dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    expect(onFilterChange).toHaveBeenCalledWith('alpha', true);
+  });
+});

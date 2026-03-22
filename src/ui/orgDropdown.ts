@@ -66,18 +66,26 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       option.appendChild(checkbox);
       option.appendChild(nameSpan);
 
+      option.setAttribute("tabindex", "-1");
+
       option.addEventListener("click", () => {
-        const isSelected = selectedOrgs.has(org);
-        if (isSelected) {
-          selectedOrgs.delete(org);
-          option.setAttribute("aria-selected", "false");
-          onFilterChange(org, false);
-        } else {
-          selectedOrgs.add(org);
-          option.setAttribute("aria-selected", "true");
-          onFilterChange(org, true);
+        toggleOption(org, option);
+      });
+
+      option.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          toggleOption(org, option);
+        } else if (e.key === "Escape" || e.key === "Tab") {
+          closeFlyout();
+          trigger.focus();
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          moveFocus(1);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          moveFocus(-1);
         }
-        renderTriggerContent();
       });
 
       flyout.appendChild(option);
@@ -141,16 +149,73 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
     }
   }
 
+  function toggleOption(org: string, option: HTMLElement): void {
+    const isSelected = selectedOrgs.has(org);
+    if (isSelected) {
+      selectedOrgs.delete(org);
+      option.setAttribute("aria-selected", "false");
+      onFilterChange(org, false);
+    } else {
+      selectedOrgs.add(org);
+      option.setAttribute("aria-selected", "true");
+      onFilterChange(org, true);
+    }
+    renderTriggerContent();
+  }
+
+  function openFlyout(): void {
+    flyout.classList.add("open");
+    trigger.setAttribute("aria-expanded", "true");
+    const options = Array.from(flyout.querySelectorAll<HTMLElement>('[role="option"]:not([aria-disabled="true"])'));
+    const firstSelected = options.find((o) => o.getAttribute("aria-selected") === "true");
+    (firstSelected ?? options[0])?.focus();
+  }
+
+  function closeFlyout(): void {
+    flyout.classList.remove("open");
+    trigger.setAttribute("aria-expanded", "false");
+  }
+
+  function moveFocus(delta: number): void {
+    const options = Array.from(flyout.querySelectorAll<HTMLElement>('[role="option"]:not([aria-disabled="true"])'));
+    const current = options.indexOf(document.activeElement as HTMLElement);
+    const next = (current + delta + options.length) % options.length;
+    options[next]?.focus();
+  }
+
   // Toggle flyout on trigger click
   trigger.addEventListener("click", () => {
     if (organizations.length === 0) return;
     const isOpen = flyout.classList.contains("open");
     if (isOpen) {
-      flyout.classList.remove("open");
-      trigger.setAttribute("aria-expanded", "false");
+      closeFlyout();
     } else {
-      flyout.classList.add("open");
-      trigger.setAttribute("aria-expanded", "true");
+      openFlyout();
+    }
+  });
+
+  // Keyboard navigation on trigger
+  trigger.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (organizations.length === 0) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openFlyout();
+    } else if (e.key === "Escape") {
+      closeFlyout();
+    }
+  });
+
+  // Keyboard navigation on flyout (for ArrowDown/ArrowUp dispatched on the listbox itself)
+  flyout.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      moveFocus(1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      moveFocus(-1);
+    } else if (e.key === "Escape") {
+      closeFlyout();
+      trigger.focus();
     }
   });
 
