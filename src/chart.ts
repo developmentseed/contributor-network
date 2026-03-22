@@ -855,6 +855,28 @@ export const createContributorNetworkVisual = (
   ): void {
     ctx.save();
 
+    // Filtered-out nodes: tooltip + label only, no neighbor highlighting
+    if (d.filteredOut) {
+      const origColor = d.color;
+      d.color = DIM.nodeColor;
+      ctx.globalAlpha = 0.4;
+      const nodeConfig = { COLOR_BACKGROUND, max };
+      drawNode(ctx, SF, d, nodeConfig, interactionState);
+      ctx.globalAlpha = 1;
+      d.color = origColor;
+
+      drawHoverRingWrapper(ctx, d);
+
+      if (d.type !== 'contributor') {
+        drawNodeLabelWrapper(ctx, d);
+      }
+
+      if (DO_TOOLTIP) drawTooltipWrapper(ctx, d);
+
+      ctx.restore();
+      return;
+    }
+
     if (d.neighbor_links === undefined) {
       d.neighbor_links = links.filter(
         (l) =>
@@ -910,23 +932,27 @@ export const createContributorNetworkVisual = (
       }
     }
 
-    if (d.neighbor_links) {
-      d.neighbor_links.forEach((l: LinkData) => {
-        if (l && l.source && l.target) drawLinkWrapper(ctx, SF, l);
-      });
-    }
+    // When filters are active, only highlight filtered-in neighbors
+    const hoverLinks = hasActiveFilters(activeFilters)
+      ? d.neighbor_links!.filter(l => !l.filteredOut)
+      : d.neighbor_links!;
+    const hoverNeighbors = hasActiveFilters(activeFilters)
+      ? d.neighbors!.filter(n => !n.filteredOut)
+      : d.neighbors!;
 
-    if (d.neighbors) {
-      d.neighbors.forEach((n) => {
-        if (n) drawNodeArcWrapper(ctx, SF, n);
-      });
-      d.neighbors.forEach((n) => {
-        if (n) drawNodeWrapper(ctx, SF, n);
-      });
-      d.neighbors.forEach((n) => {
-        if (n && n.node_central) drawNodeLabelWrapper(ctx, n);
-      });
-    }
+    hoverLinks.forEach((l: LinkData) => {
+      if (l && l.source && l.target) drawLinkWrapper(ctx, SF, l);
+    });
+
+    hoverNeighbors.forEach((n) => {
+      if (n) drawNodeArcWrapper(ctx, SF, n);
+    });
+    hoverNeighbors.forEach((n) => {
+      if (n) drawNodeWrapper(ctx, SF, n);
+    });
+    hoverNeighbors.forEach((n) => {
+      if (n && n.node_central) drawNodeLabelWrapper(ctx, n);
+    });
 
     drawNodeWrapper(ctx, SF, d);
     drawHoverRingWrapper(ctx, d);
