@@ -26,7 +26,7 @@ import type {
   ZoomState,
   PreparedData,
 } from "./types";
-import { COLORS, LAYOUT, MOBILE_BREAKPOINT } from "./config/theme";
+import { COLORS, LAYOUT, MOBILE_BREAKPOINT, DIM } from "./config/theme";
 import {
   getLinkNodeId,
   resolveLinkReferences,
@@ -52,10 +52,12 @@ import {
   addOrganization,
   removeOrganization,
   hasOrganization,
+  hasActiveFilters,
   setMetricFilter,
   type MetricKey,
 } from "./state/filterState";
 import { prepareData } from "./data/prepare";
+import { classifyByFilters } from './data/classify';
 import { positionContributorNodes } from "./layout/positioning";
 import { draw as drawVisualization } from "./render/draw";
 import {
@@ -82,6 +84,7 @@ import {
   timeRangeArc,
   drawHatchPattern,
   drawLink,
+  drawContributorRing,
 } from "./render/shapes";
 import { drawTooltip as drawTooltipModule } from "./render/tooltip";
 import { drawNodeLabel } from "./render/labels";
@@ -146,6 +149,12 @@ export const createContributorNetworkVisual = (
   let nodes: VisualizationNode[] = [];
   let nodes_central: VisualizationNode[];
   let links: LinkData[];
+
+  // Full dataset (positions frozen after initial load)
+  let fullNodes: VisualizationNode[] = [];
+  let fullLinks: LinkData[] = [];
+  let fullNodesCentral: VisualizationNode[] = [];
+  let hasInitialBuild = false;
 
   let interactionState: InteractionState = createInteractionState();
 
@@ -305,6 +314,12 @@ export const createContributorNetworkVisual = (
 
     links = resolveLinkReferences(links, nodes);
 
+    // Snapshot full positioned dataset for filter classification
+    fullNodes = nodes;
+    fullLinks = links;
+    fullNodesCentral = nodes_central;
+    hasInitialBuild = true;
+
     chart.resize();
 
     setupHover();
@@ -360,24 +375,78 @@ export const createContributorNetworkVisual = (
       HEIGHT
     );
 
-    drawVisualization(
-      context,
-      { nodes, links, nodes_central },
-      {
-        WIDTH,
-        HEIGHT,
-        SF,
-        COLOR_BACKGROUND,
-        RADIUS_CONTRIBUTOR,
-        CONTRIBUTOR_RING_WIDTH,
-      },
-      {
-        drawLink: drawLinkWrapper,
-        drawNodeArc: drawNodeArcWrapper,
-        drawNode: drawNodeWrapper,
-        drawNodeLabel: drawNodeLabelWrapper,
+    if (hasActiveFilters(activeFilters) && hasInitialBuild) {
+      const dimmedNodes = nodes.filter(n => n.filteredOut);
+      const dimmedLinks = links.filter(l => l.filteredOut);
+      const visibleNodes = nodes.filter(n => !n.filteredOut);
+      const visibleLinks = links.filter(l => !l.filteredOut);
+      const visibleCentral = nodes_central.filter(n => !n.filteredOut);
+
+      // Pass 1: filtered-out (dimmed grayscale)
+      dimmedLinks.forEach(l => {
+        const source = l.source as VisualizationNode;
+        const target = l.target as VisualizationNode;
+        if (source && target &&
+            typeof source.x === 'number' && isFinite(source.x) &&
+            typeof target.x === 'number' && isFinite(target.x)) {
+          drawDimmedLinkWrapper(context, SF, l);
+        }
+      });
+      dimmedNodes.forEach(d => {
+        if (typeof d.x === 'number' && isFinite(d.x)) {
+          drawDimmedNodeWrapper(context, SF, d);
+        }
+      });
+      dimmedNodes.forEach(d => {
+        if (typeof d.x === 'number' && isFinite(d.x)) {
+          drawDimmedLabelWrapper(context, d);
+        }
+      });
+
+      // Always draw the contributor ring
+      drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
+
+      // Pass 2: filtered-in (full color)
+      if (visibleNodes.length > 0) {
+        drawVisualization(
+          context,
+          { nodes: visibleNodes, links: visibleLinks, nodes_central: visibleCentral },
+          {
+            WIDTH,
+            HEIGHT,
+            SF,
+            COLOR_BACKGROUND,
+            RADIUS_CONTRIBUTOR: 0,
+            CONTRIBUTOR_RING_WIDTH: 0,
+          },
+          {
+            drawLink: drawLinkWrapper,
+            drawNodeArc: drawNodeArcWrapper,
+            drawNode: drawNodeWrapper,
+            drawNodeLabel: drawNodeLabelWrapper,
+          }
+        );
       }
-    );
+    } else {
+      drawVisualization(
+        context,
+        { nodes, links, nodes_central },
+        {
+          WIDTH,
+          HEIGHT,
+          SF,
+          COLOR_BACKGROUND,
+          RADIUS_CONTRIBUTOR,
+          CONTRIBUTOR_RING_WIDTH,
+        },
+        {
+          drawLink: drawLinkWrapper,
+          drawNodeArc: drawNodeArcWrapper,
+          drawNode: drawNodeWrapper,
+          drawNodeLabel: drawNodeLabelWrapper,
+        }
+      );
+    }
 
     context.restore();
   }
@@ -509,6 +578,49 @@ export const createContributorNetworkVisual = (
     contributors = visibleContributors;
     repos = visibleRepos;
     links = visibleLinks as any;
+  }
+
+  function applyFilterClassification(): void {
+    if (!hasInitialBuild) {
+      chart.rebuild();
+      return;
+    }
+
+    // Restore full dataset (positions are preserved)
+    nodes = fullNodes;
+    links = fullLinks;
+    nodes_central = fullNodesCentral;
+
+    // Classify nodes/links based on current filters
+    classifyByFilters(nodes, links, activeFilters);
+
+    // Clear cached neighbor data (it may reference old filtered arrays)
+    for (const node of nodes) {
+      node.neighbors = undefined;
+      node.neighbor_links = undefined;
+    }
+
+    // Clear interaction state
+    clearAll(interactionState);
+
+    // Rebuild Delaunay with ALL nodes (so we can hover filtered-out nodes)
+    const validNodes = nodes.filter(
+      (n) => typeof n.x === 'number' && typeof n.y === 'number' && isFinite(n.x) && isFinite(n.y)
+    );
+    nodes_delaunay = validNodes;
+    delaunay = d3.Delaunay.from(
+      validNodes,
+      (d: VisualizationNode) => d.x * SF,
+      (d: VisualizationNode) => d.y * SF,
+    );
+
+    // Restore canvas opacity (in case hover/click had dimmed it)
+    canvas.style.opacity = '1';
+    context_click.clearRect(0, 0, WIDTH, HEIGHT);
+    context_hover.clearRect(0, 0, WIDTH, HEIGHT);
+
+    // Redraw
+    draw();
   }
 
   function drawNodeWrapper(
@@ -998,6 +1110,61 @@ export const createContributorNetworkVisual = (
     drawNodeLabel(ctx, d, config, null, DO_CENTRAL_OUTSIDE);
   }
 
+  function drawDimmedNodeWrapper(
+    ctx: CanvasRenderingContext2D,
+    sf: number,
+    d: VisualizationNode,
+  ): void {
+    const origColor = d.color;
+    d.color = DIM.nodeColor;
+    ctx.globalAlpha = DIM.nodeOpacity;
+    const config = { COLOR_BACKGROUND, max };
+    drawNode(ctx, sf, d, config, interactionState);
+    ctx.globalAlpha = 1;
+    d.color = origColor;
+  }
+
+  function drawDimmedLinkWrapper(
+    ctx: CanvasRenderingContext2D,
+    sf: number,
+    l: LinkData,
+  ): void {
+    ctx.globalAlpha = DIM.linkOpacity;
+    ctx.beginPath();
+    const source = l.source as VisualizationNode;
+    const target = l.target as VisualizationNode;
+    if (!source || !target) return;
+    ctx.moveTo(source.x * sf, source.y * sf);
+    if (l.center && l.r) {
+      const ang1 = Math.atan2(source.y * sf - l.center.y * sf, source.x * sf - l.center.x * sf);
+      const ang2 = Math.atan2(target.y * sf - l.center.y * sf, target.x * sf - l.center.x * sf);
+      ctx.arc(l.center.x * sf, l.center.y * sf, l.r * sf, ang1, ang2, l.sign);
+    } else {
+      ctx.lineTo(target.x * sf, target.y * sf);
+    }
+    ctx.strokeStyle = DIM.linkColor;
+    ctx.lineWidth = Math.max(1, scale_link_width(l.commit_count) * 0.5) * sf;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDimmedLabelWrapper(
+    ctx: CanvasRenderingContext2D,
+    d: VisualizationNode,
+  ): void {
+    if (d.type !== 'contributor') return;
+    ctx.globalAlpha = DIM.contributorLabelOpacity;
+    const config = {
+      SF,
+      COLOR_TEXT: DIM.labelColor,
+      COLOR_BACKGROUND,
+      COLOR_REPO_MAIN,
+      PI,
+    };
+    drawNodeLabel(ctx, d, config, null, false);
+    ctx.globalAlpha = 1;
+  }
+
   chart.width = function (value?: number): any {
     if (value === undefined) return width;
     width = value;
@@ -1145,6 +1312,12 @@ export const createContributorNetworkVisual = (
       }
     });
 
+    // Re-snapshot in case rebuild is called after initial build
+    fullNodes = nodes;
+    fullLinks = links;
+    fullNodesCentral = nodes_central;
+    hasInitialBuild = true;
+
     chart.resize();
 
     setupHover();
@@ -1163,7 +1336,7 @@ export const createContributorNetworkVisual = (
     } else {
       removeOrganization(activeFilters, organizationName);
     }
-    chart.rebuild();
+    applyFilterClassification();
     return chart as ChartFunction;
   };
 
@@ -1172,7 +1345,7 @@ export const createContributorNetworkVisual = (
     value: number | null
   ): ChartFunction {
     setMetricFilter(activeFilters, metric as MetricKey, value);
-    chart.rebuild();
+    applyFilterClassification();
     return chart as ChartFunction;
   };
 
