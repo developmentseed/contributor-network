@@ -15,8 +15,6 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   const { container, organizations, onFilterChange } = options;
 
   const selectedOrgs = new Set<string>();
-  let flyoutDirection: "up" | "down" = "down";
-
   // Create wrapper
   const wrapper = document.createElement("div");
   wrapper.className = "org-dropdown-wrapper";
@@ -44,9 +42,6 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   const flyout = document.createElement("div");
   flyout.className = "org-dropdown-flyout";
   flyout.setAttribute("role", "listbox");
-  flyout.style.display = "none";
-  flyout.style.maxHeight = "240px";
-  flyout.style.overflowY = "auto";
 
   // Populate flyout options
   if (organizations.length === 0) {
@@ -64,7 +59,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       option.dataset.org = org;
 
       const checkbox = document.createElement("span");
-      checkbox.className = "org-option-checkbox";
+      checkbox.className = "org-dropdown-checkbox";
       const nameSpan = document.createElement("span");
       nameSpan.textContent = org;
 
@@ -108,12 +103,8 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       pill.className = "org-pill";
 
       const nameSpan = document.createElement("span");
+      nameSpan.className = "org-pill-text";
       nameSpan.textContent = org;
-      nameSpan.style.maxWidth = "180px";
-      nameSpan.style.overflow = "hidden";
-      nameSpan.style.textOverflow = "ellipsis";
-      nameSpan.style.whiteSpace = "nowrap";
-      nameSpan.style.display = "inline-block";
 
       const closeBtn = document.createElement("button");
       closeBtn.className = "org-pill-close";
@@ -153,12 +144,12 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   // Toggle flyout on trigger click
   trigger.addEventListener("click", () => {
     if (organizations.length === 0) return;
-    const isOpen = flyout.style.display !== "none";
+    const isOpen = flyout.classList.contains("open");
     if (isOpen) {
-      flyout.style.display = "none";
+      flyout.classList.remove("open");
       trigger.setAttribute("aria-expanded", "false");
     } else {
-      flyout.style.display = "block";
+      flyout.classList.add("open");
       trigger.setAttribute("aria-expanded", "true");
     }
   });
@@ -166,7 +157,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   // Outside click handler
   const onOutsideClick = (e: MouseEvent) => {
     if (!wrapper.contains(e.target as Node)) {
-      flyout.style.display = "none";
+      flyout.classList.remove("open");
       trigger.setAttribute("aria-expanded", "false");
     }
   };
@@ -199,7 +190,6 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   }
 
   function setFlyoutDirection(direction: "up" | "down"): void {
-    flyoutDirection = direction;
     flyout.classList.remove("flyout-up", "flyout-down");
     flyout.classList.add(`flyout-${direction}`);
   }
