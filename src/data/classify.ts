@@ -39,14 +39,28 @@ export function classifyByFilters(
     if (visible) visibleRepoIds.add(node.id);
   }
 
-  // Step 2: Classify links and determine visible contributors
+  // Step 2: Classify owners (needed before link classification)
+  const visibleOwnerIds = new Set<string>();
+  for (const node of nodes) {
+    if (node.type !== 'owner') continue;
+    const hasVisibleRepo = nodes.some(
+      n => n.type === 'repo' && !n.filteredOut && (n.data as RepoData).owner === node.id,
+    );
+    node.filteredOut = !hasVisibleRepo;
+    if (hasVisibleRepo) visibleOwnerIds.add(node.id);
+  }
+
+  // Step 3: Classify links and determine visible contributors
+  // Links target repos directly, or go through owners (contributor→owner, owner→repo).
+  // A link is visible if its target is a visible repo OR a visible owner.
   const visibleContributorIds = new Set<string>();
   for (const link of links) {
     const targetId = typeof link.target === 'string' ? link.target : link.target.id;
-    const repoVisible =
+    const visible =
       visibleRepoIds.has(targetId) ||
+      visibleOwnerIds.has(targetId) ||
       (link.repo ? visibleRepoIds.has(link.repo) : false);
-    link.filteredOut = !repoVisible;
+    link.filteredOut = !visible;
     if (!link.filteredOut) {
       const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
       visibleContributorIds.add(sourceId);
@@ -54,15 +68,10 @@ export function classifyByFilters(
     }
   }
 
-  // Step 3: Classify contributors and owners
+  // Step 4: Classify contributors
   for (const node of nodes) {
     if (node.type === 'contributor') {
       node.filteredOut = !visibleContributorIds.has(node.id);
-    } else if (node.type === 'owner') {
-      const hasVisibleRepo = nodes.some(
-        n => n.type === 'repo' && !n.filteredOut && (n.data as RepoData).owner === node.id,
-      );
-      node.filteredOut = !hasVisibleRepo;
     }
   }
 }

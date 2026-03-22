@@ -138,4 +138,30 @@ describe('classifyByFilters', () => {
     // Bob → repoC: both visible (alpha org)
     expect(links[2].filteredOut).toBe(false);
   });
+
+  it('marks contributor→owner links visible when owner has visible repos', () => {
+    const repo = makeRepo('alpha/repo1', 'alpha', 100, 10);
+    const owner = makeOwner('alpha');
+    const contrib = makeContributor('Carol');
+    const ownerRepoLink = makeLink('alpha', 'alpha/repo1', 'alpha/repo1');
+    const contribOwnerLink: LinkData = {
+      source: 'Carol',
+      target: 'alpha',
+      owner: 'alpha',
+      commit_count: 3,
+      commit_sec_min: '2024-01-01',
+      commit_sec_max: '2024-06-01',
+    };
+
+    const testNodes = [repo, owner, contrib];
+    const testLinks = [ownerRepoLink, contribOwnerLink];
+
+    classifyByFilters(testNodes, testLinks, { organizations: ['alpha'], starsMin: null, forksMin: null });
+
+    expect(repo.filteredOut).toBe(false);
+    expect(owner.filteredOut).toBe(false);
+    expect(contrib.filteredOut).toBe(false);
+    expect(ownerRepoLink.filteredOut).toBe(false);
+    expect(contribOwnerLink.filteredOut).toBe(false);
+  });
 });
