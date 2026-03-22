@@ -393,8 +393,8 @@ li#item-remaining::before {
     margin: 30px 0;
     padding: 20px;
     background-color: var(--color-background);
-    border-radius: 4px;
-    border-left: 4px solid var(--color-repo-main);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 #filter-toggle {
@@ -421,38 +421,43 @@ li#item-remaining::before {
 
 #filter-header {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    align-items: flex-start;
+    gap: 20px;
     flex-wrap: wrap;
 }
 
-#filter-header label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text);
-    margin: 0;
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-#org-select,
+.filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+}
+
 #stars-select,
 #forks-select {
     padding: 8px 12px;
     font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
     background-color: white;
     color: var(--color-text);
     cursor: pointer;
+    min-height: 40px;
     transition: border-color 0.2s ease;
 }
 
-#org-select:hover,
 #stars-select:hover,
 #forks-select:hover {
     border-color: var(--color-repo-main);
 }
 
-#org-select:focus,
 #stars-select:focus,
 #forks-select:focus {
     outline: none;
@@ -461,11 +466,12 @@ li#item-remaining::before {
 }
 
 #filter-stats {
-    margin: 10px 0 0 0;
-    font-size: 13px;
-    color: #666;
+    margin: 0;
+    margin-left: auto;
+    font-size: 12px;
+    color: #999;
     font-style: italic;
-    width: 100%;
+    align-self: flex-end;
 }
 
 /* Org Dropdown */
@@ -724,7 +730,6 @@ li#item-remaining::before {
         pointer-events: none;
     }
 
-    #org-select,
     #stars-select,
     #forks-select {
         width: 100%;
