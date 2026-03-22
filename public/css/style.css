@@ -409,6 +409,22 @@ li#item-remaining::before {
     margin-bottom: 8px;
 }
 
+/* Active filter indicator dot */
+#filter-toggle::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-repo-main);
+    margin-left: 6px;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+#filter-toggle[data-has-active-filters="true"]::after {
+    opacity: 1;
+}
+
 #filter-toggle-icon {
     font-size: 10px;
     display: inline-block;
@@ -945,6 +961,21 @@ li#item-remaining::before {
         font-size: 14px;
         font-weight: 600;
         color: var(--color-text);
+    }
+
+    #mobile-drawer-label::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--color-repo-main);
+        margin-left: 6px;
+        opacity: 0;
+        transition: opacity 150ms ease;
+    }
+
+    #mobile-drawer[data-has-active-filters="true"] #mobile-drawer-label::after {
+        opacity: 1;
     }
 
     #mobile-drawer-filters {
