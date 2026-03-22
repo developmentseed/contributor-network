@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
 import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
+import { createOrgDropdown, OrgDropdown } from './ui/orgDropdown';
 
 interface Config {
   organization_name?: string;
@@ -81,32 +82,13 @@ document.fonts.ready.then(() => {
       });
 
       const sortedOrgs = Array.from(uniqueOrgs).sort();
-      const orgSelect = document.getElementById(
-        "org-select"
-      ) as HTMLSelectElement;
-      sortedOrgs.forEach((org) => {
-        const option = document.createElement("option");
-        option.value = org;
-        option.textContent = org;
-        orgSelect.appendChild(option);
-      });
-
-      let currentSelectedOrg: string | null = null;
-      orgSelect.addEventListener("change", function () {
-        const selectedOrg = this.value;
-        if (selectedOrg === "") {
-          if (currentSelectedOrg) {
-            contributorNetworkVisual.setFilter(currentSelectedOrg, false);
-            currentSelectedOrg = null;
-          }
-        } else {
-          if (currentSelectedOrg && currentSelectedOrg !== selectedOrg) {
-            contributorNetworkVisual.setFilter(currentSelectedOrg, false);
-          }
-          contributorNetworkVisual.setFilter(selectedOrg, true);
-          currentSelectedOrg = selectedOrg;
-        }
-        updateFilterStats();
+      orgDropdown = createOrgDropdown({
+        container: document.getElementById("org-dropdown-container")!,
+        organizations: sortedOrgs,
+        onFilterChange: (org, enabled) => {
+          contributorNetworkVisual.setFilter(org, enabled);
+          updateFilterStats();
+        },
       });
 
       const starsSelect = document.getElementById(
@@ -132,9 +114,14 @@ document.fonts.ready.then(() => {
       function updateFilterStats(): void {
         const statsElement = document.getElementById("filter-stats")!;
         const parts: string[] = [];
+        const activeOrgs = contributorNetworkVisual.getActiveFilters().organizations;
 
-        if (currentSelectedOrg !== null) {
-          parts.push(`org: ${currentSelectedOrg}`);
+        if (activeOrgs.length > 0) {
+          if (activeOrgs.length <= 3) {
+            parts.push(`orgs: ${activeOrgs.join(", ")}`);
+          } else {
+            parts.push(`${activeOrgs.length} orgs selected`);
+          }
         }
         if (starsSelect.value !== "") {
           parts.push(`stars: ${starsSelect.value}+`);
@@ -148,6 +135,10 @@ document.fonts.ready.then(() => {
         } else {
           statsElement.textContent = `Filtered by ${parts.join(", ")}`;
         }
+
+        const isFiltered = activeOrgs.length > 0 || starsSelect.value !== "" || forksSelect.value !== "";
+        filterToggle?.setAttribute("data-has-active-filters", String(isFiltered));
+        document.getElementById("mobile-drawer")?.setAttribute("data-has-active-filters", String(isFiltered));
       }
       updateFilterStats();
 
@@ -176,6 +167,7 @@ document.fonts.ready.then(() => {
 });
 
 let isMobileLayout = false;
+let orgDropdown: OrgDropdown | null = null;
 
 function handleLayoutResize(): void {
   const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
@@ -198,6 +190,7 @@ function restoreDesktopLayout(): void {
   if (chartFilters && filterHeader) chartFilters.appendChild(filterHeader);
 
   isMobileLayout = false;
+  orgDropdown?.setFlyoutDirection('down');
 }
 
 function setupMobileLayout(): void {
@@ -275,6 +268,7 @@ function setupMobileLayout(): void {
   }
 
   isMobileLayout = true;
+  orgDropdown?.setFlyoutDirection('up');
 }
 
 const filterToggle = document.getElementById("filter-toggle");
