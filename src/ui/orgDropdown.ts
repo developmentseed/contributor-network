@@ -97,7 +97,14 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
     }
 
     if (selectedOrgs.size === 0) {
-      trigger.textContent = "Filter by org";
+      const placeholder = document.createElement("span");
+      placeholder.className = "org-dropdown-count";
+      placeholder.textContent = "Filter by org";
+      trigger.appendChild(placeholder);
+      const chevron = document.createElement("span");
+      chevron.className = "org-dropdown-chevron";
+      chevron.textContent = "▾";
+      trigger.appendChild(chevron);
       return;
     }
 
