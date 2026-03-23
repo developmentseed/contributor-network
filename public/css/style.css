@@ -468,7 +468,7 @@ li#item-remaining::before {
 
 #stars-select,
 #forks-select {
-    padding: 8px 12px;
+    padding: 8px 24px 8px 12px;
     font-size: 14px;
     border: 1.5px solid #ddd;
     border-radius: 8px;
@@ -540,6 +540,12 @@ li#item-remaining::before {
 .org-dropdown-count {
   font-size: 13px;
   color: var(--color-text);
+}
+
+.org-dropdown-chevron {
+  margin-left: auto;
+  color: #999;
+  font-size: 14px;
 }
 
 /* Flyout */
