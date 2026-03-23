@@ -684,7 +684,7 @@ li#item-remaining::before {
     #filter-header {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: 10px;
         overflow: hidden;
         transition: max-height 0.3s ease, opacity 0.3s ease;
@@ -699,7 +699,29 @@ li#item-remaining::before {
     #stars-select,
     #forks-select {
         width: 100%;
-        max-width: 300px;
+    }
+
+    .org-dropdown-wrapper {
+        width: 100%;
+    }
+
+    .org-dropdown-trigger {
+        width: 100%;
+    }
+
+    .org-dropdown-flyout {
+        position: static;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #e0e0e0;
+        border-radius: 0;
+        margin-top: 0;
+        max-height: none;
+    }
+
+    .org-dropdown-flyout.flyout-up {
+        bottom: auto;
+        margin-bottom: 0;
     }
 
     #chart-container {
