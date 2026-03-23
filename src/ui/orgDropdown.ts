@@ -101,34 +101,14 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       return;
     }
 
-    // Render pills for each selected org
-    for (const org of selectedOrgs) {
-      const pill = document.createElement("span");
-      pill.className = "org-pill";
-
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "org-pill-text";
-      nameSpan.textContent = org;
-
-      const closeBtn = document.createElement("button");
-      closeBtn.className = "org-pill-close";
-      closeBtn.textContent = "✕";
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        selectedOrgs.delete(org);
-        onFilterChange(org, false);
-        // Update flyout option aria-selected
-        const optionEl = flyout.querySelector(`[data-org="${org}"]`);
-        if (optionEl) {
-          optionEl.setAttribute("aria-selected", "false");
-        }
-        renderTriggerContent();
-      });
-
-      pill.appendChild(nameSpan);
-      pill.appendChild(closeBtn);
-      trigger.appendChild(pill);
-    }
+    // Show counter label
+    const countLabel = document.createElement("span");
+    countLabel.className = "org-dropdown-count";
+    countLabel.textContent =
+      selectedOrgs.size === 1
+        ? `1 org selected`
+        : `${selectedOrgs.size} orgs selected`;
+    trigger.appendChild(countLabel);
 
     // Show clear all button when 2+ orgs selected
     if (selectedOrgs.size >= 2) {
@@ -141,6 +121,12 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       });
       trigger.appendChild(clearLink);
     }
+
+    // Chevron
+    const chevron = document.createElement("span");
+    chevron.className = "org-dropdown-chevron";
+    chevron.textContent = "▾";
+    trigger.appendChild(chevron);
   }
 
   function toggleOption(org: string, option: HTMLElement): void {

@@ -72,7 +72,6 @@ describe('createOrgDropdown', () => {
       organizations: ['alpha', 'beta'],
       onFilterChange,
     });
-    // Select then deselect
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
     const options = container.querySelectorAll('[role="option"]');
@@ -82,24 +81,19 @@ describe('createOrgDropdown', () => {
     expect(dropdown.getSelected()).toEqual([]);
   });
 
-  it('removes org via pill close button', () => {
-    const dropdown = createOrgDropdown({
+  it('shows counter label when orgs are selected', () => {
+    createOrgDropdown({
       container,
-      organizations: ['alpha', 'beta'],
+      organizations: ['alpha', 'beta', 'gamma'],
       onFilterChange,
     });
-    // Select alpha
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
     const options = container.querySelectorAll('[role="option"]');
     (options[0] as HTMLElement).click();
-    // Close flyout
-    trigger.click();
-    // Find pill close button
-    const pillClose = container.querySelector('.org-pill-close') as HTMLElement;
-    expect(pillClose).not.toBeNull();
-    pillClose.click();
-    expect(onFilterChange).toHaveBeenCalledWith('alpha', false);
+    expect(trigger.textContent).toContain('1 org selected');
+    (options[1] as HTMLElement).click();
+    expect(trigger.textContent).toContain('2 orgs selected');
   });
 
   it('clearAll removes all selections', () => {
