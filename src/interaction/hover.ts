@@ -53,7 +53,7 @@ function handlePointerHover(
 
     if (FOUND && d) {
       setHovered(interactionState, d);
-      canvas.style.opacity = d.type === 'contributor' ? '0.15' : '0.3';
+      canvas.style.opacity = d.filteredOut ? '0.85' : (d.type === 'contributor' ? '0.15' : '0.3');
       drawWithZoomTransform(contextHover, config, options.zoomState ?? null, () => {
         drawHoverState(contextHover, d);
       });

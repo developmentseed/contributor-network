@@ -47,30 +47,31 @@
                 Filters <span id="filter-toggle-icon">&#9650;</span>
             </button>
             <div id="filter-header" class="collapsed">
-                <label for="org-select">Organization:</label>
-                <select id="org-select">
-                    <option value="">-- All Organizations --</option>
-                </select>
+                <div id="org-dropdown-container"></div>
 
-                <label for="stars-select">Min Stars:</label>
-                <select id="stars-select">
-                    <option value="">Any</option>
-                    <option value="10">10+</option>
-                    <option value="50">50+</option>
-                    <option value="100">100+</option>
-                    <option value="500">500+</option>
-                    <option value="1000">1,000+</option>
-                </select>
+                <div class="filter-group">
+                    <div class="filter-label">Min Stars</div>
+                    <select id="stars-select">
+                        <option value="">Any</option>
+                        <option value="10">10+</option>
+                        <option value="50">50+</option>
+                        <option value="100">100+</option>
+                        <option value="500">500+</option>
+                        <option value="1000">1,000+</option>
+                    </select>
+                </div>
 
-                <label for="forks-select">Min Forks:</label>
-                <select id="forks-select">
-                    <option value="">Any</option>
-                    <option value="5">5+</option>
-                    <option value="10">10+</option>
-                    <option value="25">25+</option>
-                    <option value="50">50+</option>
-                    <option value="100">100+</option>
-                </select>
+                <div class="filter-group">
+                    <div class="filter-label">Min Forks</div>
+                    <select id="forks-select">
+                        <option value="">Any</option>
+                        <option value="5">5+</option>
+                        <option value="10">10+</option>
+                        <option value="25">25+</option>
+                        <option value="50">50+</option>
+                        <option value="100">100+</option>
+                    </select>
+                </div>
 
                 <p id="filter-stats"></p>
             </div>

@@ -80,6 +80,12 @@ export function setupClick(options: SetupClickOptions): void {
     contextClick.clearRect(0, 0, WIDTH, HEIGHT);
 
     if (FOUND && d) {
+      // Don't activate click state for filtered-out nodes
+      if (d.filteredOut) {
+        canvas.style.opacity = '1';
+        return;
+      }
+
       setClicked(interactionState, d);
 
       delaunayData.nodesDelaunay = d.neighbors ? [...d.neighbors, d] : getNodes();
