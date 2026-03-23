@@ -97,7 +97,7 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
     }
 
     if (selectedOrgs.size === 0) {
-      trigger.textContent = "+ add org...";
+      trigger.textContent = "Filter by org";
       return;
     }
 
