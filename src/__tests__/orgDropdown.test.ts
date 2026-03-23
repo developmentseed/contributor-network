@@ -24,7 +24,7 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]');
     expect(trigger).not.toBeNull();
-    expect(trigger!.textContent).toContain('+ add org...');
+    expect(trigger!.textContent).toContain('Filter by org');
     expect(dropdown.getSelected()).toEqual([]);
   });
 
