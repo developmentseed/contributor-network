@@ -14,8 +14,10 @@ interface ActiveAnimation {
 const activeAnimations: Map<string, ActiveAnimation> = new Map();
 let rafHandle: number | null = null;
 
-function easeOut(t: number): number {
-  return 1 - (1 - t) * (1 - t);
+function easeInOut(t: number): number {
+  return t < 0.5
+    ? 2 * t * t
+    : 1 - (-2 * t + 2) * (-2 * t + 2) / 2;
 }
 
 function tick(timestamp: number): void {
@@ -31,7 +33,7 @@ function tick(timestamp: number): void {
 
     const elapsed = timestamp - entry.startTime;
     const rawProgress = Math.min(elapsed / entry.animation.duration, 1);
-    const easedProgress = easeOut(rawProgress);
+    const easedProgress = easeInOut(rawProgress);
 
     entry.animation.onFrame(easedProgress);
 
