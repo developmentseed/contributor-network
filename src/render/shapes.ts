@@ -159,6 +159,34 @@ export function drawHoverRing(
   context.stroke();
 }
 
+export function drawNodeGlow(
+  context: CanvasRenderingContext2D,
+  SF: number,
+  d: VisualizationNode,
+  intensity: number,
+): void {
+  const glowRadius = d.r * (intensity > 0.2 ? 2.5 : 1.5);
+  const cx = d.x * SF;
+  const cy = d.y * SF;
+  const r = glowRadius * SF;
+
+  const gradient = context.createRadialGradient(cx, cy, 0, cx, cy, r);
+  gradient.addColorStop(0, hexToRgba(d.color, intensity));
+  gradient.addColorStop(1, hexToRgba(d.color, 0));
+
+  context.save();
+  context.fillStyle = gradient;
+  context.fillRect(cx - r, cy - r, r * 2, r * 2);
+  context.restore();
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 /**
  * Draws a tiny arc around a node showing contributor involvement time range.
  */
