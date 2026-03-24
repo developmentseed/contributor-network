@@ -80,6 +80,7 @@ import {
 import {
   drawNode,
   drawNodeArc,
+  drawNodeGlow,
   drawHoverRing,
   timeRangeArc,
   drawHatchPattern,
@@ -1029,6 +1030,9 @@ export const createContributorNetworkVisual = (
     });
 
     hoverNeighbors.forEach((n) => {
+      if (n) drawNodeGlow(ctx, SF, n, 0.15);
+    });
+    hoverNeighbors.forEach((n) => {
       if (n) drawNodeArcWrapper(ctx, SF, n);
     });
     hoverNeighbors.forEach((n) => {
@@ -1038,6 +1042,7 @@ export const createContributorNetworkVisual = (
       if (n && n.node_central) drawNodeLabelWrapper(ctx, n);
     });
 
+    drawNodeGlow(ctx, SF, d, 0.3);
     drawNodeWrapper(ctx, SF, d);
     drawHoverRingWrapper(ctx, d);
 
