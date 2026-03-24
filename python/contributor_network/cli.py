@@ -1,3 +1,4 @@
+import datetime
 import json
 import subprocess
 from collections import defaultdict
@@ -91,6 +92,9 @@ def fetch(
     contributors = (
         config.all_contributors if all_contributors else config.devseed_contributors
     )
+    start_dates: dict[str, datetime.date | None] = {
+        login: config.get_contributor_start_date(login) for login in contributors
+    }
     print(f"Building data for {len(contributors)} contributors")
 
     for repository in repositories:
@@ -98,7 +102,7 @@ def fetch(
         repo = client.get_repo(repository)
         client.update_repository(repo)
         print(f"Updating links: {repository}")
-        client.update_links(repo, contributors)
+        client.update_links(repo, contributors, start_dates=start_dates)
 
 
 @main.command()

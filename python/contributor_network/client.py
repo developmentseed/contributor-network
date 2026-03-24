@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 
 from github import Github
@@ -26,12 +27,18 @@ class Client:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(repository.model_dump_json())
 
-    def update_links(self, repo: Repo, contributors: dict[str, str]) -> None:
+    def update_links(
+        self,
+        repo: Repo,
+        contributors: dict[str, str],
+        start_dates: dict[str, datetime.date | None] | None = None,
+    ) -> None:
         """Update the links for a single repository."""
         devseed_count = 0
         for contributor in repo.get_contributors():
             if contributor_name := contributors.get(contributor.login):
-                self.update_link(repo, contributor, contributor_name)
+                since = (start_dates or {}).get(contributor.login)
+                self.update_link(repo, contributor, contributor_name, since=since)
                 devseed_count += 1
 
         # Update repository with community stats (Phase 2)
@@ -48,14 +55,26 @@ class Client:
             path.write_text(repository.model_dump_json())
 
     def update_link(
-        self, repo: Repo, contributor: NamedUser, contributor_name: str
+        self,
+        repo: Repo,
+        contributor: NamedUser,
+        contributor_name: str,
+        since: datetime.date | None = None,
     ) -> None:
         """Update the link for a single contributor to a single repository."""
         path = self.directory / "links" / repo.full_name / (contributor.login + ".json")
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists():
             link = Link.model_validate_json(path.read_text())
-            link.update_from_github(repo, contributor)
+            has_commits = link.update_from_github(repo, contributor, since=since)
+            if not has_commits:
+                path.unlink()
+                return
+            path.write_text(link.model_dump_json())
         else:
-            link = Link.from_github(repo, contributor, contributor_name)
-        path.write_text(link.model_dump_json())
+            new_link = Link.from_github(
+                repo, contributor, contributor_name, since=since
+            )
+            if new_link is None:
+                return
+            path.write_text(new_link.model_dump_json())

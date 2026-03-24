@@ -18,14 +18,34 @@ class Link(BaseModel):
     is_recent_contributor: bool = False
 
     @classmethod
-    def from_github(cls, repo: Repo, contributor: NamedUser, author_name: str) -> Link:
-        commits = repo.get_commits(author=contributor.login)
-        last_commit = commits[0]
-        first_commit = commits.reversed[0]
+    def from_github(
+        cls,
+        repo: Repo,
+        contributor: NamedUser,
+        author_name: str,
+        since: datetime.date | None = None,
+    ) -> Link | None:
+        if since is not None:
+            since_dt = datetime.datetime(
+                since.year, since.month, since.day, tzinfo=datetime.timezone.utc
+            )
+            commits_list = list(
+                repo.get_commits(author=contributor.login, since=since_dt)
+            )
+            if not commits_list:
+                return None
+            commit_count = len(commits_list)
+            last_commit = commits_list[0]
+            first_commit = commits_list[-1]
+        else:
+            commits = repo.get_commits(author=contributor.login)
+            last_commit = commits[0]
+            first_commit = commits.reversed[0]
+            commit_count = contributor.contributions
+
         commit_sec_min = int(first_commit.commit.author.date.timestamp())
         commit_sec_max = int(last_commit.commit.author.date.timestamp())
 
-        # Compute derived fields
         contribution_span_days = (commit_sec_max - commit_sec_min) // 86400
         ninety_days_ago = int(
             (datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()
@@ -35,20 +55,39 @@ class Link(BaseModel):
         return cls(
             author_name=author_name,
             repo=repo.full_name,
-            commit_count=contributor.contributions,
+            commit_count=commit_count,
             commit_sec_min=commit_sec_min,
             commit_sec_max=commit_sec_max,
             contribution_span_days=contribution_span_days,
             is_recent_contributor=is_recent,
         )
 
-    def update_from_github(self, repo: Repo, contributor: NamedUser) -> None:
-        commits = repo.get_commits(author=contributor.login)
-        last_commit = commits[0]
-        self.commit_count = contributor.contributions
-        self.commit_sec_max = int(last_commit.commit.author.date.timestamp())
+    def update_from_github(
+        self,
+        repo: Repo,
+        contributor: NamedUser,
+        since: datetime.date | None = None,
+    ) -> bool:
+        if since is not None:
+            since_dt = datetime.datetime(
+                since.year, since.month, since.day, tzinfo=datetime.timezone.utc
+            )
+            commits_list = list(
+                repo.get_commits(author=contributor.login, since=since_dt)
+            )
+            if not commits_list:
+                return False
+            self.commit_count = len(commits_list)
+            last_commit = commits_list[0]
+            first_commit = commits_list[-1]
+            self.commit_sec_min = int(first_commit.commit.author.date.timestamp())
+            self.commit_sec_max = int(last_commit.commit.author.date.timestamp())
+        else:
+            commits = repo.get_commits(author=contributor.login)
+            last_commit = commits[0]
+            self.commit_count = contributor.contributions
+            self.commit_sec_max = int(last_commit.commit.author.date.timestamp())
 
-        # Recompute derived fields
         self.contribution_span_days = (
             self.commit_sec_max - self.commit_sec_min
         ) // 86400
@@ -56,6 +95,7 @@ class Link(BaseModel):
             (datetime.datetime.now() - datetime.timedelta(days=90)).timestamp()
         )
         self.is_recent_contributor = self.commit_sec_max > ninety_days_ago
+        return True
 
 
 class Repository(BaseModel):

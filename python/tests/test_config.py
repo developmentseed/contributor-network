@@ -9,7 +9,9 @@ def test_config() -> None:
 
 
 def test_contributor_entry_from_inline_table():
-    entry = ContributorEntry(name="Pete Gadomski", start_date=datetime.date(2020, 3, 15))
+    entry = ContributorEntry(
+        name="Pete Gadomski", start_date=datetime.date(2020, 3, 15)
+    )
     assert entry.name == "Pete Gadomski"
     assert entry.start_date == datetime.date(2020, 3, 15)
 
