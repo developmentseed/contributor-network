@@ -89,6 +89,7 @@ import {
 import { drawTooltip as drawTooltipModule } from "./render/tooltip";
 import { drawNodeLabel } from "./render/labels";
 import { handleResize, calculateScaleFactor } from "./layout/resize";
+import { startAnimation, isAnimating } from './render/animationLoop';
 
 const DEFAULT_SIZE = LAYOUT.defaultSize;
 
@@ -375,7 +376,43 @@ export const createContributorNetworkVisual = (
       HEIGHT
     );
 
-    if (hasActiveFilters(activeFilters) && hasInitialBuild) {
+    if (isAnimating() && hasInitialBuild) {
+      links.forEach(l => {
+        const source = l.source as VisualizationNode;
+        const target = l.target as VisualizationNode;
+        if (source && target &&
+            typeof source.x === 'number' && isFinite(source.x) &&
+            typeof target.x === 'number' && isFinite(target.x)) {
+          if (l.animAlpha !== undefined && l.animAlpha < 1.0) {
+            drawAnimatedDimmedLinkWrapper(context, SF, l);
+          } else {
+            drawLinkWrapper(context, SF, l);
+          }
+        }
+      });
+
+      drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
+
+      const renderableNodes = nodes.filter(n =>
+        typeof n.x === 'number' && isFinite(n.x)
+      );
+      renderableNodes.forEach(d => {
+        drawNodeArcWrapper(context, SF, d);
+        if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
+          drawAnimatedDimmedNodeWrapper(context, SF, d);
+        } else {
+          drawNodeWrapper(context, SF, d);
+        }
+      });
+      renderableNodes.forEach(d => {
+        if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
+          drawAnimatedDimmedLabelWrapper(context, d);
+        } else {
+          drawNodeLabelWrapper(context, d);
+        }
+      });
+
+    } else if (hasActiveFilters(activeFilters) && hasInitialBuild) {
       const dimmedNodes = nodes.filter(n => n.filteredOut);
       const dimmedLinks = links.filter(l => l.filteredOut);
       const visibleNodes = nodes.filter(n => !n.filteredOut);
@@ -591,7 +628,13 @@ export const createContributorNetworkVisual = (
     links = fullLinks;
     nodes_central = fullNodesCentral;
 
-    // Classify nodes/links based on current filters
+    const nodeStartAlpha = new Map(
+      nodes.map(n => [n, n.animAlpha ?? (n.filteredOut ? DIM.nodeOpacity : 1.0)] as const)
+    );
+    const linkStartAlpha = new Map(
+      links.map(l => [l, l.animAlpha ?? (l.filteredOut ? DIM.linkOpacity : 1.0)] as const)
+    );
+
     classifyByFilters(nodes, links, activeFilters);
 
     // Clear cached neighbor data (it may reference old filtered arrays)
@@ -619,8 +662,49 @@ export const createContributorNetworkVisual = (
     context_click.clearRect(0, 0, WIDTH, HEIGHT);
     context_hover.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Redraw
-    draw();
+    animateFilterTransition(nodeStartAlpha, linkStartAlpha);
+  }
+
+  let cancelFilterAnimation: (() => void) | null = null;
+
+  function animateFilterTransition(
+    nodeStartAlpha: Map<VisualizationNode, number>,
+    linkStartAlpha: Map<LinkData, number>,
+  ): void {
+    const nodeTargetAlpha = new Map(
+      nodes.map(n => [n, n.filteredOut ? DIM.nodeOpacity : 1.0] as const)
+    );
+    const linkTargetAlpha = new Map(
+      links.map(l => [l, l.filteredOut ? DIM.linkOpacity : 1.0] as const)
+    );
+
+    if (cancelFilterAnimation) {
+      cancelFilterAnimation();
+    }
+
+    cancelFilterAnimation = startAnimation({
+      id: 'filter-transition',
+      duration: 300,
+      onFrame: (progress) => {
+        for (const node of nodes) {
+          const start = nodeStartAlpha.get(node)!;
+          const target = nodeTargetAlpha.get(node)!;
+          node.animAlpha = start + (target - start) * progress;
+        }
+        for (const link of links) {
+          const start = linkStartAlpha.get(link)!;
+          const target = linkTargetAlpha.get(link)!;
+          link.animAlpha = start + (target - start) * progress;
+        }
+        draw();
+      },
+      onComplete: () => {
+        for (const node of nodes) node.animAlpha = undefined;
+        for (const link of links) link.animAlpha = undefined;
+        cancelFilterAnimation = null;
+        draw();
+      },
+    });
   }
 
   function drawNodeWrapper(
@@ -1183,6 +1267,67 @@ export const createContributorNetworkVisual = (
     const config = {
       SF,
       COLOR_TEXT: DIM.labelColor,
+      COLOR_BACKGROUND,
+      COLOR_REPO_MAIN,
+      PI,
+    };
+    drawNodeLabel(ctx, d, config, null, false);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawAnimatedDimmedNodeWrapper(
+    ctx: CanvasRenderingContext2D,
+    sf: number,
+    d: VisualizationNode,
+  ): void {
+    const alpha = d.animAlpha ?? DIM.nodeOpacity;
+    const dimProgress = 1 - (alpha - DIM.nodeOpacity) / (1 - DIM.nodeOpacity);
+    const origColor = d.color;
+    if (dimProgress > 0.5) {
+      d.color = DIM.nodeColor;
+    }
+    ctx.globalAlpha = alpha;
+    const config = { COLOR_BACKGROUND, max };
+    drawNode(ctx, sf, d, config, interactionState);
+    ctx.globalAlpha = 1;
+    d.color = origColor;
+  }
+
+  function drawAnimatedDimmedLinkWrapper(
+    ctx: CanvasRenderingContext2D,
+    sf: number,
+    l: LinkData,
+  ): void {
+    ctx.globalAlpha = l.animAlpha ?? DIM.linkOpacity;
+    ctx.beginPath();
+    const source = l.source as VisualizationNode;
+    const target = l.target as VisualizationNode;
+    if (!source || !target) return;
+    ctx.moveTo(source.x * sf, source.y * sf);
+    if (l.center && l.r) {
+      const ang1 = Math.atan2(source.y * sf - l.center.y * sf, source.x * sf - l.center.x * sf);
+      const ang2 = Math.atan2(target.y * sf - l.center.y * sf, target.x * sf - l.center.x * sf);
+      ctx.arc(l.center.x * sf, l.center.y * sf, l.r * sf, ang1, ang2, l.sign);
+    } else {
+      ctx.lineTo(target.x * sf, target.y * sf);
+    }
+    ctx.strokeStyle = DIM.linkColor;
+    ctx.lineWidth = Math.max(1, scale_link_width(l.commit_count) * 0.5) * sf;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawAnimatedDimmedLabelWrapper(
+    ctx: CanvasRenderingContext2D,
+    d: VisualizationNode,
+  ): void {
+    if (d.type !== 'contributor') return;
+    const alpha = d.animAlpha ?? DIM.contributorLabelOpacity;
+    const dimProgress = 1 - (alpha - DIM.contributorLabelOpacity) / (1 - DIM.contributorLabelOpacity);
+    ctx.globalAlpha = Math.min(alpha, dimProgress > 0.5 ? DIM.contributorLabelOpacity : alpha);
+    const config = {
+      SF,
+      COLOR_TEXT: dimProgress > 0.5 ? DIM.labelColor : COLOR_TEXT,
       COLOR_BACKGROUND,
       COLOR_REPO_MAIN,
       PI,
