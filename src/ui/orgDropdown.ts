@@ -43,6 +43,9 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
   flyout.className = "org-dropdown-flyout";
   flyout.setAttribute("role", "listbox");
 
+  // "All organizations" option (created early, appended only when orgs exist)
+  let allOption: HTMLElement | null = null;
+
   // Populate flyout options
   if (organizations.length === 0) {
     const emptyOption = document.createElement("div");
@@ -52,6 +55,37 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
     emptyOption.textContent = "No organizations available";
     flyout.appendChild(emptyOption);
   } else {
+    // "All organizations" reset option
+    allOption = document.createElement("div");
+    allOption.className = "org-dropdown-flyout-item org-dropdown-all-option";
+    allOption.setAttribute("role", "option");
+    allOption.setAttribute("aria-selected", "false");
+    allOption.setAttribute("tabindex", "-1");
+
+    const allCheckbox = document.createElement("span");
+    allCheckbox.className = "org-dropdown-checkbox";
+    const allNameSpan = document.createElement("span");
+    allNameSpan.textContent = "All organizations";
+
+    allOption.appendChild(allCheckbox);
+    allOption.appendChild(allNameSpan);
+
+    allOption.addEventListener("click", () => {
+      clearAll();
+      closeFlyout();
+    });
+    allOption.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        clearAll();
+        closeFlyout();
+      } else if (e.key === "Escape" || e.key === "Tab") {
+        closeFlyout();
+        trigger.focus();
+      }
+    });
+    flyout.appendChild(allOption);
+
     for (const org of organizations) {
       const option = document.createElement("div");
       option.className = "org-dropdown-flyout-item";
@@ -88,8 +122,18 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
     }
   }
 
+  function updateAllOption(): void {
+    if (!allOption) return;
+    const checkbox = allOption.querySelector<HTMLElement>(".org-dropdown-checkbox");
+    if (checkbox) {
+      checkbox.textContent = selectedOrgs.size === 0 ? "✓" : "";
+    }
+    allOption.setAttribute("aria-selected", selectedOrgs.size === 0 ? "true" : "false");
+  }
+
   function renderTriggerContent(): void {
     trigger.innerHTML = "";
+    updateAllOption();
 
     if (organizations.length === 0) {
       trigger.textContent = "No organizations available";
@@ -232,6 +276,8 @@ export function createOrgDropdown(options: OrgDropdownOptions): OrgDropdown {
       const optionEl = flyout.querySelector(`[data-org="${org}"]`);
       if (optionEl) {
         optionEl.setAttribute("aria-selected", "false");
+        const cb = optionEl.querySelector<HTMLElement>(".org-dropdown-checkbox");
+        if (cb) cb.textContent = "";
       }
     }
     selectedOrgs.clear();
