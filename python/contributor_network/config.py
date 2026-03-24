@@ -11,7 +11,7 @@ import datetime
 import tomllib
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ContributorEntry(BaseModel):
@@ -42,27 +42,60 @@ class Config(BaseModel):
     organization_name: str
     organization_nickname: str = ""
     repositories: list[str]
-    contributors: dict[
-        str, dict[str, str]
-    ]  # Nested: {"devseed": {...}, "alumni": {...}}
+    contributors: dict[str, dict[str, ContributorEntry]]
     contributor_padding: int = 40
+
+    @field_validator("contributors", mode="before")
+    @classmethod
+    def normalize_contributors(cls, v: dict) -> dict:
+        """Normalize plain string contributor entries into ContributorEntry dicts."""
+        normalized = {}
+        for category, members in v.items():
+            normalized[category] = {}
+            for login, value in members.items():
+                if isinstance(value, str):
+                    normalized[category][login] = {"name": value}
+                else:
+                    normalized[category][login] = value
+        return normalized
+
+    def get_contributor_name(self, login: str) -> str:
+        """Get display name for a contributor by GitHub login."""
+        for category in self.contributors.values():
+            if login in category:
+                return category[login].name
+        raise KeyError(f"Contributor {login!r} not found")
+
+    def get_contributor_start_date(self, login: str) -> datetime.date | None:
+        """Get start date for a contributor by GitHub login."""
+        for category in self.contributors.values():
+            if login in category:
+                return category[login].start_date
+        raise KeyError(f"Contributor {login!r} not found")
 
     @property
     def devseed_contributors(self) -> dict[str, str]:
         """Only Development Seed employees."""
-        return self.contributors.get("devseed", {})
+        return {
+            login: entry.name
+            for login, entry in self.contributors.get("devseed", {}).items()
+        }
 
     @property
     def alumni_contributors(self) -> dict[str, str]:
         """Friends and alumni (when enabled)."""
-        return self.contributors.get("alumni", {})
+        return {
+            login: entry.name
+            for login, entry in self.contributors.get("alumni", {}).items()
+        }
 
     @property
     def all_contributors(self) -> dict[str, str]:
         """All contributors across all categories."""
         result = {}
         for category in self.contributors.values():
-            result.update(category)
+            for login, entry in category.items():
+                result[login] = entry.name
         return result
 
     @classmethod
