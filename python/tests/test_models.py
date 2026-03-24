@@ -53,9 +53,7 @@ def test_link_from_github_without_since():
     paginated = MagicMock()
     paginated.__getitem__ = MagicMock(side_effect=lambda i: commits[i])
     paginated.reversed = MagicMock()
-    paginated.reversed.__getitem__ = MagicMock(
-        side_effect=lambda i: commits[-(i + 1)]
-    )
+    paginated.reversed.__getitem__ = MagicMock(side_effect=lambda i: commits[-(i + 1)])
     repo.get_commits.return_value = paginated
 
     contributor = _make_contributor("alice", 50)
@@ -123,7 +121,5 @@ def test_update_from_github_with_since_zero_commits_returns_false():
 
     contributor = _make_contributor("alice", 10)
 
-    result = link.update_from_github(
-        repo, contributor, since=datetime.date(2025, 1, 1)
-    )
+    result = link.update_from_github(repo, contributor, since=datetime.date(2025, 1, 1))
     assert result is False
