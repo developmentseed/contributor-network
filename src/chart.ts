@@ -90,7 +90,7 @@ import {
 import { drawTooltip as drawTooltipModule } from "./render/tooltip";
 import { drawNodeLabel } from "./render/labels";
 import { handleResize, calculateScaleFactor } from "./layout/resize";
-import { startAnimation, isAnimating } from './render/animationLoop';
+import { startAnimation } from './render/animationLoop';
 
 const DEFAULT_SIZE = LAYOUT.defaultSize;
 
@@ -388,11 +388,9 @@ export const createContributorNetworkVisual = (
         if (source && target &&
             typeof source.x === 'number' && isFinite(source.x) &&
             typeof target.x === 'number' && isFinite(target.x)) {
-          if (l.animAlpha !== undefined && l.animAlpha < 1.0) {
-            drawAnimatedDimmedLinkWrapper(context, SF, l);
-          } else {
-            drawLinkWrapper(context, SF, l);
-          }
+          context.globalAlpha = l.animAlpha ?? 1.0;
+          drawLinkWrapper(context, SF, l);
+          context.globalAlpha = 1;
         }
       });
 
@@ -402,25 +400,18 @@ export const createContributorNetworkVisual = (
         typeof n.x === 'number' && isFinite(n.x)
       );
       renderableNodes.forEach(d => {
-        if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
-          context.globalAlpha = d.animAlpha;
-          drawNodeArcWrapper(context, SF, d);
-          context.globalAlpha = 1;
-          drawAnimatedDimmedNodeWrapper(context, SF, d);
-        } else {
-          drawNodeArcWrapper(context, SF, d);
-          drawNodeWrapper(context, SF, d);
-        }
+        context.globalAlpha = d.animAlpha ?? 1.0;
+        drawNodeArcWrapper(context, SF, d);
+        drawNodeWrapper(context, SF, d);
+        context.globalAlpha = 1;
       });
       const animLabelNodes = nodes_central.filter(n =>
         typeof n.x === 'number' && isFinite(n.x)
       );
       animLabelNodes.forEach(d => {
-        if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
-          drawAnimatedDimmedLabelWrapper(context, d);
-        } else {
-          drawNodeLabelWrapper(context, d);
-        }
+        context.globalAlpha = d.animAlpha ?? 1.0;
+        drawNodeLabelWrapper(context, d);
+        context.globalAlpha = 1;
       });
 
     } else if (hasActiveFilters(activeFilters) && hasInitialBuild) {
@@ -1051,7 +1042,7 @@ export const createContributorNetworkVisual = (
     hoverLinks.forEach((l: LinkData) => {
       if (l && l.source && l.target) {
         if (pulseActive) {
-          ctx.globalAlpha = 0.7;
+          ctx.globalAlpha = 0.3;
         }
         drawLinkWrapper(ctx, SF, l);
         ctx.globalAlpha = 1;
@@ -1383,57 +1374,6 @@ export const createContributorNetworkVisual = (
     const config = {
       SF,
       COLOR_TEXT: DIM.labelColor,
-      COLOR_BACKGROUND,
-      COLOR_REPO_MAIN,
-      PI,
-    };
-    drawNodeLabel(ctx, d, config, null, false);
-    ctx.globalAlpha = 1;
-  }
-
-  function drawAnimatedDimmedNodeWrapper(
-    ctx: CanvasRenderingContext2D,
-    sf: number,
-    d: VisualizationNode,
-  ): void {
-    ctx.globalAlpha = d.animAlpha ?? DIM.nodeOpacity;
-    const config = { COLOR_BACKGROUND, max };
-    drawNode(ctx, sf, d, config, interactionState);
-    ctx.globalAlpha = 1;
-  }
-
-  function drawAnimatedDimmedLinkWrapper(
-    ctx: CanvasRenderingContext2D,
-    sf: number,
-    l: LinkData,
-  ): void {
-    ctx.globalAlpha = l.animAlpha ?? DIM.linkOpacity;
-    ctx.beginPath();
-    const source = l.source as VisualizationNode;
-    const target = l.target as VisualizationNode;
-    if (!source || !target) return;
-    ctx.moveTo(source.x * sf, source.y * sf);
-    if (l.center && l.r) {
-      const ang1 = Math.atan2(source.y * sf - l.center.y * sf, source.x * sf - l.center.x * sf);
-      const ang2 = Math.atan2(target.y * sf - l.center.y * sf, target.x * sf - l.center.x * sf);
-      ctx.arc(l.center.x * sf, l.center.y * sf, l.r * sf, ang1, ang2, l.sign);
-    } else {
-      ctx.lineTo(target.x * sf, target.y * sf);
-    }
-    ctx.strokeStyle = DIM.linkColor;
-    ctx.lineWidth = Math.max(1, scale_link_width(l.commit_count) * 0.5) * sf;
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-
-  function drawAnimatedDimmedLabelWrapper(
-    ctx: CanvasRenderingContext2D,
-    d: VisualizationNode,
-  ): void {
-    ctx.globalAlpha = d.animAlpha ?? DIM.contributorLabelOpacity;
-    const config = {
-      SF,
-      COLOR_TEXT,
       COLOR_BACKGROUND,
       COLOR_REPO_MAIN,
       PI,
