@@ -7,10 +7,18 @@ to show only active team members while preserving historical data.
 
 from __future__ import annotations
 
+import datetime
 import tomllib
 from pathlib import Path
 
 from pydantic import BaseModel
+
+
+class ContributorEntry(BaseModel):
+    """A contributor with an optional start date for filtering commits."""
+
+    name: str
+    start_date: datetime.date | None = None
 
 
 class Config(BaseModel):
