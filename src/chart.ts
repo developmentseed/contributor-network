@@ -160,9 +160,12 @@ export const createContributorNetworkVisual = (
 
   let interactionState: InteractionState = createInteractionState();
 
-  // Track nodes/links that were already filtered before animation started
+  // Track node/link filter transition categories during animation
   let animStayingDimmedNodes: Set<VisualizationNode> | null = null;
   let animStayingDimmedLinks: Set<LinkData> | null = null;
+  let animBecomingDimmedNodes: Set<VisualizationNode> | null = null;
+  let animBecomingDimmedLinks: Set<LinkData> | null = null;
+  let animProgress = 0;
 
   let delaunay: d3.Delaunay<[number, number]> | null;
   let nodes_delaunay: VisualizationNode[];
@@ -382,57 +385,98 @@ export const createContributorNetworkVisual = (
     );
 
     if (cancelFilterAnimation !== null && hasInitialBuild) {
-      // Pass 1: items staying dimmed (use gray dimmed wrappers, no animation)
+      // Crossfade parameters for becoming-dimmed items
+      const fadeOut = 1 - animProgress;
+      const fadeIn = Math.sqrt(animProgress);
+
+      const isValidLink = (l: LinkData) => {
+        const s = l.source as VisualizationNode;
+        const t = l.target as VisualizationNode;
+        return s && t &&
+          typeof s.x === 'number' && isFinite(s.x) &&
+          typeof t.x === 'number' && isFinite(t.x);
+      };
+      const isValidNode = (d: VisualizationNode) =>
+        typeof d.x === 'number' && isFinite(d.x);
+
+      // --- Bottom tier: dimmed layer (links → nodes → labels) ---
+      // Staying-dimmed links
       links.forEach(l => {
-        if (!animStayingDimmedLinks?.has(l)) return;
-        const source = l.source as VisualizationNode;
-        const target = l.target as VisualizationNode;
-        if (source && target &&
-            typeof source.x === 'number' && isFinite(source.x) &&
-            typeof target.x === 'number' && isFinite(target.x)) {
-          drawDimmedLinkWrapper(context, SF, l);
-        }
+        if (!animStayingDimmedLinks?.has(l) || !isValidLink(l)) return;
+        drawDimmedLinkWrapper(context, SF, l);
       });
-      nodes.forEach(d => {
-        if (!animStayingDimmedNodes?.has(d)) return;
-        if (typeof d.x === 'number' && isFinite(d.x)) {
-          drawDimmedNodeWrapper(context, SF, d);
-        }
-      });
-      nodes.forEach(d => {
-        if (!animStayingDimmedNodes?.has(d)) return;
-        if (typeof d.x === 'number' && isFinite(d.x)) {
-          drawDimmedLabelWrapper(context, d);
-        }
+      // Becoming-dimmed links (crossfade)
+      links.forEach(l => {
+        if (!animBecomingDimmedLinks?.has(l) || !isValidLink(l)) return;
+        context.globalAlpha = (l.transitionOpacity ?? 1.0) * fadeOut;
+        drawLinkWrapper(context, SF, l);
+        context.globalAlpha = fadeIn;
+        drawDimmedLinkWrapper(context, SF, l);
+        context.globalAlpha = 1;
       });
 
+      // Staying-dimmed nodes
+      nodes.forEach(d => {
+        if (!animStayingDimmedNodes?.has(d) || !isValidNode(d)) return;
+        drawDimmedNodeWrapper(context, SF, d);
+      });
+      // Becoming-dimmed nodes (crossfade)
+      nodes.forEach(d => {
+        if (!animBecomingDimmedNodes?.has(d) || !isValidNode(d)) return;
+        context.globalAlpha = (d.transitionOpacity ?? 1.0) * fadeOut;
+        drawNodeArcWrapper(context, SF, d);
+        drawNodeWrapper(context, SF, d);
+        context.globalAlpha = fadeIn;
+        drawDimmedNodeWrapper(context, SF, d);
+        context.globalAlpha = 1;
+      });
+
+      // Staying-dimmed labels
+      nodes.forEach(d => {
+        if (!animStayingDimmedNodes?.has(d) || !isValidNode(d)) return;
+        drawDimmedLabelWrapper(context, d);
+      });
+      // Becoming-dimmed labels (crossfade)
+      nodes_central.forEach(d => {
+        if (!animBecomingDimmedNodes?.has(d) || !isValidNode(d)) return;
+        context.globalAlpha = (d.transitionOpacity ?? 1.0) * fadeOut;
+        drawNodeLabelWrapper(context, d);
+        context.globalAlpha = fadeIn;
+        drawDimmedLabelWrapper(context, d);
+        context.globalAlpha = 1;
+      });
+
+      // --- Contributor ring ---
       drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
 
-      // Pass 2: transitioning items (use normal wrappers with transitionOpacity)
+      // --- Top tier: visible layer (links → arcs → nodes → labels) ---
       links.forEach(l => {
-        if (animStayingDimmedLinks?.has(l)) return;
-        const source = l.source as VisualizationNode;
-        const target = l.target as VisualizationNode;
-        if (source && target &&
-            typeof source.x === 'number' && isFinite(source.x) &&
-            typeof target.x === 'number' && isFinite(target.x)) {
-          context.globalAlpha = l.transitionOpacity ?? 1.0;
-          drawLinkWrapper(context, SF, l);
-          context.globalAlpha = 1;
-        }
+        if (animStayingDimmedLinks?.has(l) || animBecomingDimmedLinks?.has(l)) return;
+        if (!isValidLink(l)) return;
+        context.globalAlpha = l.transitionOpacity ?? 1.0;
+        drawLinkWrapper(context, SF, l);
+        context.globalAlpha = 1;
       });
 
-      const renderableNodes = nodes.filter(n =>
-        typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
-      );
-      renderableNodes.forEach(d => {
+      nodes.forEach(d => {
+        if (animStayingDimmedNodes?.has(d) || animBecomingDimmedNodes?.has(d)) return;
+        if (!isValidNode(d)) return;
         context.globalAlpha = d.transitionOpacity ?? 1.0;
         drawNodeArcWrapper(context, SF, d);
+        context.globalAlpha = 1;
+      });
+
+      nodes.forEach(d => {
+        if (animStayingDimmedNodes?.has(d) || animBecomingDimmedNodes?.has(d)) return;
+        if (!isValidNode(d)) return;
+        context.globalAlpha = d.transitionOpacity ?? 1.0;
         drawNodeWrapper(context, SF, d);
         context.globalAlpha = 1;
       });
+
       const animLabelNodes = nodes_central.filter(n =>
-        typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
+        isValidNode(n) &&
+        !animStayingDimmedNodes?.has(n) && !animBecomingDimmedNodes?.has(n)
       );
       animLabelNodes.forEach(d => {
         context.globalAlpha = d.transitionOpacity ?? 1.0;
@@ -672,6 +716,9 @@ export const createContributorNetworkVisual = (
     // Items that were dimmed before AND are still dimmed after = staying dimmed (no animation needed)
     animStayingDimmedNodes = new Set(nodes.filter(n => wasFilteredNodes.has(n) && n.filteredOut));
     animStayingDimmedLinks = new Set(links.filter(l => wasFilteredLinks.has(l) && l.filteredOut));
+    // Items becoming dimmed (were visible, now filtered) — need crossfade from color to gray
+    animBecomingDimmedNodes = new Set(nodes.filter(n => !wasFilteredNodes.has(n) && n.filteredOut));
+    animBecomingDimmedLinks = new Set(links.filter(l => !wasFilteredLinks.has(l) && l.filteredOut));
 
     // Clear cached neighbor data (it may reference old filtered arrays)
     for (const node of nodes) {
@@ -720,8 +767,9 @@ export const createContributorNetworkVisual = (
 
     cancelFilterAnimation = startAnimation({
       id: 'filter-transition',
-      duration: 300,
+      duration: 700,
       onFrame: (progress) => {
+        animProgress = progress;
         for (const node of nodes) {
           const start = nodeStartAlpha.get(node)!;
           const target = nodeTargetAlpha.get(node)!;
@@ -740,6 +788,9 @@ export const createContributorNetworkVisual = (
         cancelFilterAnimation = null;
         animStayingDimmedNodes = null;
         animStayingDimmedLinks = null;
+        animBecomingDimmedNodes = null;
+        animBecomingDimmedLinks = null;
+        animProgress = 0;
         draw();
       },
     });
@@ -992,8 +1043,6 @@ export const createContributorNetworkVisual = (
       if (d.type !== 'contributor') {
         drawNodeLabelWrapper(ctx, d);
       }
-
-      if (DO_TOOLTIP) drawTooltipWrapper(ctx, d);
 
       ctx.restore();
       return;
