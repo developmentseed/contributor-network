@@ -49,7 +49,7 @@ class Config(BaseModel):
     @classmethod
     def normalize_contributors(cls, v: dict) -> dict:
         """Normalize plain string contributor entries into ContributorEntry dicts."""
-        normalized = {}
+        normalized: dict[str, dict[str, dict[str, object]]] = {}
         for category, members in v.items():
             normalized[category] = {}
             for login, value in members.items():
