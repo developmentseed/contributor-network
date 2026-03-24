@@ -91,64 +91,64 @@ repositories = [
 
 # Development Seed employees
 [contributors.devseed]
-AMSCamacho = "Angela Camacho"
-AliceR = "Alice Rühl"
-LanesGood = "Lane Goodman"
-abarciauskas-bgse = "Aimee Barciauskas"
-aboydnw = "Anthony Boyd"
-aliziel = "Ali Z"
-alukach = "Anthony Lukach"
-anayeaye = "Alexandra Kirk"
-batpad = "Sanjay Bhangar"
-benbovy = "Benoît Bovy"
-bitner = "David Bitner"
-botanical = "Jennifer Tran"
-brianna-corremonte = "Brianna Corremonte"
-camillecroft = "Camille Croft"
-ceholden = "Chris Holden"
-chuckwondo = "Chuck Daniels"
-ciaransweet = "Ciaran Sweet"
-danielfdsilva = "Daniel da Silva"
-dannybauman = "Danny Bauman"
-dzole0311 = "Gjore Milevski"
-emmalu = "Emma Paz"
-emmanuelmathot = "Emmanuel Mathot"
-faustoperez = "Fausto Pérez"
-gadomski = "Pete Gadomski"
-geohacker = "Sajjad Anwar"
-hanbyul-here = "Hanbyul Jo"
-hrodmn = "Henry Rodman"
-ianschuler = "Ian Schuler"
-ifsimicoded = "Simi Damani"
-indraneel = "Indraneel Purohit"
-ividito = "Isayah Vidito"
-j08lue = "Jonas Sølvsteen"
-jjfrench = "Jamison French"
-kamicut = "Marc Farra"
-kcarini = "Kiri Carini"
-kevinbullock = "Kevin Bullock"
-kimmurph = "Kim Murphy"
-kylebarron = "Kyle Barron"
-leothomas = "Leo Thomas"
-lillythomas = "Lilly Thomas"
-lhoupert = "Loïc Houpert"
-maxrjones = "Max Jones"
-martham93 = "Martha Morrissey"
-olafveerman = "Olaf Veerman"
-omniajoe = "Omnia Joehar"
-pantierra = "xıʃǝɟ"
-ricardoduplos = "Ricardo Duplos"
-sandrahoang686 = "Sandra Hoang"
-sharkinsspatial = "Sean Harkins"
-sharonwanlu = "SharonLu"
-smohiudd = "Saadiq Mohiuddin"
-srmsoumya = "Soumya Ranjan Mohanty"
-sunu = "Tarashish Mishra"
-vgeorge = "Vitor George"
-vincentsarago = "Vincent Sarago"
-weiji14 = "Wei Ji"
-wildintellect = "Alex I. Mandel"
-willemarcel = "Wille Marcel"
-wrynearson = "Will Rynearson"
-yellowcap = "Daniel Wiesmann"
-zacdezgeo = "Zac Deziel"
+AMSCamacho = { name = "Angela Camacho", start_date = 2023-01-09 }
+AliceR = { name = "Alice Rühl", start_date = 2020-04-01 }
+LanesGood = { name = "Lane Goodman", start_date = 2019-01-07 }
+abarciauskas-bgse = { name = "Aimee Barciauskas", start_date = 2018-01-08 }
+aboydnw = { name = "Anthony Boyd", start_date = 2021-10-18 }
+aliziel = { name = "Alison Ziel", start_date = 2024-05-29 }
+alukach = { name = "Anthony Lukach", start_date = 2019-04-18 }
+anayeaye = { name = "Alexandra Kirk", start_date = 2021-04-19 }
+batpad = { name = "Sanjay Bhangar", start_date = 2018-04-30 }
+bitner = { name = "David Bitner", start_date = 2020-01-01 }
+botanical = { name = "Jennifer Tran", start_date = 2020-10-05 }
+brianna-corremonte = { name = "Brianna Corremonte", start_date = 2025-03-03 }
+camillecroft = { name = "Camille Croft", start_date = 2025-09-15 }
+ceholden = { name = "Chris Holden", start_date = 2024-07-08 }
+chuckwondo = { name = "Chuck Daniels", start_date = 2019-07-08 }
+ciaransweet = { name = "Ciaran Sweet", start_date = 2024-07-15 }
+danielfdsilva = { name = "Daniel da Silva", start_date = 2015-01-01 }
+dannybauman = { name = "Danny Bauman", start_date = 2021-08-09 }
+dzole0311 = { name = "Gjore Milevski", start_date = 2024-05-02 }
+emmalu = { name = "Emma Paz", start_date = 2023-03-01 }
+emmanuelmathot = { name = "Emmanuel Mathot", start_date = 2024-08-01 }
+faustoperez = { name = "Fausto Pérez", start_date = 2022-10-03 }
+firzaariany = { name = "Firza Ariany", start_date = 2025-11-10 }
+gadomski = { name = "Pete Gadomski", start_date = 2024-09-30 }
+geohacker = { name = "Sajjad Anwar", start_date = 2018-01-02 }
+hanbyul-here = { name = "Hanbyul Jo", start_date = 2021-09-13 }
+hrodmn = { name = "Henry Rodman", start_date = 2024-05-22 }
+ianschuler = { name = "Ian Schuler", start_date = 2014-01-01 }
+ifsimicoded = { name = "Simi Damani", start_date = 2025-10-13 }
+indraneel = { name = "Indraneel Purohit", start_date = 2025-03-17 }
+ividito = { name = "Isayah Vidito", start_date = 2022-10-11 }
+j08lue = { name = "Jonas Sølvsteen", start_date = 2022-08-15 }
+jjfrench = { name = "Jamison French", start_date = 2022-06-27 }
+kamicut = { name = "Marc Farra", start_date = 2014-09-15 }
+kcarini = { name = "Kiri Carini", start_date = 2022-06-06 }
+kevinbullock = { name = "Kevin Bullock", start_date = 2024-02-05 }
+kimmurph = { name = "Kim Murphy", start_date = 2018-02-08 }
+kylebarron = { name = "Kyle Barron", start_date = 2023-08-14 }
+leothomas = { name = "Leo Thomas", start_date = 2020-05-26 }
+lhoupert = { name = "Loïc Houpert", start_date = 2025-11-17 }
+lillythomas = { name = "Lilly Thomas", start_date = 2020-04-01 }
+martham93 = { name = "Martha Morrissey", start_date = 2025-09-22 }
+maxrjones = { name = "Max Jones", start_date = 2024-07-15 }
+olafveerman = { name = "Olaf Veerman", start_date = 2015-01-01 }
+omniajoe = { name = "Omnia Joehar", start_date = 2020-05-26 }
+pantierra = { name = "Felix Delattre", start_date = 2024-10-07 }
+ricardoduplos = { name = "Ricardo Duplos", start_date = 2015-01-01 }
+sandrahoang686 = { name = "Sandra Hoang", start_date = 2023-06-28 }
+sharkinsspatial = { name = "Sean Harkins", start_date = 2018-11-15 }
+sharonwanlu = { name = "SharonLu", start_date = 2025-05-12 }
+smohiudd = { name = "Saadiq Mohiuddin", start_date = 2022-11-28 }
+srmsoumya = { name = "Soumya Ranjan Mohanty", start_date = 2021-12-06 }
+sunu = { name = "Tarashish Mishra", start_date = 2022-10-31 }
+vgeorge = { name = "Vitor George", start_date = 2018-08-01 }
+vincentsarago = { name = "Vincent Sarago", start_date = 2019-01-07 }
+weiji14 = { name = "Wei Ji", start_date = 2023-02-01 }
+wildintellect = { name = "Alex I. Mandel", start_date = 2019-11-01 }
+willemarcel = { name = "Wille Marcel", start_date = 2021-07-26 }
+wrynearson = { name = "Will Rynearson", start_date = 2022-06-13 }
+yellowcap = { name = "Daniel Wiesmann", start_date = 2023-03-06 }
+zacdezgeo = { name = "Zac Deziel", start_date = 2023-01-30 }
