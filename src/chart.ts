@@ -160,10 +160,6 @@ export const createContributorNetworkVisual = (
 
   let interactionState: InteractionState = createInteractionState();
 
-  let cancelPulse: (() => void) | null = null;
-  let pulseProgress: number | null = null;
-  let pulseNodeId: string | null = null;
-
   // Track nodes/links that were already filtered before animation started
   let animStayingDimmedNodes: Set<VisualizationNode> | null = null;
   let animStayingDimmedLinks: Set<LinkData> | null = null;
@@ -967,19 +963,8 @@ export const createContributorNetworkVisual = (
       interactionState,
       canvas,
       contextHover: context_hover,
-      setHovered: (state: InteractionState, node: VisualizationNode) => {
-        setHovered(state, node);
-        triggerLinkPulse(node);
-      },
-      clearHover: (state: InteractionState) => {
-        clearHover(state);
-        if (cancelPulse) {
-          cancelPulse();
-          cancelPulse = null;
-          pulseProgress = null;
-          pulseNodeId = null;
-        }
-      },
+      setHovered,
+      clearHover,
       drawHoverState,
       zoomState,
     });
@@ -1077,56 +1062,9 @@ export const createContributorNetworkVisual = (
       ? d.neighbors!.filter(n => !n.filteredOut)
       : d.neighbors!;
 
-    const pulseActive = pulseProgress !== null && pulseProgress < 1 && d.type === 'contributor';
-
     hoverLinks.forEach((l: LinkData) => {
       if (l && l.source && l.target) {
-        if (pulseActive) {
-          ctx.globalAlpha = 0.3;
-        }
         drawLinkWrapper(ctx, SF, l);
-        ctx.globalAlpha = 1;
-
-        if (pulseActive) {
-          const source = l.source as VisualizationNode;
-          const target = l.target as VisualizationNode;
-          const bandWidth = 0.35;
-          const bandCenter = pulseProgress!;
-          const bandLeft = (bandCenter - bandWidth / 2);
-          const bandRight = (bandCenter + bandWidth / 2);
-
-          const sx = source.x * SF;
-          const sy = source.y * SF;
-          const tx = target.x * SF;
-          const ty = target.y * SF;
-          const dx = tx - sx;
-          const dy = ty - sy;
-          const len = Math.sqrt(dx * dx + dy * dy);
-          if (len > 0) {
-            const nx = -dy / len;
-            const ny = dx / len;
-            const clipMargin = 20 * SF;
-
-            const startX = sx + dx * bandLeft;
-            const startY = sy + dy * bandLeft;
-            const endX = sx + dx * bandRight;
-            const endY = sy + dy * bandRight;
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(startX + nx * clipMargin, startY + ny * clipMargin);
-            ctx.lineTo(endX + nx * clipMargin, endY + ny * clipMargin);
-            ctx.lineTo(endX - nx * clipMargin, endY - ny * clipMargin);
-            ctx.lineTo(startX - nx * clipMargin, startY - ny * clipMargin);
-            ctx.closePath();
-            ctx.clip();
-
-            ctx.globalAlpha = 1.0;
-            drawLinkWrapper(ctx, SF, l);
-
-            ctx.restore();
-          }
-        }
       }
     });
 
@@ -1153,47 +1091,6 @@ export const createContributorNetworkVisual = (
     if (DO_TOOLTIP) drawTooltipWrapper(ctx, d);
 
     ctx.restore();
-  }
-
-  function redrawHoverCanvas(node: VisualizationNode): void {
-    const transform = zoomState?.zoomTransform || d3.zoomIdentity;
-    context_hover.clearRect(0, 0, WIDTH, HEIGHT);
-    context_hover.save();
-    applyZoomTransform(context_hover, transform, PIXEL_RATIO, WIDTH, HEIGHT);
-    drawHoverState(context_hover, node);
-    context_hover.restore();
-  }
-
-  function triggerLinkPulse(node: VisualizationNode): void {
-    if (node.type !== 'contributor') {
-      pulseProgress = null;
-      pulseNodeId = null;
-      return;
-    }
-
-    if (cancelPulse && pulseNodeId !== node.id) {
-      cancelPulse();
-    }
-
-    pulseNodeId = node.id;
-
-    cancelPulse = startAnimation({
-      id: 'link-pulse',
-      duration: 800,
-      onFrame: (progress) => {
-        pulseProgress = progress;
-        if (interactionState.hoverActive && interactionState.hoveredNode?.id === node.id) {
-          redrawHoverCanvas(node);
-        }
-      },
-      onComplete: () => {
-        pulseProgress = null;
-        cancelPulse = null;
-        if (interactionState.hoverActive && interactionState.hoveredNode?.id === node.id) {
-          redrawHoverCanvas(node);
-        }
-      },
-    });
   }
 
   function setupClick(): void {
