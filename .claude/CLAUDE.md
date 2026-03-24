@@ -262,7 +262,11 @@ Configured in `src/config/theme.ts`.
 
 ### Add a New Contributor
 1. Edit `config.toml` - add to `[contributors.devseed]` or `[contributors.alumni]`
+   - With start date: `username = { name = "Full Name", start_date = 2024-01-15 }`
+   - Without start date (legacy): `username = "Full Name"` — all commits are counted
 2. Re-run data fetch and build (above)
+
+When a `start_date` is set, only commits after that date are counted as DevSeed contributions. This prevents pre-employment open-source work from being attributed to the organization.
 
 ### Making Frontend Changes
 
