@@ -165,7 +165,7 @@ export function drawNodeGlow(
   d: VisualizationNode,
   intensity: number,
 ): void {
-  const glowRadius = d.r * (intensity > 0.2 ? 2.5 : 1.5);
+  const glowRadius = d.r * (intensity > 0.3 ? 3.0 : 2.0);
   const cx = d.x * SF;
   const cy = d.y * SF;
   const r = glowRadius * SF;

@@ -381,7 +381,7 @@ export const createContributorNetworkVisual = (
       HEIGHT
     );
 
-    if (isAnimating() && hasInitialBuild) {
+    if (cancelFilterAnimation !== null && hasInitialBuild) {
       links.forEach(l => {
         const source = l.source as VisualizationNode;
         const target = l.target as VisualizationNode;
@@ -402,14 +402,20 @@ export const createContributorNetworkVisual = (
         typeof n.x === 'number' && isFinite(n.x)
       );
       renderableNodes.forEach(d => {
-        drawNodeArcWrapper(context, SF, d);
         if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
+          context.globalAlpha = d.animAlpha;
+          drawNodeArcWrapper(context, SF, d);
+          context.globalAlpha = 1;
           drawAnimatedDimmedNodeWrapper(context, SF, d);
         } else {
+          drawNodeArcWrapper(context, SF, d);
           drawNodeWrapper(context, SF, d);
         }
       });
-      renderableNodes.forEach(d => {
+      const animLabelNodes = nodes_central.filter(n =>
+        typeof n.x === 'number' && isFinite(n.x)
+      );
+      animLabelNodes.forEach(d => {
         if (d.animAlpha !== undefined && d.animAlpha < 1.0) {
           drawAnimatedDimmedLabelWrapper(context, d);
         } else {
@@ -1040,15 +1046,21 @@ export const createContributorNetworkVisual = (
       ? d.neighbors!.filter(n => !n.filteredOut)
       : d.neighbors!;
 
+    const pulseActive = pulseProgress !== null && pulseProgress < 1 && d.type === 'contributor';
+
     hoverLinks.forEach((l: LinkData) => {
       if (l && l.source && l.target) {
+        if (pulseActive) {
+          ctx.globalAlpha = 0.7;
+        }
         drawLinkWrapper(ctx, SF, l);
+        ctx.globalAlpha = 1;
 
-        if (pulseProgress !== null && pulseProgress < 1 && d.type === 'contributor') {
+        if (pulseActive) {
           const source = l.source as VisualizationNode;
           const target = l.target as VisualizationNode;
           const bandWidth = 0.2;
-          const bandCenter = pulseProgress;
+          const bandCenter = pulseProgress!;
           const bandLeft = (bandCenter - bandWidth / 2);
           const bandRight = (bandCenter + bandWidth / 2);
 
@@ -1088,7 +1100,7 @@ export const createContributorNetworkVisual = (
     });
 
     hoverNeighbors.forEach((n) => {
-      if (n) drawNodeGlow(ctx, SF, n, 0.15);
+      if (n) drawNodeGlow(ctx, SF, n, 0.25);
     });
     hoverNeighbors.forEach((n) => {
       if (n) drawNodeArcWrapper(ctx, SF, n);
@@ -1100,7 +1112,7 @@ export const createContributorNetworkVisual = (
       if (n && n.node_central) drawNodeLabelWrapper(ctx, n);
     });
 
-    drawNodeGlow(ctx, SF, d, 0.3);
+    drawNodeGlow(ctx, SF, d, 0.5);
     drawNodeWrapper(ctx, SF, d);
     drawHoverRingWrapper(ctx, d);
 
@@ -1384,17 +1396,10 @@ export const createContributorNetworkVisual = (
     sf: number,
     d: VisualizationNode,
   ): void {
-    const alpha = d.animAlpha ?? DIM.nodeOpacity;
-    const dimProgress = 1 - (alpha - DIM.nodeOpacity) / (1 - DIM.nodeOpacity);
-    const origColor = d.color;
-    if (dimProgress > 0.5) {
-      d.color = DIM.nodeColor;
-    }
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = d.animAlpha ?? DIM.nodeOpacity;
     const config = { COLOR_BACKGROUND, max };
     drawNode(ctx, sf, d, config, interactionState);
     ctx.globalAlpha = 1;
-    d.color = origColor;
   }
 
   function drawAnimatedDimmedLinkWrapper(
@@ -1425,13 +1430,10 @@ export const createContributorNetworkVisual = (
     ctx: CanvasRenderingContext2D,
     d: VisualizationNode,
   ): void {
-    if (d.type !== 'contributor') return;
-    const alpha = d.animAlpha ?? DIM.contributorLabelOpacity;
-    const dimProgress = 1 - (alpha - DIM.contributorLabelOpacity) / (1 - DIM.contributorLabelOpacity);
-    ctx.globalAlpha = Math.min(alpha, dimProgress > 0.5 ? DIM.contributorLabelOpacity : alpha);
+    ctx.globalAlpha = d.animAlpha ?? DIM.contributorLabelOpacity;
     const config = {
       SF,
-      COLOR_TEXT: dimProgress > 0.5 ? DIM.labelColor : COLOR_TEXT,
+      COLOR_TEXT,
       COLOR_BACKGROUND,
       COLOR_REPO_MAIN,
       PI,
