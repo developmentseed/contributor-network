@@ -164,6 +164,10 @@ export const createContributorNetworkVisual = (
   let pulseProgress: number | null = null;
   let pulseNodeId: string | null = null;
 
+  // Track nodes/links that were already filtered before animation started
+  let animStayingDimmedNodes: Set<VisualizationNode> | null = null;
+  let animStayingDimmedLinks: Set<LinkData> | null = null;
+
   let delaunay: d3.Delaunay<[number, number]> | null;
   let nodes_delaunay: VisualizationNode[];
 
@@ -382,7 +386,35 @@ export const createContributorNetworkVisual = (
     );
 
     if (cancelFilterAnimation !== null && hasInitialBuild) {
+      // Pass 1: items staying dimmed (use gray dimmed wrappers, no animation)
       links.forEach(l => {
+        if (!animStayingDimmedLinks?.has(l)) return;
+        const source = l.source as VisualizationNode;
+        const target = l.target as VisualizationNode;
+        if (source && target &&
+            typeof source.x === 'number' && isFinite(source.x) &&
+            typeof target.x === 'number' && isFinite(target.x)) {
+          drawDimmedLinkWrapper(context, SF, l);
+        }
+      });
+      nodes.forEach(d => {
+        if (!animStayingDimmedNodes?.has(d)) return;
+        if (typeof d.x === 'number' && isFinite(d.x)) {
+          drawDimmedNodeWrapper(context, SF, d);
+        }
+      });
+      nodes.forEach(d => {
+        if (!animStayingDimmedNodes?.has(d)) return;
+        if (typeof d.x === 'number' && isFinite(d.x)) {
+          drawDimmedLabelWrapper(context, d);
+        }
+      });
+
+      drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
+
+      // Pass 2: transitioning items (use normal wrappers with animAlpha)
+      links.forEach(l => {
+        if (animStayingDimmedLinks?.has(l)) return;
         const source = l.source as VisualizationNode;
         const target = l.target as VisualizationNode;
         if (source && target &&
@@ -394,10 +426,8 @@ export const createContributorNetworkVisual = (
         }
       });
 
-      drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
-
       const renderableNodes = nodes.filter(n =>
-        typeof n.x === 'number' && isFinite(n.x)
+        typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
       );
       renderableNodes.forEach(d => {
         context.globalAlpha = d.animAlpha ?? 1.0;
@@ -406,7 +436,7 @@ export const createContributorNetworkVisual = (
         context.globalAlpha = 1;
       });
       const animLabelNodes = nodes_central.filter(n =>
-        typeof n.x === 'number' && isFinite(n.x)
+        typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
       );
       animLabelNodes.forEach(d => {
         context.globalAlpha = d.animAlpha ?? 1.0;
@@ -637,7 +667,15 @@ export const createContributorNetworkVisual = (
       links.map(l => [l, l.animAlpha ?? (l.filteredOut ? DIM.linkOpacity : 1.0)] as const)
     );
 
+    // Capture which items are currently filtered BEFORE applying new filter
+    const wasFilteredNodes = new Set(nodes.filter(n => n.filteredOut));
+    const wasFilteredLinks = new Set(links.filter(l => l.filteredOut));
+
     classifyByFilters(nodes, links, activeFilters);
+
+    // Items that were dimmed before AND are still dimmed after = staying dimmed (no animation needed)
+    animStayingDimmedNodes = new Set(nodes.filter(n => wasFilteredNodes.has(n) && n.filteredOut));
+    animStayingDimmedLinks = new Set(links.filter(l => wasFilteredLinks.has(l) && l.filteredOut));
 
     // Clear cached neighbor data (it may reference old filtered arrays)
     for (const node of nodes) {
@@ -704,6 +742,8 @@ export const createContributorNetworkVisual = (
         for (const node of nodes) node.animAlpha = undefined;
         for (const link of links) link.animAlpha = undefined;
         cancelFilterAnimation = null;
+        animStayingDimmedNodes = null;
+        animStayingDimmedLinks = null;
         draw();
       },
     });
@@ -1050,7 +1090,7 @@ export const createContributorNetworkVisual = (
         if (pulseActive) {
           const source = l.source as VisualizationNode;
           const target = l.target as VisualizationNode;
-          const bandWidth = 0.2;
+          const bandWidth = 0.35;
           const bandCenter = pulseProgress!;
           const bandLeft = (bandCenter - bandWidth / 2);
           const bandRight = (bandCenter + bandWidth / 2);
@@ -1139,7 +1179,7 @@ export const createContributorNetworkVisual = (
 
     cancelPulse = startAnimation({
       id: 'link-pulse',
-      duration: 400,
+      duration: 800,
       onFrame: (progress) => {
         pulseProgress = progress;
         if (interactionState.hoverActive && interactionState.hoveredNode?.id === node.id) {
