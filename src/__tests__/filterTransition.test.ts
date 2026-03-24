@@ -10,7 +10,7 @@ describe('filter transition animation pattern', () => {
     vi.useRealTimers();
   });
 
-  it('interpolates animAlpha from start to target over duration', () => {
+  it('interpolates transitionOpacity from start to target over duration', () => {
     let rafId = 0;
     const rafCallbacks: FrameRequestCallback[] = [];
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
@@ -19,7 +19,7 @@ describe('filter transition animation pattern', () => {
     });
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
-    const node = { animAlpha: undefined as number | undefined };
+    const node = { transitionOpacity: undefined as number | undefined };
     const startAlpha = 1.0;
     const targetAlpha = 0.18;
 
@@ -27,23 +27,23 @@ describe('filter transition animation pattern', () => {
       id: 'filter-transition',
       duration: 300,
       onFrame: (progress) => {
-        node.animAlpha = startAlpha + (targetAlpha - startAlpha) * progress;
+        node.transitionOpacity = startAlpha + (targetAlpha - startAlpha) * progress;
       },
       onComplete: () => {
-        node.animAlpha = undefined;
+        node.transitionOpacity = undefined;
       },
     });
 
     const start = performance.now();
     rafCallbacks.shift()!(start);
-    expect(node.animAlpha).toBe(1.0);
+    expect(node.transitionOpacity).toBe(1.0);
 
     rafCallbacks.shift()!(start + 150);
-    expect(node.animAlpha).toBeGreaterThan(targetAlpha);
-    expect(node.animAlpha).toBeLessThan(startAlpha);
+    expect(node.transitionOpacity).toBeGreaterThan(targetAlpha);
+    expect(node.transitionOpacity).toBeLessThan(startAlpha);
 
     rafCallbacks.shift()!(start + 300);
-    expect(node.animAlpha).toBeUndefined();
+    expect(node.transitionOpacity).toBeUndefined();
 
     vi.unstubAllGlobals();
   });
@@ -57,20 +57,20 @@ describe('filter transition animation pattern', () => {
     });
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
-    const node = { animAlpha: undefined as number | undefined };
+    const node = { transitionOpacity: undefined as number | undefined };
 
     const cancel = startAnimation({
       id: 'filter-transition',
       duration: 300,
       onFrame: (progress) => {
-        node.animAlpha = 1.0 + (0.18 - 1.0) * progress;
+        node.transitionOpacity = 1.0 + (0.18 - 1.0) * progress;
       },
     });
 
     const start = performance.now();
     rafCallbacks.shift()!(start);
     rafCallbacks.shift()!(start + 150);
-    const midAlpha = node.animAlpha!;
+    const midAlpha = node.transitionOpacity!;
     expect(midAlpha).toBeGreaterThan(0.18);
     expect(midAlpha).toBeLessThan(1.0);
 
@@ -79,12 +79,12 @@ describe('filter transition animation pattern', () => {
       id: 'filter-transition',
       duration: 300,
       onFrame: (progress) => {
-        node.animAlpha = midAlpha + (1.0 - midAlpha) * progress;
+        node.transitionOpacity = midAlpha + (1.0 - midAlpha) * progress;
       },
     });
 
     rafCallbacks.shift()!(start + 150);
-    expect(node.animAlpha).toBeCloseTo(midAlpha, 1);
+    expect(node.transitionOpacity).toBeCloseTo(midAlpha, 1);
 
     vi.unstubAllGlobals();
   });

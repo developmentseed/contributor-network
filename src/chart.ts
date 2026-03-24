@@ -408,7 +408,7 @@ export const createContributorNetworkVisual = (
 
       drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
 
-      // Pass 2: transitioning items (use normal wrappers with animAlpha)
+      // Pass 2: transitioning items (use normal wrappers with transitionOpacity)
       links.forEach(l => {
         if (animStayingDimmedLinks?.has(l)) return;
         const source = l.source as VisualizationNode;
@@ -416,7 +416,7 @@ export const createContributorNetworkVisual = (
         if (source && target &&
             typeof source.x === 'number' && isFinite(source.x) &&
             typeof target.x === 'number' && isFinite(target.x)) {
-          context.globalAlpha = l.animAlpha ?? 1.0;
+          context.globalAlpha = l.transitionOpacity ?? 1.0;
           drawLinkWrapper(context, SF, l);
           context.globalAlpha = 1;
         }
@@ -426,7 +426,7 @@ export const createContributorNetworkVisual = (
         typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
       );
       renderableNodes.forEach(d => {
-        context.globalAlpha = d.animAlpha ?? 1.0;
+        context.globalAlpha = d.transitionOpacity ?? 1.0;
         drawNodeArcWrapper(context, SF, d);
         drawNodeWrapper(context, SF, d);
         context.globalAlpha = 1;
@@ -435,7 +435,7 @@ export const createContributorNetworkVisual = (
         typeof n.x === 'number' && isFinite(n.x) && !animStayingDimmedNodes?.has(n)
       );
       animLabelNodes.forEach(d => {
-        context.globalAlpha = d.animAlpha ?? 1.0;
+        context.globalAlpha = d.transitionOpacity ?? 1.0;
         drawNodeLabelWrapper(context, d);
         context.globalAlpha = 1;
       });
@@ -657,10 +657,10 @@ export const createContributorNetworkVisual = (
     nodes_central = fullNodesCentral;
 
     const nodeStartAlpha = new Map(
-      nodes.map(n => [n, n.animAlpha ?? (n.filteredOut ? DIM.nodeOpacity : 1.0)] as const)
+      nodes.map(n => [n, n.transitionOpacity ?? (n.filteredOut ? DIM.nodeOpacity : 1.0)] as const)
     );
     const linkStartAlpha = new Map(
-      links.map(l => [l, l.animAlpha ?? (l.filteredOut ? DIM.linkOpacity : 1.0)] as const)
+      links.map(l => [l, l.transitionOpacity ?? (l.filteredOut ? DIM.linkOpacity : 1.0)] as const)
     );
 
     // Capture which items are currently filtered BEFORE applying new filter
@@ -725,18 +725,18 @@ export const createContributorNetworkVisual = (
         for (const node of nodes) {
           const start = nodeStartAlpha.get(node)!;
           const target = nodeTargetAlpha.get(node)!;
-          node.animAlpha = start + (target - start) * progress;
+          node.transitionOpacity = start + (target - start) * progress;
         }
         for (const link of links) {
           const start = linkStartAlpha.get(link)!;
           const target = linkTargetAlpha.get(link)!;
-          link.animAlpha = start + (target - start) * progress;
+          link.transitionOpacity = start + (target - start) * progress;
         }
         draw();
       },
       onComplete: () => {
-        for (const node of nodes) node.animAlpha = undefined;
-        for (const link of links) link.animAlpha = undefined;
+        for (const node of nodes) node.transitionOpacity = undefined;
+        for (const link of links) link.transitionOpacity = undefined;
         cancelFilterAnimation = null;
         animStayingDimmedNodes = null;
         animStayingDimmedLinks = null;
