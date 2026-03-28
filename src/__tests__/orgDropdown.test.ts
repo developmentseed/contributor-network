@@ -60,8 +60,8 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).click();
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    alpha.click();
     expect(onFilterChange).toHaveBeenCalledWith('alpha', true);
     expect(dropdown.getSelected()).toEqual(['alpha']);
   });
@@ -74,9 +74,9 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).click();
-    (options[0] as HTMLElement).click();
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    alpha.click();
+    alpha.click();
     expect(onFilterChange).toHaveBeenCalledWith('alpha', false);
     expect(dropdown.getSelected()).toEqual([]);
   });
@@ -89,10 +89,11 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).click();
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    const beta = container.querySelector('[data-org="beta"]') as HTMLElement;
+    alpha.click();
     expect(trigger.textContent).toContain('1 org selected');
-    (options[1] as HTMLElement).click();
+    beta.click();
     expect(trigger.textContent).toContain('2 orgs selected');
   });
 
@@ -104,9 +105,10 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).click();
-    (options[1] as HTMLElement).click();
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    const beta = container.querySelector('[data-org="beta"]') as HTMLElement;
+    alpha.click();
+    beta.click();
     expect(dropdown.getSelected()).toEqual(['alpha', 'beta']);
     dropdown.clearAll();
     expect(dropdown.getSelected()).toEqual([]);
@@ -122,10 +124,11 @@ describe('createOrgDropdown', () => {
     });
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).click();
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    const beta = container.querySelector('[data-org="beta"]') as HTMLElement;
+    alpha.click();
     expect(container.querySelector('.org-dropdown-clear')).toBeNull();
-    (options[1] as HTMLElement).click();
+    beta.click();
     expect(container.querySelector('.org-dropdown-clear')).not.toBeNull();
   });
 });
@@ -191,9 +194,9 @@ describe('keyboard navigation', () => {
   it('toggles selection with Space on focused option', () => {
     const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
     trigger.click();
-    const options = container.querySelectorAll('[role="option"]');
-    (options[0] as HTMLElement).focus();
-    options[0].dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    const alpha = container.querySelector('[data-org="alpha"]') as HTMLElement;
+    alpha.focus();
+    alpha.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
     expect(onFilterChange).toHaveBeenCalledWith('alpha', true);
   });
 });

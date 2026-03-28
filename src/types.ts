@@ -83,6 +83,7 @@ export interface LinkData {
   sign?: boolean;
   to_remove?: boolean;
   filteredOut?: boolean;
+  transitionOpacity?: number;
 }
 
 export interface VisualizationNode {
@@ -111,6 +112,7 @@ export interface VisualizationNode {
   contributor_angle?: number;
   neighbor_links?: LinkData[];
   filteredOut?: boolean;
+  transitionOpacity?: number;
 }
 
 export interface InteractionState {
