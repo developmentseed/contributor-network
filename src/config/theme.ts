@@ -95,7 +95,7 @@ export const COLORS: ColorsConfig = {
 
   background: '#f7f7f7',
   contributor: '#3A9BBF',
-  repo: '#443F3F',
+  repo: '#6B8E9B',
   repoMain: '#CF3F02',
   owner: '#CF3F02',
   link: '#e8e8e8',

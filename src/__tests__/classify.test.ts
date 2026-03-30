@@ -12,7 +12,7 @@ function makeRepo(id: string, owner: string, stars: number, forks: number): Visu
     index: 0,
     degree: 1,
     x: 0, y: 0, r: 5,
-    color: '#443F3F',
+    color: '#6B8E9B',
     node_central: true,
   };
 }

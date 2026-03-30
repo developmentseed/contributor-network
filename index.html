@@ -94,15 +94,15 @@
                     <div class="legend-color-items">
                         <div class="legend-color-item">
                             <div class="legend-swatch legend-swatch--contributor"></div>
-                            <span class="legend-color-label" style="color: var(--color-contributor);">contributor</span>
+                            <span class="legend-color-label" style="color: var(--color-contributor);">Contributor</span>
                         </div>
                         <div class="legend-color-item">
                             <div class="legend-swatch legend-swatch--repo"></div>
-                            <span class="legend-color-label" style="color: var(--color-repo);">repository</span>
+                            <span class="legend-color-label" style="color: var(--color-repo);">Repository</span>
                         </div>
                         <div class="legend-color-item">
                             <div class="legend-swatch legend-swatch--devseed"></div>
-                            <span class="legend-color-label" style="color: var(--color-repo-main);">devseed repo</span>
+                            <span class="legend-color-label" style="color: var(--color-repo-main);">Organization</span>
                         </div>
                     </div>
                 </div>
@@ -111,17 +111,17 @@
                     <div class="legend-section-header">Size</div>
                     <div class="legend-size-row">
                         <div class="legend-size-circles">
-                            <div class="legend-swatch legend-swatch--contributor" style="width: 14px; height: 14px; opacity: 0.7;"></div>
-                            <div class="legend-swatch legend-swatch--contributor" style="width: 22px; height: 22px; opacity: 0.8;"></div>
-                            <div class="legend-swatch legend-swatch--contributor" style="width: 32px; height: 32px;"></div>
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 16px; height: 16px; opacity: 0.7;"></div>
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 26px; height: 26px; opacity: 0.8;"></div>
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 38px; height: 38px;"></div>
                         </div>
                         <span class="legend-description">Commits to tracked repos</span>
                     </div>
                     <div class="legend-size-row">
                         <div class="legend-size-circles">
-                            <div class="legend-swatch legend-swatch--repo" style="width: 10px; height: 10px; opacity: 0.7;"></div>
-                            <div class="legend-swatch legend-swatch--repo" style="width: 16px; height: 16px; opacity: 0.8;"></div>
-                            <div class="legend-swatch legend-swatch--repo" style="width: 26px; height: 26px;"></div>
+                            <div class="legend-swatch legend-swatch--repo" style="width: 12px; height: 12px; opacity: 0.7;"></div>
+                            <div class="legend-swatch legend-swatch--repo" style="width: 20px; height: 20px; opacity: 0.8;"></div>
+                            <div class="legend-swatch legend-swatch--repo" style="width: 32px; height: 32px;"></div>
                         </div>
                         <span class="legend-description">Number of stars</span>
                     </div>
@@ -139,26 +139,6 @@
                     <p class="legend-description" style="margin-top: 12px;">Hovering a repo reveals each contributor's share of commits.</p>
                 </div>
 
-                <div class="legend-section">
-                    <div class="legend-section-header">Arcs</div>
-                    <p class="legend-text">The arc connects the time between a contributor's first and last commit to a repo.</p>
-                    <div class="legend-arcs">
-                        <svg class="legend-arc-svg" viewBox="0 0 80 80" aria-hidden="true">
-                            <circle cx="40" cy="40" r="18" fill="var(--color-repo)"/>
-                            <circle cx="40" cy="40" r="18" fill="none" stroke="var(--color-background)" stroke-width="1"/>
-                            <path d="M 40 17 A 23 23 0 0 1 63 40" fill="none" stroke="var(--color-contributor)" stroke-width="3.5" stroke-linecap="round"/>
-                            <text x="32" y="12" font-size="7" fill="#999" font-style="italic">First commit</text>
-                            <text x="64" y="44" font-size="7" fill="#999" font-style="italic">Last</text>
-                            <text x="64" y="52" font-size="7" fill="#999" font-style="italic">commit</text>
-                        </svg>
-                        <svg class="legend-arc-svg" viewBox="0 0 80 85" aria-hidden="true">
-                            <circle cx="40" cy="40" r="18" fill="var(--color-repo)"/>
-                            <circle cx="40" cy="40" r="18" fill="none" stroke="var(--color-background)" stroke-width="1"/>
-                            <path d="M 40 17 A 23 23 0 1 1 37 17" fill="none" stroke="var(--color-contributor)" stroke-width="3.5" stroke-linecap="round"/>
-                            <text x="40" y="78" font-size="7" fill="#999" font-style="italic" text-anchor="middle">Long-term contributor</text>
-                        </svg>
-                    </div>
-                </div>
             </div>
         </div>
 

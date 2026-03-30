@@ -12,7 +12,7 @@ function makeContributorNode(): VisualizationNode {
     data: {
       contributor_name: 'Alice Example',
       author_name: 'alice',
-      color: '#443F3F',
+      color: '#6B8E9B',
       links_original: [
         { repo: 'repo1', commit_count: 5, commit_sec_min: new Date(), commit_sec_max: new Date() },
         { repo: 'repo2', commit_count: 3, commit_sec_min: new Date(), commit_sec_max: new Date() },
@@ -37,7 +37,7 @@ function makeRepoNode(): VisualizationNode {
       name: 'my-repo',
       owner: 'org',
       repo: 'org/my-repo',
-      color: '#443F3F',
+      color: '#6B8E9B',
       stars: 42,
       forks: 7,
       watchers: 15,
