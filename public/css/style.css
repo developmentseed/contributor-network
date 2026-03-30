@@ -5,7 +5,7 @@
 html {
     /* DevSeed Brand Colors */
     --color-repo-main: #CF3F02;      /* Grenadier (signature orange) */
-    --color-repo: #2E86AB;           /* Aquamarine (secondary blue) */
+    --color-repo: #443F3F;           /* Base (charcoal) */
     --color-owner: #CF3F02;          /* Grenadier */
     --color-contributor: #3A9BBF;    /* Lighter aquamarine for contributors */
     --color-text: #443F3F;           /* Base dark gray */
