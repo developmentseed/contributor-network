@@ -90,7 +90,6 @@ import {
 import { drawTooltip as drawTooltipModule } from "./render/tooltip";
 import { drawNodeLabel } from "./render/labels";
 import { handleResize, calculateScaleFactor } from "./layout/resize";
-import { startAnimation } from './render/animationLoop';
 
 const DEFAULT_SIZE = LAYOUT.defaultSize;
 
@@ -159,13 +158,6 @@ export const createContributorNetworkVisual = (
   let hasInitialBuild = false;
 
   let interactionState: InteractionState = createInteractionState();
-
-  // Track node/link filter transition categories during animation
-  let animStayingDimmedNodes: Set<VisualizationNode> | null = null;
-  let animStayingDimmedLinks: Set<LinkData> | null = null;
-  let animBecomingDimmedNodes: Set<VisualizationNode> | null = null;
-  let animBecomingDimmedLinks: Set<LinkData> | null = null;
-  let animProgress = 0;
 
   let delaunay: d3.Delaunay<[number, number]> | null;
   let nodes_delaunay: VisualizationNode[];
@@ -384,107 +376,7 @@ export const createContributorNetworkVisual = (
       HEIGHT
     );
 
-    if (cancelFilterAnimation !== null && hasInitialBuild) {
-      // Crossfade parameters for becoming-dimmed items
-      const fadeOut = 1 - animProgress;
-      const fadeIn = Math.sqrt(animProgress);
-
-      const isValidLink = (l: LinkData) => {
-        const s = l.source as VisualizationNode;
-        const t = l.target as VisualizationNode;
-        return s && t &&
-          typeof s.x === 'number' && isFinite(s.x) &&
-          typeof t.x === 'number' && isFinite(t.x);
-      };
-      const isValidNode = (d: VisualizationNode) =>
-        typeof d.x === 'number' && isFinite(d.x);
-
-      // --- Bottom tier: dimmed layer (links → nodes → labels) ---
-      // Staying-dimmed links
-      links.forEach(l => {
-        if (!animStayingDimmedLinks?.has(l) || !isValidLink(l)) return;
-        drawDimmedLinkWrapper(context, SF, l);
-      });
-      // Becoming-dimmed links (crossfade)
-      links.forEach(l => {
-        if (!animBecomingDimmedLinks?.has(l) || !isValidLink(l)) return;
-        context.globalAlpha = (l.transitionOpacity ?? 1.0) * fadeOut;
-        drawLinkWrapper(context, SF, l);
-        context.globalAlpha = fadeIn;
-        drawDimmedLinkWrapper(context, SF, l);
-        context.globalAlpha = 1;
-      });
-
-      // Staying-dimmed nodes
-      nodes.forEach(d => {
-        if (!animStayingDimmedNodes?.has(d) || !isValidNode(d)) return;
-        drawDimmedNodeWrapper(context, SF, d);
-      });
-      // Becoming-dimmed nodes (crossfade)
-      nodes.forEach(d => {
-        if (!animBecomingDimmedNodes?.has(d) || !isValidNode(d)) return;
-        context.globalAlpha = (d.transitionOpacity ?? 1.0) * fadeOut;
-        drawNodeArcWrapper(context, SF, d);
-        drawNodeWrapper(context, SF, d);
-        context.globalAlpha = fadeIn;
-        drawDimmedNodeWrapper(context, SF, d);
-        context.globalAlpha = 1;
-      });
-
-      // Staying-dimmed labels
-      nodes.forEach(d => {
-        if (!animStayingDimmedNodes?.has(d) || !isValidNode(d)) return;
-        drawDimmedLabelWrapper(context, d);
-      });
-      // Becoming-dimmed labels (crossfade)
-      nodes_central.forEach(d => {
-        if (!animBecomingDimmedNodes?.has(d) || !isValidNode(d)) return;
-        context.globalAlpha = (d.transitionOpacity ?? 1.0) * fadeOut;
-        drawNodeLabelWrapper(context, d);
-        context.globalAlpha = fadeIn;
-        drawDimmedLabelWrapper(context, d);
-        context.globalAlpha = 1;
-      });
-
-      // --- Contributor ring ---
-      drawContributorRing(context, SF, RADIUS_CONTRIBUTOR, CONTRIBUTOR_RING_WIDTH);
-
-      // --- Top tier: visible layer (links → arcs → nodes → labels) ---
-      links.forEach(l => {
-        if (animStayingDimmedLinks?.has(l) || animBecomingDimmedLinks?.has(l)) return;
-        if (!isValidLink(l)) return;
-        context.globalAlpha = l.transitionOpacity ?? 1.0;
-        drawLinkWrapper(context, SF, l);
-        context.globalAlpha = 1;
-      });
-
-      nodes.forEach(d => {
-        if (animStayingDimmedNodes?.has(d) || animBecomingDimmedNodes?.has(d)) return;
-        if (!isValidNode(d)) return;
-        context.globalAlpha = d.transitionOpacity ?? 1.0;
-        drawNodeArcWrapper(context, SF, d);
-        context.globalAlpha = 1;
-      });
-
-      nodes.forEach(d => {
-        if (animStayingDimmedNodes?.has(d) || animBecomingDimmedNodes?.has(d)) return;
-        if (!isValidNode(d)) return;
-        context.globalAlpha = d.transitionOpacity ?? 1.0;
-        drawNodeWrapper(context, SF, d);
-        context.globalAlpha = 1;
-      });
-
-      const animLabelNodes = nodes_central.filter(n =>
-        isValidNode(n) &&
-        !animStayingDimmedNodes?.has(n) && !animBecomingDimmedNodes?.has(n)
-      );
-      animLabelNodes.forEach(d => {
-        context.globalAlpha = d.transitionOpacity ?? 1.0;
-        drawNodeLabelWrapper(context, d);
-        context.globalAlpha = 1;
-      });
-
-    } else if (hasActiveFilters(activeFilters) && hasInitialBuild) {
+    if (hasActiveFilters(activeFilters) && hasInitialBuild) {
       const dimmedNodes = nodes.filter(n => n.filteredOut);
       const dimmedLinks = links.filter(l => l.filteredOut);
       const visibleNodes = nodes.filter(n => !n.filteredOut);
@@ -700,25 +592,8 @@ export const createContributorNetworkVisual = (
     links = fullLinks;
     nodes_central = fullNodesCentral;
 
-    const nodeStartAlpha = new Map(
-      nodes.map(n => [n, n.transitionOpacity ?? (n.filteredOut ? DIM.nodeOpacity : 1.0)] as const)
-    );
-    const linkStartAlpha = new Map(
-      links.map(l => [l, l.transitionOpacity ?? (l.filteredOut ? DIM.linkOpacity : 1.0)] as const)
-    );
-
-    // Capture which items are currently filtered BEFORE applying new filter
-    const wasFilteredNodes = new Set(nodes.filter(n => n.filteredOut));
-    const wasFilteredLinks = new Set(links.filter(l => l.filteredOut));
-
+    // Classify nodes/links based on current filters
     classifyByFilters(nodes, links, activeFilters);
-
-    // Items that were dimmed before AND are still dimmed after = staying dimmed (no animation needed)
-    animStayingDimmedNodes = new Set(nodes.filter(n => wasFilteredNodes.has(n) && n.filteredOut));
-    animStayingDimmedLinks = new Set(links.filter(l => wasFilteredLinks.has(l) && l.filteredOut));
-    // Items becoming dimmed (were visible, now filtered) — need crossfade from color to gray
-    animBecomingDimmedNodes = new Set(nodes.filter(n => !wasFilteredNodes.has(n) && n.filteredOut));
-    animBecomingDimmedLinks = new Set(links.filter(l => !wasFilteredLinks.has(l) && l.filteredOut));
 
     // Clear cached neighbor data (it may reference old filtered arrays)
     for (const node of nodes) {
@@ -745,55 +620,8 @@ export const createContributorNetworkVisual = (
     context_click.clearRect(0, 0, WIDTH, HEIGHT);
     context_hover.clearRect(0, 0, WIDTH, HEIGHT);
 
-    animateFilterTransition(nodeStartAlpha, linkStartAlpha);
-  }
-
-  let cancelFilterAnimation: (() => void) | null = null;
-
-  function animateFilterTransition(
-    nodeStartAlpha: Map<VisualizationNode, number>,
-    linkStartAlpha: Map<LinkData, number>,
-  ): void {
-    const nodeTargetAlpha = new Map(
-      nodes.map(n => [n, n.filteredOut ? DIM.nodeOpacity : 1.0] as const)
-    );
-    const linkTargetAlpha = new Map(
-      links.map(l => [l, l.filteredOut ? DIM.linkOpacity : 1.0] as const)
-    );
-
-    if (cancelFilterAnimation) {
-      cancelFilterAnimation();
-    }
-
-    cancelFilterAnimation = startAnimation({
-      id: 'filter-transition',
-      duration: 700,
-      onFrame: (progress) => {
-        animProgress = progress;
-        for (const node of nodes) {
-          const start = nodeStartAlpha.get(node)!;
-          const target = nodeTargetAlpha.get(node)!;
-          node.transitionOpacity = start + (target - start) * progress;
-        }
-        for (const link of links) {
-          const start = linkStartAlpha.get(link)!;
-          const target = linkTargetAlpha.get(link)!;
-          link.transitionOpacity = start + (target - start) * progress;
-        }
-        draw();
-      },
-      onComplete: () => {
-        for (const node of nodes) node.transitionOpacity = undefined;
-        for (const link of links) link.transitionOpacity = undefined;
-        cancelFilterAnimation = null;
-        animStayingDimmedNodes = null;
-        animStayingDimmedLinks = null;
-        animBecomingDimmedNodes = null;
-        animBecomingDimmedLinks = null;
-        animProgress = 0;
-        draw();
-      },
-    });
+    // Redraw
+    draw();
   }
 
   function drawNodeWrapper(
