@@ -188,6 +188,12 @@ function restoreDesktopLayout(): void {
 
   if (chartIntro && chartTitle) chartIntro.insertBefore(chartTitle, chartIntro.firstChild);
   if (chartIntro && chartIntroText) chartIntro.appendChild(chartIntroText);
+  const chartWrapper = document.getElementById('chart-wrapper');
+  const chartLegend = document.getElementById('chart-legend');
+  const mobileInfoOverlay = document.getElementById('mobile-info-overlay');
+  if (chartWrapper && chartLegend && mobileInfoOverlay) {
+    chartWrapper.insertBefore(chartLegend, mobileInfoOverlay);
+  }
   if (chartFilters && filterHeader) chartFilters.appendChild(filterHeader);
 
   isMobileLayout = false;
@@ -203,6 +209,8 @@ function setupMobileLayout(): void {
   const chartIntroText = document.getElementById('chart-intro-text')!;
   infoContent.appendChild(chartTitle);
   infoContent.appendChild(chartIntroText);
+  const chartLegend = document.getElementById('chart-legend');
+  if (chartLegend) infoContent.appendChild(chartLegend);
 
   // Move filters into drawer (#filter-stats is a child of #filter-header, so it moves too)
   const drawerFilters = document.getElementById('mobile-drawer-filters')!;

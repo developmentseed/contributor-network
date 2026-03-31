@@ -5,7 +5,7 @@
 html {
     /* DevSeed Brand Colors */
     --color-repo-main: #CF3F02;      /* Grenadier (signature orange) */
-    --color-repo: #2E86AB;           /* Aquamarine (secondary blue) */
+    --color-repo: #6B8E9B;           /* Steel blue-gray */
     --color-owner: #CF3F02;          /* Grenadier */
     --color-contributor: #3A9BBF;    /* Lighter aquamarine for contributors */
     --color-text: #443F3F;           /* Base dark gray */
@@ -648,6 +648,125 @@ li#item-remaining::before {
 #mobile-drawer,
 #mobile-pan-hint { display: none; }
 
+/* Legend */
+#chart-legend {
+    padding: 40px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Roboto', sans-serif;
+}
+
+.legend-title {
+    text-align: center;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 40px;
+    padding-bottom: 6px;
+    display: inline-block;
+    border-bottom: 1px solid #ccc;
+    width: 100%;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 44px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.legend-section-header {
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text);
+    margin-bottom: 18px;
+}
+
+.legend-color-items {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-color-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.legend-swatch {
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.legend-swatch--contributor {
+    background-color: var(--color-contributor);
+    width: 28px;
+    height: 28px;
+}
+
+.legend-swatch--repo {
+    background-color: var(--color-repo);
+    width: 24px;
+    height: 24px;
+}
+
+.legend-swatch--devseed {
+    background-color: var(--color-repo-main);
+    width: 24px;
+    height: 24px;
+}
+
+.legend-color-label {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.legend-size-row {
+    margin-bottom: 18px;
+}
+
+.legend-size-circles {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.legend-text {
+    font-size: 14px;
+    color: #777;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+}
+
+.legend-description {
+    font-size: 13px;
+    color: #999;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.legend-annotation {
+    font-size: 12px;
+    color: #aaa;
+    font-style: italic;
+}
+
+.legend-lines-svg {
+    display: block;
+    width: 200px;
+    height: 28px;
+    margin-bottom: 8px;
+}
+
+
 /* Responsive: Stack on small screens */
 @media (max-width: 768px) {
     #chart-introduction {
@@ -1064,4 +1183,18 @@ li#item-remaining::before {
     #mobile-drawer[data-node-type="repo"] { border-left: 4px solid var(--color-repo); }
     #mobile-drawer[data-node-type="owner"] { border-left: 4px solid var(--color-owner); }
     #mobile-drawer[data-mode="filters"] { border-left: none; }
+
+    #chart-legend {
+        display: none;
+    }
+
+    #mobile-info-content #chart-legend {
+        display: block;
+        padding: 24px 0 0 0;
+    }
+
+    #mobile-info-content .legend-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
 }

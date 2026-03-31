@@ -86,6 +86,62 @@
             </div>
         </div>
 
+        <div id="chart-legend">
+            <div class="legend-title">How to Read This Visual</div>
+            <div class="legend-grid">
+                <div class="legend-section">
+                    <div class="legend-section-header">Color</div>
+                    <div class="legend-color-items">
+                        <div class="legend-color-item">
+                            <div class="legend-swatch legend-swatch--contributor"></div>
+                            <span class="legend-color-label" style="color: var(--color-contributor);">Contributor</span>
+                        </div>
+                        <div class="legend-color-item">
+                            <div class="legend-swatch legend-swatch--repo"></div>
+                            <span class="legend-color-label" style="color: var(--color-repo);">Repository</span>
+                        </div>
+                        <div class="legend-color-item">
+                            <div class="legend-swatch legend-swatch--devseed"></div>
+                            <span class="legend-color-label" style="color: var(--color-repo-main);">Organization</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-section-header">Size</div>
+                    <div class="legend-size-row">
+                        <div class="legend-size-circles">
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 16px; height: 16px; opacity: 0.7;"></div>
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 26px; height: 26px; opacity: 0.8;"></div>
+                            <div class="legend-swatch legend-swatch--contributor" style="width: 38px; height: 38px;"></div>
+                        </div>
+                        <span class="legend-description">Commits to tracked repos</span>
+                    </div>
+                    <div class="legend-size-row">
+                        <div class="legend-size-circles">
+                            <div class="legend-swatch legend-swatch--repo" style="width: 12px; height: 12px; opacity: 0.7;"></div>
+                            <div class="legend-swatch legend-swatch--repo" style="width: 20px; height: 20px; opacity: 0.8;"></div>
+                            <div class="legend-swatch legend-swatch--repo" style="width: 32px; height: 32px;"></div>
+                        </div>
+                        <span class="legend-description">Number of stars</span>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-section-header">Lines</div>
+                    <p class="legend-text">Connections between contributors and the repositories they have made commits to.</p>
+                    <svg class="legend-lines-svg" viewBox="0 0 160 24" aria-hidden="true">
+                        <line x1="4" y1="18" x2="50" y2="18" stroke="#c0c0c0" stroke-width="1" stroke-linecap="round"/>
+                        <line x1="60" y1="16" x2="106" y2="16" stroke="#c0c0c0" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="116" y1="13" x2="156" y2="13" stroke="#c0c0c0" stroke-width="7" stroke-linecap="round"/>
+                    </svg>
+                    <span class="legend-annotation">Line thickness = # of commits</span>
+                    <p class="legend-description" style="margin-top: 12px;">Hovering a repo reveals each contributor's share of commits.</p>
+                </div>
+
+            </div>
+        </div>
+
         <div id="mobile-info-overlay">
             <button id="mobile-info-close" aria-label="Close">×</button>
             <div id="mobile-info-content"></div>
