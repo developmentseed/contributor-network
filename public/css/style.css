@@ -618,6 +618,13 @@ li#item-remaining::before {
   border-color: #CF3F02;
 }
 
+/* "All organizations" reset option */
+.org-dropdown-all-option {
+  border-bottom: 1px solid #eee;
+  font-style: italic;
+  color: #666;
+}
+
 /* Clear all link */
 .org-dropdown-clear {
   color: #999;
