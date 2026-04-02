@@ -53,9 +53,7 @@ class Config(BaseModel):
     organization_name: str
     organization_nickname: str = ""
     repositories: list[str]
-    contributors: dict[
-        str, dict[str, str]
-    ]  # Nested: {"core": {...}, "alumni": {...}}
+    contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
     branding: BrandingConfig = BrandingConfig()
     meta: MetaConfig = MetaConfig()

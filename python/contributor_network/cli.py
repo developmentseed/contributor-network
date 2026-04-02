@@ -288,9 +288,7 @@ def list_contributors(config_path: str | None) -> None:
 
     print("Core Contributors:")
     print("-" * 40)
-    for username, name in sorted(
-        config.core_contributors.items(), key=lambda x: x[1]
-    ):
+    for username, name in sorted(config.core_contributors.items(), key=lambda x: x[1]):
         print(f"  {name} (@{username})")
 
     print()
