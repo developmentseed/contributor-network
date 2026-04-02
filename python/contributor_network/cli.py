@@ -147,7 +147,6 @@ def build(
 
     config_json = {
         "title": config.title,
-        "author": config.author,
         "description": config.description,
         "organization_name": config.organization_name,
         "organization_nickname": config.organization_nickname,
@@ -170,7 +169,6 @@ def build(
     template = env.get_template("index.html.j2")
     rendered_html = template.render(
         title=config.title,
-        author=config.author,
         description=config.description,
         branding=config.branding,
         plausible_id=config.plausible_id,

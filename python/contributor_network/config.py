@@ -39,7 +39,6 @@ class Config(BaseModel):
     """
 
     title: str
-    author: str
     description: str
     organization_name: str
     organization_nickname: str = ""
