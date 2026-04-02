@@ -6,7 +6,6 @@ from pathlib import Path
 
 import click
 from github import Auth, Github
-from jinja2 import Environment, FileSystemLoader
 
 from .client import Client
 from .config import Config
@@ -157,24 +156,14 @@ def build(
             "secondary_color": config.branding.secondary_color,
             "text_color": config.branding.text_color,
         },
+        "plausible_id": config.plausible_id,
     }
     (data_dest / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
     )
     print(f"Generated config.json in {data_dest}")
 
-    # Render index.html from Jinja2 template
-    template_dir = Path(__file__).parent.parent / "templates"
-    env = Environment(loader=FileSystemLoader(str(template_dir)))
-    template = env.get_template("index.html.j2")
-    rendered_html = template.render(
-        title=config.title,
-        description=config.description,
-        branding=config.branding,
-        plausible_id=config.plausible_id,
-    )
-    (ROOT / "index.html").write_text(rendered_html)
-    print("Rendered index.html from template")
+
 
     print("Running Vite build...")
     subprocess.run(["npm", "run", "build"], cwd=ROOT, check=True)

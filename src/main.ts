@@ -12,6 +12,7 @@ interface Config {
   title?: string;
   description?: string;
   branding?: BrandingColors;
+  plausible_id?: string;
 }
 
 const configResponse = await fetch("data/config.json");
@@ -41,6 +42,17 @@ if (config.title) document.title = config.title;
 if (config.description)
   document.getElementById("chart-description")!.textContent =
     config.description;
+if (config.branding?.primary_color) {
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.setAttribute('content', config.branding.primary_color);
+}
+if (config.plausible_id) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://plausible.io/js/pa-${config.plausible_id}.js`;
+  document.head.appendChild(script);
+  (window as any).plausible = (window as any).plausible || function(...args: any[]) { ((window as any).plausible.q = (window as any).plausible.q || []).push(args); };
+}
 
 const container = document.getElementById("chart-container")!;
 const wrapper = document.getElementById("chart-wrapper")!;
