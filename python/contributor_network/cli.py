@@ -1,6 +1,6 @@
 import json
-import subprocess
 import os
+import subprocess
 from collections import defaultdict
 from csv import DictWriter
 from pathlib import Path
