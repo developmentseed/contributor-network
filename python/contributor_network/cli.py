@@ -152,6 +152,12 @@ def build(
         "organization_nickname": config.organization_nickname,
         "contributor_padding": config.contributor_padding,
         "contributors": config.all_contributors,
+        "branding": {
+            "primary_color": config.branding.primary_color,
+            "secondary_color": config.branding.secondary_color,
+            "text_color": config.branding.text_color,
+            "logo": config.branding.logo,
+        },
     }
     (data_dest / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
