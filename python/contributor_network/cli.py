@@ -157,7 +157,6 @@ def build(
             "primary_color": config.branding.primary_color,
             "secondary_color": config.branding.secondary_color,
             "text_color": config.branding.text_color,
-            "logo": config.branding.logo,
         },
     }
     (data_dest / "config.json").write_text(
@@ -174,7 +173,7 @@ def build(
         author=config.author,
         description=config.description,
         branding=config.branding,
-        meta=config.meta,
+        analytics_id=config.analytics_id,
     )
     (ROOT / "index.html").write_text(rendered_html)
     print("Rendered index.html from template")

@@ -1,8 +1,12 @@
+# Organization Metadata
 title = "The Development Seed Contributor Network"
 author = "Pete Gadomski"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
 organization_name = "Development Seed"
 organization_nickname = "DevSeed"
+analytics_id = "wDy59K3C3ZYelSSItouzN"  # Plausible analytics, blank to disable
+
+# Repositories
 repositories = [
     "developmentseed/titiler",
     "developmentseed/lonboard",
@@ -83,22 +87,6 @@ repositories = [
 primary_color = "#CF3F02"
 secondary_color = "#2E86AB"
 text_color = "#443F3F"
-# logo = "img/logo.png"  # optional, relative to public/
-
-[meta]
-og_url = "https://developmentseed.org/contributor-network"
-og_image = "site-image.jpg"
-analytics_id = "wDy59K3C3ZYelSSItouzN"
-
-# Friends and alumni - commented out but preserved for future use
-# Uncomment the [contributors.alumni] section to include these contributors
-# [contributors.alumni]
-# jsignell = "Julia Signell"
-# geospatial-jeff = "Jeff Albrecht"
-# cholmes = "Chris Holmes"
-# m-mohr = "Matthias Mohr"
-# matthewhanson = "Matthew Hanson"
-# d-v-b = "Davis Bennett"
 
 # Core organization contributors
 [contributors.core]

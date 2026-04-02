@@ -19,15 +19,6 @@ class BrandingConfig(BaseModel):
     primary_color: str = "#CF3F02"
     secondary_color: str = "#2E86AB"
     text_color: str = "#443F3F"
-    logo: str = ""
-
-
-class MetaConfig(BaseModel):
-    """Metadata configuration for SEO and analytics."""
-
-    og_url: str = ""
-    og_image: str = ""
-    analytics_id: str = ""
 
 
 class Config(BaseModel):
@@ -43,8 +34,8 @@ class Config(BaseModel):
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
-        branding: Colors and logo settings
-        meta: OG tags and analytics configuration
+        branding: Colors for the visualization
+        analytics_id: Plausible analytics ID (blank to disable)
     """
 
     title: str
@@ -52,11 +43,11 @@ class Config(BaseModel):
     description: str
     organization_name: str
     organization_nickname: str = ""
+    analytics_id: str = ""
     repositories: list[str]
     contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
     branding: BrandingConfig = BrandingConfig()
-    meta: MetaConfig = MetaConfig()
 
     @property
     def core_contributors(self) -> dict[str, str]:
