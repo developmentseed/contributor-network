@@ -18,7 +18,7 @@ const sampleRepos = [
   { repo: 'developmentseed/rio-cogeo', stars: 50, repo_stars: '50', repo_forks: '10' },
   { repo: 'stac-utils/stac-fastapi', stars: 200, repo_stars: '304', repo_forks: '116' },
   { repo: 'radiantearth/stac-spec', stars: 300, repo_stars: '875', repo_forks: '188' },
-  { repo: 'Acme Corp', stars: 0, repo_stars: '0', repo_forks: '0' }
+  { repo: 'DevSeed Team', stars: 0, repo_stars: '0', repo_forks: '0' }
 ] as unknown as RepoData[];
 
 const sampleContributors = [
@@ -73,7 +73,7 @@ describe('getRepoOwner', () => {
   });
 
   it('should handle repo names without slash', () => {
-    expect(getRepoOwner('Acme Corp')).toBe('Acme Corp');
+    expect(getRepoOwner('DevSeed Team')).toBe('DevSeed Team');
   });
 
   it('should handle empty string', () => {
@@ -101,10 +101,10 @@ describe('filterReposByOrganization', () => {
   });
 
   it('should always include central repo when specified', () => {
-    const result = filterReposByOrganization(sampleRepos, ['stac-utils'], 'Acme Corp');
+    const result = filterReposByOrganization(sampleRepos, ['stac-utils'], 'DevSeed Team');
 
     expect(result).toHaveLength(2);
-    expect(result.some((r: RepoData) => r.repo === 'Acme Corp')).toBe(true);
+    expect(result.some((r: RepoData) => r.repo === 'DevSeed Team')).toBe(true);
     expect(result.some((r: RepoData) => r.repo === 'stac-utils/stac-fastapi')).toBe(true);
   });
 });
@@ -234,10 +234,10 @@ describe('applyFilters', () => {
     const result = applyFilters(
       originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] },
       { organizations: ['stac-utils'], starsMin: null, forksMin: null },
-      { centralRepo: 'Acme Corp' }
+      { centralRepo: 'DevSeed Team' }
     );
 
-    expect(result.repos.some((r: RepoData) => r.repo === 'Acme Corp')).toBe(true);
+    expect(result.repos.some((r: RepoData) => r.repo === 'DevSeed Team')).toBe(true);
   });
 
   it('should return deep clones to prevent mutation', () => {
