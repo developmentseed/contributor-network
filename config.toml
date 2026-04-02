@@ -3,7 +3,6 @@ title = "The Development Seed Contributor Network"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
 organization_name = "Development Seed"
 organization_nickname = "DevSeed"
-plausible_id = "wDy59K3C3ZYelSSItouzN"  # plausible.io analytics, blank to disable
 
 # Repositories
 repositories = [
