@@ -82,17 +82,17 @@ function makeOwnerNode(): VisualizationNode {
 
 describe('renderMobileTooltip — contributor', () => {
   it('includes type label', () => {
-    const html = renderMobileTooltip(makeContributorNode());
+    const html = renderMobileTooltip(makeContributorNode(), 'DevSeed');
     expect(html).toContain('Contributor');
   });
 
   it('includes contributor name', () => {
-    const html = renderMobileTooltip(makeContributorNode());
+    const html = renderMobileTooltip(makeContributorNode(), 'DevSeed');
     expect(html).toContain('Alice Example');
   });
 
   it('includes repo count and commit count', () => {
-    const html = renderMobileTooltip(makeContributorNode());
+    const html = renderMobileTooltip(makeContributorNode(), 'DevSeed');
     expect(html).toContain('2 repos');
     expect(html).toContain('8 commits');
   });
