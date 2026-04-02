@@ -1,5 +1,5 @@
 /**
- * Force simulation for repos with a single DevSeed contributor
+ * Force simulation for repos with a single core contributor
  *
  * Runs a force simulation to position single-degree repositories around their contributor nodes.
  * Each contributor node gets a "cloud" of connected repositories positioned around it.

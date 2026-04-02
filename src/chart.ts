@@ -2,7 +2,7 @@
 // https://github.com/nbremer/ORCA/blob/77745774d9d189818ab1ba27e07979897434abf9/top-contributor-network/createORCAVisual.js,
 // and is licensed under the same (MPL).
 //
-// Development Seed Modifications:
+// Modifications:
 // - Updated color scheme to match configurable branding colors
 // - Removed the central "team" pseudo-node entirely (force simulation finds natural equilibrium)
 // - Contributors positioned in fixed ring around viewport center

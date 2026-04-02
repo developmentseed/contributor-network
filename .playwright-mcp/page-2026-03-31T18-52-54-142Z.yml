@@ -1,0 +1,40 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "The Contributor Network of" [level=1] [ref=e5]
+      - heading "Development Seed" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Including commits up to March 22, 2026
+    - generic [ref=e8]:
+      - paragraph [ref=e9]: An interactive visualization of contributors to Development Seed code and their connections to other repositories
+      - paragraph [ref=e10]:
+        - text: This visualization is based off of the excellent
+        - link "Top Contributor Network" [ref=e11] [cursor=pointer]:
+          - /url: https://nbremer.github.io/ORCA/top-contributor-network/
+        - text: from
+        - link "Nadieh Bremer" [ref=e12] [cursor=pointer]:
+          - /url: https://github.com/nbremer
+        - text: ", and is licensed the same (MPL)."
+  - generic [ref=e15]:
+    - generic [ref=e17]:
+      - generic [ref=e18]: Organizations
+      - generic "Organizations" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: Filter by org
+    - generic [ref=e21]:
+      - generic [ref=e22]: Min Stars
+      - combobox [active] [ref=e23] [cursor=pointer]:
+        - option "Any"
+        - option "10+"
+        - option "50+"
+        - option "100+" [selected]
+        - option "500+"
+        - option "1,000+"
+    - generic [ref=e24]:
+      - generic [ref=e25]: Min Forks
+      - combobox [ref=e26] [cursor=pointer]:
+        - option "Any" [selected]
+        - option "5+"
+        - option "10+"
+        - option "25+"
+        - option "50+"
+        - option "100+"
+    - paragraph [ref=e27]: "Filtered by stars: 100+"

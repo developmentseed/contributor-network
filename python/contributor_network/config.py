@@ -1,6 +1,6 @@
 """Configuration management for the contributor network visualization.
 
-The config supports categorizing contributors into groups (e.g., "devseed" for current
+The config supports categorizing contributors into groups (e.g., "core" for current
 employees, "alumni" for past contributors). This allows filtering the visualization
 to show only active team members while preserving historical data.
 """
@@ -50,13 +50,8 @@ class Config(BaseModel):
 
     @property
     def core_contributors(self) -> dict[str, str]:
-        """Core contributors (supports 'core' and legacy 'devseed' category keys)."""
-        return self.contributors.get("core", self.contributors.get("devseed", {}))
-
-    @property
-    def devseed_contributors(self) -> dict[str, str]:
-        """Only Development Seed employees."""
-        return self.core_contributors
+        """Core organization contributors."""
+        return self.contributors.get("core", {})
 
     @property
     def alumni_contributors(self) -> dict[str, str]:

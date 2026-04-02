@@ -26,7 +26,7 @@ if (config.branding) {
   applyBranding(config.branding);
 }
 
-const organizationName = config.organization_name || "Development Seed";
+const organizationName = config.organization_name || "";
 const orgNickname = config.organization_nickname || organizationName;
 const contributor_padding = config.contributor_padding || 20;
 

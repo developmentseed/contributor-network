@@ -3,7 +3,7 @@
 /*************************************/
 
 html {
-    /* DevSeed Brand Colors */
+    /* Brand Colors */
     --color-repo-main: #CF3F02;      /* Grenadier (signature orange) */
     --color-repo: #6B8E9B;           /* Steel blue-gray */
     --color-owner: #CF3F02;          /* Grenadier */
@@ -724,7 +724,7 @@ li#item-remaining::before {
     height: 24px;
 }
 
-.legend-swatch--devseed {
+.legend-swatch--org {
     background-color: var(--color-repo-main);
     width: 24px;
     height: 24px;
