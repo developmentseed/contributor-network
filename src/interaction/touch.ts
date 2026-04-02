@@ -43,7 +43,7 @@ export interface SetupTouchOptions {
  * Renders the mobile tooltip HTML for a given node.
  * Exported for unit testing.
  */
-export function renderMobileTooltip(node: VisualizationNode, orgNickname = ''): string {
+export function renderMobileTooltip(node: VisualizationNode, orgNickname: string): string {
   const data = node.data as Record<string, any>;
 
   if (node.type === 'contributor') {
