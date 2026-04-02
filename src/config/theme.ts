@@ -107,6 +107,31 @@ export const COLORS: ColorsConfig = {
   shadowDark: '#d4d4d4',
 };
 
+export interface BrandingColors {
+  primary_color?: string;
+  secondary_color?: string;
+  text_color?: string;
+}
+
+export function applyBranding(branding: BrandingColors): void {
+  if (branding.primary_color) {
+    COLORS.grenadier = branding.primary_color;
+    COLORS.repoMain = branding.primary_color;
+    COLORS.owner = branding.primary_color;
+    COLORS.accent = branding.primary_color;
+    COLORS.highlightFill = branding.primary_color + '30';
+  }
+  if (branding.secondary_color) {
+    COLORS.aquamarine = branding.secondary_color;
+    COLORS.aquamarineLight = branding.secondary_color;
+    COLORS.contributor = branding.secondary_color;
+    COLORS.repo = branding.secondary_color;
+  }
+  if (branding.text_color) {
+    COLORS.text = branding.text_color;
+  }
+}
+
 export const FONTS: FontsConfig = {
   family: 'Roboto',
   familyCondensed: 'Roboto Condensed',

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
-import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
+import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT, applyBranding, type BrandingColors } from './config/theme';
 import { createOrgDropdown } from './ui/orgDropdown';
 import type { OrgDropdown } from './ui/orgDropdown';
 
@@ -11,6 +11,7 @@ interface Config {
   contributors?: Record<string, string>;
   title?: string;
   description?: string;
+  branding?: BrandingColors;
 }
 
 const configResponse = await fetch("data/config.json");
@@ -20,6 +21,10 @@ if (!configResponse.ok) {
   throw new Error("Failed to load config.json");
 }
 const config: Config = await configResponse.json();
+
+if (config.branding) {
+  applyBranding(config.branding);
+}
 
 const organizationName = config.organization_name || "Development Seed";
 const orgNickname = config.organization_nickname || organizationName;
