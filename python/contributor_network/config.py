@@ -62,7 +62,7 @@ class Config(BaseModel):
 
     @property
     def core_contributors(self) -> dict[str, str]:
-        """Core organization contributors (supports both 'core' and legacy 'devseed' keys)."""
+        """Core contributors (supports 'core' and legacy 'devseed' category keys)."""
         return self.contributors.get("core", self.contributors.get("devseed", {}))
 
     @property
