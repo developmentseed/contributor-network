@@ -163,8 +163,6 @@ def build(
     )
     print(f"Generated config.json in {data_dest}")
 
-
-
     print("Running Vite build...")
     subprocess.run(["npm", "run", "build"], cwd=ROOT, check=True)
     print(f"Vite build complete, output in {destination}")
