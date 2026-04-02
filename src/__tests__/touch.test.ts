@@ -100,25 +100,25 @@ describe('renderMobileTooltip — contributor', () => {
 
 describe('renderMobileTooltip — repo', () => {
   it('includes type label', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('Repository');
   });
 
   it('includes owner/name', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('org/');
     expect(html).toContain('my-repo');
   });
 
   it('includes stars, forks, watchers', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('42');
     expect(html).toContain('7');
     expect(html).toContain('15');
   });
 
   it('includes up to 3 languages with overflow note', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('TypeScript');
     expect(html).toContain('Python');
     expect(html).toContain('Go');
@@ -127,30 +127,30 @@ describe('renderMobileTooltip — repo', () => {
   });
 
   it('includes community metrics', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('5 contributors');
     expect(html).toContain('200');
   });
 
   it('shows single-maintainer warning when orgContributors === 1', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('Single');
   });
 
   it('includes license', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).toContain('MIT');
   });
 
   it('does not show archived badge when not archived', () => {
-    const html = renderMobileTooltip(makeRepoNode());
+    const html = renderMobileTooltip(makeRepoNode(), 'DevSeed Team');
     expect(html).not.toContain('Archived');
   });
 
   it('shows archived badge when archived', () => {
     const node = makeRepoNode();
     (node.data as unknown as Record<string, unknown>).archived = true;
-    const html = renderMobileTooltip(node);
+    const html = renderMobileTooltip(node, 'DevSeed Team');
     expect(html).toContain('Archived');
   });
 
@@ -162,22 +162,22 @@ describe('renderMobileTooltip — repo', () => {
 
 describe('renderMobileTooltip — owner', () => {
   it('includes type label', () => {
-    const html = renderMobileTooltip(makeOwnerNode());
+    const html = renderMobileTooltip(makeOwnerNode(), 'DevSeed Team');
     expect(html).toContain('Owner');
   });
 
   it('includes owner name', () => {
-    const html = renderMobileTooltip(makeOwnerNode());
+    const html = renderMobileTooltip(makeOwnerNode(), 'DevSeed Team');
     expect(html).toContain('myorg');
   });
 
   it('includes repo count', () => {
-    const html = renderMobileTooltip(makeOwnerNode());
+    const html = renderMobileTooltip(makeOwnerNode(), 'DevSeed Team');
     expect(html).toContain('15 repositories');
   });
 
   it('shows up to 12 repos with overflow note', () => {
-    const html = renderMobileTooltip(makeOwnerNode());
+    const html = renderMobileTooltip(makeOwnerNode(), 'DevSeed Team');
     expect(html).toContain('repo-0');
     expect(html).toContain('repo-11');
     expect(html).toContain('+ 3 more');

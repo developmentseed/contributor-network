@@ -283,7 +283,7 @@ export function setupTouch(options: SetupTouchOptions): void {
       });
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
 
-      tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname);
+      tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname ?? '');
       tooltipEl.dataset.nodeType = d.type;
       options.onTooltipShow?.(d);
       activeNode = d;
