@@ -3,7 +3,7 @@
 // and is licensed under the same (MPL).
 //
 // Development Seed Modifications:
-// - Updated color scheme to DevSeed brand (Grenadier orange, Aquamarine blue)
+// - Updated color scheme to match configurable branding colors
 // - Removed the central "team" pseudo-node entirely (force simulation finds natural equilibrium)
 // - Contributors positioned in fixed ring around viewport center
 // - Added null safety checks for hover/click interactions
@@ -114,7 +114,7 @@ export const createContributorNetworkVisual = (
   contributor_padding: number,
   masterContributorsList: Record<string, string>,
   displayNameMap: Record<string, string>,
-  orgNickname: string = 'DevSeed',
+  orgNickname: string = '',
 ): ChartFunction => {
   const PI = Math.PI;
   const TAU = PI * 2;
