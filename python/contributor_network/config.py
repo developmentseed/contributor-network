@@ -13,6 +13,23 @@ from pathlib import Path
 from pydantic import BaseModel
 
 
+class BrandingConfig(BaseModel):
+    """Branding configuration for the visualization."""
+
+    primary_color: str = "#CF3F02"
+    secondary_color: str = "#2E86AB"
+    text_color: str = "#443F3F"
+    logo: str = ""
+
+
+class MetaConfig(BaseModel):
+    """Metadata configuration for SEO and analytics."""
+
+    og_url: str = ""
+    og_image: str = ""
+    analytics_id: str = ""
+
+
 class Config(BaseModel):
     """Configuration for the contributor network visualization.
 
@@ -26,6 +43,8 @@ class Config(BaseModel):
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
+        branding: Colors and logo settings
+        meta: OG tags and analytics configuration
     """
 
     title: str
@@ -36,13 +55,20 @@ class Config(BaseModel):
     repositories: list[str]
     contributors: dict[
         str, dict[str, str]
-    ]  # Nested: {"devseed": {...}, "alumni": {...}}
+    ]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
+    branding: BrandingConfig = BrandingConfig()
+    meta: MetaConfig = MetaConfig()
+
+    @property
+    def core_contributors(self) -> dict[str, str]:
+        """Core organization contributors (supports both 'core' and legacy 'devseed' keys)."""
+        return self.contributors.get("core", self.contributors.get("devseed", {}))
 
     @property
     def devseed_contributors(self) -> dict[str, str]:
         """Only Development Seed employees."""
-        return self.contributors.get("devseed", {})
+        return self.core_contributors
 
     @property
     def alumni_contributors(self) -> dict[str, str]:
