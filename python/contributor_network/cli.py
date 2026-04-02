@@ -1,5 +1,6 @@
 import json
 import subprocess
+import os
 from collections import defaultdict
 from csv import DictWriter
 from pathlib import Path
@@ -156,7 +157,7 @@ def build(
             "secondary_color": config.branding.secondary_color,
             "text_color": config.branding.text_color,
         },
-        "plausible_id": config.plausible_id,
+        plausible_id": os.environ.get("PLAUSIBLE_ID", ""),
     }
     (data_dest / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
