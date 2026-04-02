@@ -187,7 +187,7 @@ export function prepareData(
     d.archived = d.repo_archived === "true" || d.repo_archived === true;
 
     d.totalContributors = +(d.repo_total_contributors ?? 0);
-    d.orgContributors = +(d.repo_devseed_contributors ?? 0);
+    d.orgContributors = +(d.repo_core_contributors ?? 0);
     d.externalContributors = +(d.repo_external_contributors ?? 0);
     d.communityRatio = +(d.repo_community_ratio ?? 0);
 
@@ -237,7 +237,7 @@ export function prepareData(
     delete d.repo_has_discussions;
     delete d.repo_archived;
     delete d.repo_total_contributors;
-    delete d.repo_devseed_contributors;
+    delete d.repo_core_contributors;
     delete d.repo_external_contributors;
     delete d.repo_community_ratio;
     delete d.repo_createdAt;
