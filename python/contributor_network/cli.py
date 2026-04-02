@@ -173,7 +173,7 @@ def build(
         author=config.author,
         description=config.description,
         branding=config.branding,
-        analytics_id=config.analytics_id,
+        plausible_id=config.plausible_id,
     )
     (ROOT / "index.html").write_text(rendered_html)
     print("Rendered index.html from template")

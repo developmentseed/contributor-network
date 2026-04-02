@@ -35,7 +35,7 @@ class Config(BaseModel):
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
         branding: Colors for the visualization
-        analytics_id: Plausible analytics ID (blank to disable)
+        plausible_id: Plausible analytics ID (blank to disable)
     """
 
     title: str
@@ -43,7 +43,7 @@ class Config(BaseModel):
     description: str
     organization_name: str
     organization_nickname: str = ""
-    analytics_id: str = ""
+    plausible_id: str = ""
     repositories: list[str]
     contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40

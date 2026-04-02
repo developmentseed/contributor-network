@@ -15,9 +15,9 @@ def test_branding_defaults() -> None:
     assert config.branding.text_color == "#443F3F"
 
 
-def test_analytics_id() -> None:
+def test_plausible_id() -> None:
     config = Config.from_toml(Path(__file__).parents[2] / "config.toml")
-    assert config.analytics_id == "wDy59K3C3ZYelSSItouzN"
+    assert config.plausible_id == "wDy59K3C3ZYelSSItouzN"
 
 
 def test_core_contributors() -> None:
