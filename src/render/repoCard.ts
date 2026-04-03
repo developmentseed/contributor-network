@@ -284,7 +284,7 @@ export function renderCommunityMetrics(
   orgNickname?: string,
 ): number {
   const config = REPO_CARD_CONFIG;
-  const org = orgNickname ?? 'DevSeed';
+  const org = orgNickname;
 
   if (!data.totalContributors || data.totalContributors === 0) {
     return y;

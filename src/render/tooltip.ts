@@ -137,7 +137,7 @@ function calculateRepoTooltipWidth(
   formatDigit: (value: number) => string,
   orgNickname?: string,
 ): number {
-  const org = orgNickname ?? 'DevSeed';
+  const org = orgNickname ?? '';
   const config = REPO_CARD_CONFIG;
   let maxWidth = 0;
 

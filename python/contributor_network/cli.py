@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from collections import defaultdict
 from csv import DictWriter
@@ -38,7 +39,7 @@ github_token = click.option(
 all_contributors = click.option(
     "--all-contributors",
     is_flag=True,
-    help="Include alumni and friends (not just DevSeed employees)",
+    help="Include all contributor categories (not just core members)",
 )
 
 
@@ -89,7 +90,7 @@ def fetch(
     client = Client(auth, directory)
 
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     print(f"Building data for {len(contributors)} contributors")
 
@@ -112,7 +113,7 @@ def build(
     """Build the HTML site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
-        config.all_contributors if all_contributors else config.devseed_contributors
+        config.all_contributors if all_contributors else config.core_contributors
     )
     authors = list(contributors.values())
     print(f"Writing CSVs for {len(authors)} contributors")
@@ -146,12 +147,17 @@ def build(
 
     config_json = {
         "title": config.title,
-        "author": config.author,
         "description": config.description,
         "organization_name": config.organization_name,
         "organization_nickname": config.organization_nickname,
         "contributor_padding": config.contributor_padding,
         "contributors": config.all_contributors,
+        "branding": {
+            "primary_color": config.branding.primary_color,
+            "secondary_color": config.branding.secondary_color,
+            "text_color": config.branding.text_color,
+        },
+        "plausible_id": os.environ.get("PLAUSIBLE_ID", ""),
     }
     (data_dest / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
@@ -167,17 +173,17 @@ def build(
 @config
 @github_token
 @click.option(
-    "--min-contributors", default=2, help="Minimum DevSeed contributors to show a repo"
+    "--min-contributors", default=2, help="Minimum core contributors to show a repo"
 )
 @click.option("--limit", default=50, help="Maximum number of repos to display")
 def discover(
     config_path: str | None, github_token: str | None, min_contributors: int, limit: int
 ) -> None:
-    """Discover repositories that DevSeed employees contribute to.
+    """Discover repositories that core contributors contribute to.
 
-    This command queries GitHub to find repositories that DevSeed employees
+    This command queries GitHub to find repositories that core contributors
     have contributed to, which are not currently in the configuration.
-    Repos with more DevSeed contributors are likely more relevant to add.
+    Repos with more core contributors are likely more relevant to add.
     """
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
@@ -190,8 +196,8 @@ def discover(
     known_repos = set(config.repositories)
     discovered_repos: dict[str, list[str]] = defaultdict(list)
 
-    contributors = config.devseed_contributors
-    print(f"Discovering repos for {len(contributors)} DevSeed contributors...")
+    contributors = config.core_contributors
+    print(f"Discovering repos for {len(contributors)} core contributors...")
     print(f"Known repos: {len(known_repos)}")
     print()
 
@@ -218,7 +224,7 @@ def discover(
         except Exception as e:
             print(f"error: {e}")
 
-    # Sort by number of DevSeed contributors (descending)
+    # Sort by number of core contributors (descending)
     sorted_repos = sorted(
         discovered_repos.items(), key=lambda x: len(x[1]), reverse=True
     )
@@ -230,12 +236,12 @@ def discover(
 
     print()
     print("=" * 60)
-    print(f"DISCOVERED REPOSITORIES (min {min_contributors} DevSeed contributors)")
+    print(f"DISCOVERED REPOSITORIES (min {min_contributors} core contributors)")
     print("=" * 60)
     print()
 
     if not filtered_repos:
-        print(f"No repos found with {min_contributors}+ DevSeed contributors.")
+        print(f"No repos found with {min_contributors}+ core contributors.")
         print("Try lowering --min-contributors or check GitHub token permissions.")
         return
 
@@ -265,15 +271,13 @@ def list_contributors(config_path: str | None) -> None:
     """List all configured contributors and their categories."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
 
-    print("DevSeed Contributors:")
+    print("Core Contributors:")
     print("-" * 40)
-    for username, name in sorted(
-        config.devseed_contributors.items(), key=lambda x: x[1]
-    ):
+    for username, name in sorted(config.core_contributors.items(), key=lambda x: x[1]):
         print(f"  {name} (@{username})")
 
     print()
-    print(f"Total DevSeed: {len(config.devseed_contributors)}")
+    print(f"Total Core: {len(config.core_contributors)}")
 
     if config.alumni_contributors:
         print()

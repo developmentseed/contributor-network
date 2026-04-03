@@ -1,6 +1,6 @@
 """Configuration management for the contributor network visualization.
 
-The config supports categorizing contributors into groups (e.g., "devseed" for current
+The config supports categorizing contributors into groups (e.g., "core" for current
 employees, "alumni" for past contributors). This allows filtering the visualization
 to show only active team members while preserving historical data.
 """
@@ -11,6 +11,14 @@ import tomllib
 from pathlib import Path
 
 from pydantic import BaseModel
+
+
+class BrandingConfig(BaseModel):
+    """Branding configuration for the visualization."""
+
+    primary_color: str = "#CF3F02"
+    secondary_color: str = "#2E86AB"
+    text_color: str = "#443F3F"
 
 
 class Config(BaseModel):
@@ -26,23 +34,24 @@ class Config(BaseModel):
         contributors: Nested dict of contributor categories, each mapping
                       GitHub username to display name
         contributor_padding: Padding around contributor nodes in pixels
+        branding: Colors for the visualization
+        plausible_id: Plausible analytics ID (blank to disable)
     """
 
     title: str
-    author: str
     description: str
     organization_name: str
     organization_nickname: str = ""
+    plausible_id: str = ""
     repositories: list[str]
-    contributors: dict[
-        str, dict[str, str]
-    ]  # Nested: {"devseed": {...}, "alumni": {...}}
+    contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
+    branding: BrandingConfig = BrandingConfig()
 
     @property
-    def devseed_contributors(self) -> dict[str, str]:
-        """Only Development Seed employees."""
-        return self.contributors.get("devseed", {})
+    def core_contributors(self) -> dict[str, str]:
+        """Core organization contributors."""
+        return self.contributors.get("core", {})
 
     @property
     def alumni_contributors(self) -> dict[str, str]:

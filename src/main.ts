@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { createContributorNetworkVisual } from "./chart";
-import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT } from './config/theme';
+import { MOBILE_BREAKPOINT, MOBILE_DRAWER_PEEK_HEIGHT, applyBranding, type BrandingColors } from './config/theme';
 import { createOrgDropdown } from './ui/orgDropdown';
 import type { OrgDropdown } from './ui/orgDropdown';
 
@@ -11,6 +11,8 @@ interface Config {
   contributors?: Record<string, string>;
   title?: string;
   description?: string;
+  branding?: BrandingColors;
+  plausible_id?: string;
 }
 
 const configResponse = await fetch("data/config.json");
@@ -21,7 +23,11 @@ if (!configResponse.ok) {
 }
 const config: Config = await configResponse.json();
 
-const organizationName = config.organization_name || "Development Seed";
+if (config.branding) {
+  applyBranding(config.branding);
+}
+
+const organizationName = config.organization_name || "";
 const orgNickname = config.organization_nickname || organizationName;
 const contributor_padding = config.contributor_padding || 20;
 
@@ -36,6 +42,17 @@ if (config.title) document.title = config.title;
 if (config.description)
   document.getElementById("chart-description")!.textContent =
     config.description;
+if (config.branding?.primary_color) {
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.setAttribute('content', config.branding.primary_color);
+}
+if (config.plausible_id) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://plausible.io/js/pa-${config.plausible_id}.js`;
+  document.head.appendChild(script);
+  (window as any).plausible = (window as any).plausible || function(...args: any[]) { ((window as any).plausible.q = (window as any).plausible.q || []).push(args); };
+}
 
 const container = document.getElementById("chart-container")!;
 const wrapper = document.getElementById("chart-wrapper")!;

@@ -43,7 +43,7 @@ export interface SetupTouchOptions {
  * Renders the mobile tooltip HTML for a given node.
  * Exported for unit testing.
  */
-export function renderMobileTooltip(node: VisualizationNode, orgNickname = 'DevSeed'): string {
+export function renderMobileTooltip(node: VisualizationNode, orgNickname: string): string {
   const data = node.data as Record<string, any>;
 
   if (node.type === 'contributor') {
@@ -283,7 +283,7 @@ export function setupTouch(options: SetupTouchOptions): void {
       });
       contextHover.clearRect(0, 0, WIDTH, HEIGHT);
 
-      tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname);
+      tooltipContentEl.innerHTML = renderMobileTooltip(d, orgNickname ?? '');
       tooltipEl.dataset.nodeType = d.type;
       options.onTooltipShow?.(d);
       activeNode = d;

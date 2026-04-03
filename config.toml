@@ -1,8 +1,10 @@
+# Organization Metadata
 title = "The Development Seed Contributor Network"
-author = "Pete Gadomski"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
 organization_name = "Development Seed"
 organization_nickname = "DevSeed"
+
+# Repositories
 repositories = [
     "developmentseed/titiler",
     "developmentseed/lonboard",
@@ -79,18 +81,13 @@ repositories = [
     "ecmwf/qubed",
 ]
 
-# Friends and alumni - commented out but preserved for future use
-# Uncomment the [contributors.alumni] section to include these contributors
-# [contributors.alumni]
-# jsignell = "Julia Signell"
-# geospatial-jeff = "Jeff Albrecht"
-# cholmes = "Chris Holmes"
-# m-mohr = "Matthias Mohr"
-# matthewhanson = "Matthew Hanson"
-# d-v-b = "Davis Bennett"
+[branding]
+primary_color = "#CF3F02"
+secondary_color = "#2E86AB"
+text_color = "#443F3F"
 
-# Development Seed employees
-[contributors.devseed]
+# Core organization contributors
+[contributors.core]
 AMSCamacho = "Angela Camacho"
 AliceR = "Alice Rühl"
 LanesGood = "Lane Goodman"
