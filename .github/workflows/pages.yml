@@ -31,6 +31,8 @@ jobs:
           cache: "npm"
       - run: npm ci
       - name: Build
+        env:
+          PLAUSIBLE_ID: ${{ vars.PLAUSIBLE_ID }}
         run: uv run contributor-network build
       - uses: actions/upload-pages-artifact@v3
         with:
