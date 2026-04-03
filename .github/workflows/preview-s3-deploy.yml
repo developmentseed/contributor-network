@@ -21,16 +21,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version-file: ".nvmrc"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
       - name: Install
         run: npm ci
       - name: Build
         run: uv run contributor-network build
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           path: ${{ env.DIST_DIRECTORY }}
 
@@ -38,12 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: aws-actions/configure-aws-credentials@v5
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-      - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           path: ${{ env.DIST_DIRECTORY }}
       - name: Check if bucket exists
@@ -93,7 +93,7 @@ jobs:
           aws s3api put-bucket-policy --bucket ${{ env.BUCKET_NAME }} --policy file://bucket-policy.json
       - name: Check for existing preview comment
         id: check_comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
@@ -113,7 +113,7 @@ jobs:
             }
       - name: Post comment with preview URL
         if: steps.check_comment.outputs.should_post_comment == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
