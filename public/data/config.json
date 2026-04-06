@@ -1,6 +1,5 @@
 {
   "title": "The Development Seed Contributor Network",
-  "author": "Pete Gadomski",
   "description": "An interactive visualization of contributors to Development Seed code and their connections to other repositories",
   "organization_name": "Development Seed",
   "organization_nickname": "DevSeed",
@@ -71,7 +70,7 @@
   "branding": {
     "primary_color": "#CF3F02",
     "secondary_color": "#2E86AB",
-    "text_color": "#443F3F",
-    "logo": ""
-  }
+    "text_color": "#443F3F"
+  },
+  "plausible_id": "wDy59K3C3ZYelSSItouzN"
 }
