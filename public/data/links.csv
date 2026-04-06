@@ -202,7 +202,7 @@ Zac Deziel,developmentseed/openeo-udp,5,1768998307,1773417961,51,True
 Olaf Veerman,developmentseed/openeo-udp,2,1763389980,1763390232,0,False
 Emmanuel Mathot,developmentseed/openeo-udp,4,1765539066,1772114603,76,True
 Wille Marcel,developmentseed/moz-proenergia-backend,111,1764711026,1775254032,122,True
-Sanjay Bhangar,developmentseed/moz-proenergia-backend,113,1765441644,1774848724,108,True
+Sanjay Bhangar,developmentseed/moz-proenergia-backend,115,1765441644,1775465174,116,True
 Lane Goodman,developmentseed/moz-proenergia-backend,2,1772805690,1772836321,0,True
 Loïc Houpert,developmentseed/obspec-utils,2,1775225985,1775226004,0,True
 Max Jones,developmentseed/obspec-utils,55,1750448940,1770998265,237,True
@@ -292,6 +292,16 @@ Wei Ji,geoarrow/geoarrow-rs,1,1707150354,1707150354,0,False
 Loïc Houpert,geoarrow/deck.gl-layers,1,1775154905,1775154905,0,True
 Kyle Barron,geoarrow/deck.gl-layers,100,1691436871,1774391338,960,True
 Kyle Barron,geoarrow/geoarrow,12,1695684680,1748010349,605,False
+Daniel Wiesmann,wri/gnw-evals,37,1767701199,1774526336,78,True
+Daniel Wiesmann,wri/gnw-stac,5,1768558266,1768560014,0,True
+Leo Thomas,wri/project-zeno,161,1731626471,1757427179,298,False
+Wille Marcel,wri/project-zeno,17,1753351198,1754642539,14,False
+Sanjay Bhangar,wri/project-zeno,151,1746440509,1762845307,189,False
+Tarashish Mishra,wri/project-zeno,69,1732519462,1758004115,294,False
+Daniel Wiesmann,wri/project-zeno,695,1731514111,1774524764,497,True
+Soumya Ranjan Mohanty,wri/project-zeno,147,1730967389,1775046385,510,True
+Lilly Thomas,wri/project-zeno,14,1747185075,1748539755,15,False
+Sajjad Anwar,wri/project-zeno,20,1752062504,1755174278,36,False
 Daniel da Silva,wri/project-zeno-next,61,1752051054,1757948910,68,False
 Marc Farra,wri/project-zeno-next,268,1746873865,1774026492,314,True
 Wille Marcel,wri/project-zeno-next,2,1756245650,1756255296,0,False
