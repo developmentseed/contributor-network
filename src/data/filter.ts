@@ -93,6 +93,25 @@ export function filterReposByForks(
 }
 
 /**
+ * Filter repositories by minimum percentage of commits from org contributors.
+ *
+ * @param repos - Array of repository objects
+ * @param minRatio - Minimum ratio (0-1) of org commits to total commits
+ * @returns Filtered repositories
+ */
+export function filterReposByOrgCommitRatio(
+  repos: RepoData[],
+  minRatio: number,
+): RepoData[] {
+  return repos.filter((repo) => {
+    const total = repo.totalCommits ?? 0;
+    if (total === 0) return false;
+    const orgRatio = (repo.orgCommits ?? 0) / total;
+    return orgRatio >= minRatio;
+  });
+}
+
+/**
  * Filter links to only those pointing to visible repositories.
  *
  * @param links - Array of link objects with 'repo' property
@@ -189,6 +208,9 @@ export function applyFilters(
   if (activeFilters.forksMin != null) {
     visibleRepos = filterReposByForks(visibleRepos, activeFilters.forksMin);
   }
+  if (activeFilters.orgCommitRatioMin != null) {
+    visibleRepos = filterReposByOrgCommitRatio(visibleRepos, activeFilters.orgCommitRatioMin);
+  }
 
   const visibleRepoNames = new Set(visibleRepos.map((r) => r.repo));
 
@@ -234,7 +256,7 @@ export function applyFilters(
 interface FilterManager {
   getFilters(): FilterState;
   setOrganization(org: string, active: boolean): void;
-  setMetricFilter(metric: "starsMin" | "forksMin", value: number | null): void;
+  setMetricFilter(metric: "starsMin" | "forksMin" | "orgCommitRatioMin", value: number | null): void;
   clearOrganizations(): void;
   clearAll(): void;
   hasActiveFilters(): boolean;
@@ -254,6 +276,7 @@ export function createFilterManager(
     organizations: [],
     starsMin: null,
     forksMin: null,
+    orgCommitRatioMin: null,
   };
 
   return {
@@ -278,10 +301,10 @@ export function createFilterManager(
     },
 
     setMetricFilter(
-      metric: "starsMin" | "forksMin",
+      metric: "starsMin" | "forksMin" | "orgCommitRatioMin",
       value: number | null,
     ): void {
-      if (metric === "starsMin" || metric === "forksMin") {
+      if (metric === "starsMin" || metric === "forksMin" || metric === "orgCommitRatioMin") {
         activeFilters[metric] = value;
       }
 
@@ -302,6 +325,7 @@ export function createFilterManager(
       activeFilters.organizations = [];
       activeFilters.starsMin = null;
       activeFilters.forksMin = null;
+      activeFilters.orgCommitRatioMin = null;
 
       if (onChange) {
         onChange(this.getFilters());
@@ -312,7 +336,8 @@ export function createFilterManager(
       return (
         activeFilters.organizations.length > 0 ||
         activeFilters.starsMin !== null ||
-        activeFilters.forksMin !== null
+        activeFilters.forksMin !== null ||
+        activeFilters.orgCommitRatioMin !== null
       );
     },
   };

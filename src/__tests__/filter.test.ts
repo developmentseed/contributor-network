@@ -5,6 +5,7 @@ import {
   filterReposByOrganization,
   filterReposByStars,
   filterReposByForks,
+  filterReposByOrgCommitRatio,
   filterLinksByRepos,
   filterLinksByContributors,
   filterContributorsByLinks,
@@ -14,11 +15,11 @@ import {
 import type { RepoData, ContributorData, LinkData } from '../types';
 
 const sampleRepos = [
-  { repo: 'developmentseed/titiler', stars: 100, repo_stars: '1036', repo_forks: '216' },
-  { repo: 'developmentseed/rio-cogeo', stars: 50, repo_stars: '50', repo_forks: '10' },
-  { repo: 'stac-utils/stac-fastapi', stars: 200, repo_stars: '304', repo_forks: '116' },
-  { repo: 'radiantearth/stac-spec', stars: 300, repo_stars: '875', repo_forks: '188' },
-  { repo: 'DevSeed Team', stars: 0, repo_stars: '0', repo_forks: '0' }
+  { repo: 'developmentseed/titiler', stars: 100, repo_stars: '1036', repo_forks: '216', totalCommits: 200, orgCommits: 180 },
+  { repo: 'developmentseed/rio-cogeo', stars: 50, repo_stars: '50', repo_forks: '10', totalCommits: 100, orgCommits: 30 },
+  { repo: 'stac-utils/stac-fastapi', stars: 200, repo_stars: '304', repo_forks: '116', totalCommits: 500, orgCommits: 100 },
+  { repo: 'radiantearth/stac-spec', stars: 300, repo_stars: '875', repo_forks: '188', totalCommits: 1000, orgCommits: 50 },
+  { repo: 'DevSeed Team', stars: 0, repo_stars: '0', repo_forks: '0', totalCommits: 0, orgCommits: 0 }
 ] as unknown as RepoData[];
 
 const sampleContributors = [
@@ -194,6 +195,36 @@ describe('filterReposByForks', () => {
   });
 });
 
+describe('filterReposByOrgCommitRatio', () => {
+  it('should filter repos below the commit ratio threshold', () => {
+    const result = filterReposByOrgCommitRatio(sampleRepos, 0.25);
+
+    expect(result).toHaveLength(2);
+    expect(result.map((r: RepoData) => r.repo)).toEqual([
+      'developmentseed/titiler',
+      'developmentseed/rio-cogeo',
+    ]);
+  });
+
+  it('should hide repos with zero total commits', () => {
+    const result = filterReposByOrgCommitRatio(sampleRepos, 0.01);
+
+    expect(result.some((r: RepoData) => r.repo === 'DevSeed Team')).toBe(false);
+  });
+
+  it('should return no repos when threshold is 1.0 and none are 100%', () => {
+    const result = filterReposByOrgCommitRatio(sampleRepos, 1.0);
+    expect(result).toHaveLength(0);
+  });
+
+  it('should include repos exactly at the threshold', () => {
+    const result = filterReposByOrgCommitRatio(sampleRepos, 0.90);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].repo).toBe('developmentseed/titiler');
+  });
+});
+
 interface OriginalData {
   contributors: ContributorData[] | null;
   repos: RepoData[] | null;
@@ -212,7 +243,7 @@ describe('applyFilters', () => {
   });
 
   it('should return all data when no filters active', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: null });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     expect(result.repos).toHaveLength(sampleRepos.length);
     expect(result.contributors).toHaveLength(sampleContributors.length);
@@ -220,7 +251,7 @@ describe('applyFilters', () => {
   });
 
   it('should filter by organization correctly', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: ['developmentseed'], starsMin: null, forksMin: null });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: ['developmentseed'], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     expect(result.repos).toHaveLength(2);
 
@@ -233,7 +264,7 @@ describe('applyFilters', () => {
   it('should include central repo when specified', () => {
     const result = applyFilters(
       originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] },
-      { organizations: ['stac-utils'], starsMin: null, forksMin: null },
+      { organizations: ['stac-utils'], starsMin: null, forksMin: null, orgCommitRatioMin: null },
       { centralRepo: 'DevSeed Team' }
     );
 
@@ -241,7 +272,7 @@ describe('applyFilters', () => {
   });
 
   it('should return deep clones to prevent mutation', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: null });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     (result.repos[0] as RepoData & { stars: number }).stars = 999;
     (result.contributors[0] as ContributorData & { commits: number }).commits = 999;
@@ -255,7 +286,7 @@ describe('applyFilters', () => {
   it('should handle empty original data gracefully', () => {
     const result = applyFilters(
       { contributors: null, repos: null, links: null } as unknown as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] },
-      { organizations: [], starsMin: null, forksMin: null }
+      { organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: null }
     );
 
     expect(result.contributors).toEqual([]);
@@ -264,14 +295,14 @@ describe('applyFilters', () => {
   });
 
   it('should filter by minimum stars', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: 500, forksMin: null });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: 500, forksMin: null, orgCommitRatioMin: null });
 
     expect(result.repos.length).toBeLessThan(sampleRepos.length);
     expect(result.repos.every((r: RepoData) => +(r.repo_stars ?? 0) >= 500)).toBe(true);
   });
 
   it('should filter by minimum forks', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: 100 });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: [], starsMin: null, forksMin: 100, orgCommitRatioMin: null });
 
     expect(result.repos).toHaveLength(3);
     expect(result.repos.every((r: RepoData) => +(r.repo_forks ?? 0) >= 100)).toBe(true);
@@ -281,7 +312,8 @@ describe('applyFilters', () => {
     const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, {
       organizations: ['developmentseed'],
       starsMin: 100,
-      forksMin: null
+      forksMin: null,
+      orgCommitRatioMin: null,
     });
 
     expect(result.repos).toHaveLength(1);
@@ -289,7 +321,7 @@ describe('applyFilters', () => {
   });
 
   it('should correctly chain filters (repos -> links -> contributors -> links)', () => {
-    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: ['radiantearth'], starsMin: null, forksMin: null });
+    const result = applyFilters(originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] }, { organizations: ['radiantearth'], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     expect(result.repos).toHaveLength(1);
     expect(result.repos[0].repo).toBe('radiantearth/stac-spec');
@@ -299,12 +331,24 @@ describe('applyFilters', () => {
 
     expect(result.links).toHaveLength(2);
   });
+
+  it('should filter by minimum org commit ratio', () => {
+    const result = applyFilters(
+      originalData as { contributors: ContributorData[]; repos: RepoData[]; links: LinkData[] },
+      { organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: 0.25 }
+    );
+
+    expect(result.repos.every((r: RepoData) => {
+      const total = r.totalCommits ?? 0;
+      return total > 0 && (r.orgCommits ?? 0) / total >= 0.25;
+    })).toBe(true);
+  });
 });
 
 describe('createFilterManager', () => {
   it('should start with empty filters', () => {
     const manager = createFilterManager();
-    expect(manager.getFilters()).toEqual({ organizations: [], starsMin: null, forksMin: null });
+    expect(manager.getFilters()).toEqual({ organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: null });
   });
 
   it('should add organization when setOrganization called with true', () => {
@@ -403,7 +447,8 @@ describe('createFilterManager', () => {
     expect(manager.getFilters()).toEqual({
       organizations: [],
       starsMin: null,
-      forksMin: null
+      forksMin: null,
+      orgCommitRatioMin: null,
     });
     expect(manager.hasActiveFilters()).toBe(false);
   });
@@ -425,5 +470,13 @@ describe('createFilterManager', () => {
 
     const filters = manager.getFilters();
     expect((filters as unknown as Record<string, unknown>)['invalidMetric']).toBeUndefined();
+  });
+
+  it('should set orgCommitRatioMin metric filter', () => {
+    const manager = createFilterManager();
+    manager.setMetricFilter('orgCommitRatioMin', 0.5);
+
+    expect(manager.getFilters().orgCommitRatioMin).toBe(0.5);
+    expect(manager.hasActiveFilters()).toBe(true);
   });
 });

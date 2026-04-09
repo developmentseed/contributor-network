@@ -1,12 +1,13 @@
 import type { FilterState } from "../types";
 
-export type MetricKey = "starsMin" | "forksMin";
+export type MetricKey = "starsMin" | "forksMin" | "orgCommitRatioMin";
 
 export function createFilterState(): FilterState {
   return {
     organizations: [],
     starsMin: null,
     forksMin: null,
+    orgCommitRatioMin: null,
   };
 }
 
@@ -30,7 +31,7 @@ export function setMetricFilter(
   metric: MetricKey,
   value: number | null,
 ): FilterState {
-  if (metric === "starsMin" || metric === "forksMin") {
+  if (metric === "starsMin" || metric === "forksMin" || metric === "orgCommitRatioMin") {
     state[metric] = value;
   }
   return state;
@@ -40,6 +41,7 @@ export function clearFilters(state: FilterState): FilterState {
   state.organizations = [];
   state.starsMin = null;
   state.forksMin = null;
+  state.orgCommitRatioMin = null;
   return state;
 }
 
@@ -51,6 +53,7 @@ export function hasActiveFilters(state: FilterState): boolean {
   return (
     state.organizations.length > 0 ||
     state.starsMin !== null ||
-    state.forksMin !== null
+    state.forksMin !== null ||
+    state.orgCommitRatioMin !== null
   );
 }
