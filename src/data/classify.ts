@@ -34,6 +34,10 @@ export function classifyByFilters(
     if (filterState.forksMin !== null) {
       visible = visible && (repo.forks ?? 0) >= filterState.forksMin;
     }
+    if (filterState.orgCommitRatioMin !== null) {
+      const total = repo.totalCommits ?? 0;
+      visible = visible && total > 0 && (repo.orgCommits ?? 0) / total >= filterState.orgCommitRatioMin;
+    }
 
     node.filteredOut = !visible;
     if (visible) visibleRepoIds.add(node.id);

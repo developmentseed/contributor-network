@@ -58,7 +58,7 @@ function makeLink(sourceId: string, targetId: string, repo: string): LinkData {
 }
 
 function noFilters(): FilterState {
-  return { organizations: [], starsMin: null, forksMin: null };
+  return { organizations: [], starsMin: null, forksMin: null, orgCommitRatioMin: null };
 }
 
 describe('classifyByFilters', () => {
@@ -84,7 +84,7 @@ describe('classifyByFilters', () => {
   });
 
   it('filters by organization', () => {
-    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: null, forksMin: null });
+    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     expect(repoA.filteredOut).toBe(false);
     expect(repoC.filteredOut).toBe(false);
@@ -98,7 +98,7 @@ describe('classifyByFilters', () => {
   });
 
   it('filters by minimum stars', () => {
-    classifyByFilters(nodes, links, { organizations: [], starsMin: 50, forksMin: null });
+    classifyByFilters(nodes, links, { organizations: [], starsMin: 50, forksMin: null, orgCommitRatioMin: null });
 
     expect(repoA.filteredOut).toBe(false);
     expect(repoB.filteredOut).toBe(false);
@@ -109,7 +109,7 @@ describe('classifyByFilters', () => {
   });
 
   it('filters by minimum forks', () => {
-    classifyByFilters(nodes, links, { organizations: [], starsMin: null, forksMin: 10 });
+    classifyByFilters(nodes, links, { organizations: [], starsMin: null, forksMin: 10, orgCommitRatioMin: null });
 
     expect(repoA.filteredOut).toBe(false);
     expect(repoB.filteredOut).toBe(true);
@@ -117,7 +117,7 @@ describe('classifyByFilters', () => {
   });
 
   it('applies combined filters (intersection)', () => {
-    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: 50, forksMin: null });
+    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: 50, forksMin: null, orgCommitRatioMin: null });
 
     expect(repoA.filteredOut).toBe(false);
     expect(repoB.filteredOut).toBe(true);
@@ -129,7 +129,7 @@ describe('classifyByFilters', () => {
   });
 
   it('marks links based on endpoint visibility', () => {
-    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: null, forksMin: null });
+    classifyByFilters(nodes, links, { organizations: ['alpha'], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     // Alice → repoA: both visible
     expect(links[0].filteredOut).toBe(false);
@@ -156,7 +156,7 @@ describe('classifyByFilters', () => {
     const testNodes = [repo, owner, contrib];
     const testLinks = [ownerRepoLink, contribOwnerLink];
 
-    classifyByFilters(testNodes, testLinks, { organizations: ['alpha'], starsMin: null, forksMin: null });
+    classifyByFilters(testNodes, testLinks, { organizations: ['alpha'], starsMin: null, forksMin: null, orgCommitRatioMin: null });
 
     expect(repo.filteredOut).toBe(false);
     expect(owner.filteredOut).toBe(false);

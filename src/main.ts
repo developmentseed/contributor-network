@@ -129,6 +129,18 @@ document.fonts.ready.then(() => {
         updateFilterStats();
       });
 
+      const commitRatioSelect = document.getElementById(
+        "org-commit-ratio-select"
+      ) as HTMLSelectElement;
+      const commitRatioLabel = document.getElementById("org-commit-ratio-label")!;
+      commitRatioLabel.textContent = `${orgNickname} Commit Ratio`;
+      commitRatioSelect.addEventListener("change", function () {
+        const value =
+          this.value === "" ? null : parseFloat(this.value);
+        contributorNetworkVisual.setRepoFilter("orgCommitRatioMin", value);
+        updateFilterStats();
+      });
+
       function updateFilterStats(): void {
         const statsElement = document.getElementById("filter-stats")!;
         const parts: string[] = [];
@@ -147,6 +159,9 @@ document.fonts.ready.then(() => {
         if (forksSelect.value !== "") {
           parts.push(`forks: ${forksSelect.value}+`);
         }
+        if (commitRatioSelect.value !== "") {
+          parts.push(`${orgNickname} commits: ${Math.round(parseFloat(commitRatioSelect.value) * 100)}%+`);
+        }
 
         if (parts.length === 0) {
           statsElement.textContent = `Showing all ${sortedOrgs.length} organizations`;
@@ -154,7 +169,7 @@ document.fonts.ready.then(() => {
           statsElement.textContent = `Filtered by ${parts.join(", ")}`;
         }
 
-        const isFiltered = activeOrgs.length > 0 || starsSelect.value !== "" || forksSelect.value !== "";
+        const isFiltered = activeOrgs.length > 0 || starsSelect.value !== "" || forksSelect.value !== "" || commitRatioSelect.value !== "";
         filterToggle?.setAttribute("data-has-active-filters", String(isFiltered));
         document.getElementById("mobile-drawer")?.setAttribute("data-has-active-filters", String(isFiltered));
       }
