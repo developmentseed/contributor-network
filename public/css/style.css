@@ -446,7 +446,7 @@ li#item-remaining::before {
 
 #filter-header {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) auto auto 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr 3fr;
     align-items: end;
     gap: 24px;
 }
@@ -467,7 +467,8 @@ li#item-remaining::before {
 }
 
 #stars-select,
-#forks-select {
+#forks-select,
+#org-commit-ratio-select {
     padding: 8px 32px 8px 12px;
     font-size: 14px;
     border: 1.5px solid #ddd;
@@ -486,12 +487,14 @@ li#item-remaining::before {
 }
 
 #stars-select:hover,
-#forks-select:hover {
+#forks-select:hover,
+#org-commit-ratio-select:hover {
     border-color: var(--color-repo-main);
 }
 
 #stars-select:focus,
-#forks-select:focus {
+#forks-select:focus,
+#org-commit-ratio-select:focus {
     outline: none;
     border-color: var(--color-repo-main);
     box-shadow: 0 0 0 2px rgba(207, 63, 2, 0.1);
@@ -835,7 +838,8 @@ li#item-remaining::before {
     }
 
     #stars-select,
-    #forks-select {
+    #forks-select,
+    #org-commit-ratio-select {
         width: 100%;
     }
 

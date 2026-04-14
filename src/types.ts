@@ -126,6 +126,7 @@ export interface FilterState {
   organizations: string[];
   starsMin: number | null;
   forksMin: number | null;
+  orgCommitRatioMin: number | null;
 }
 
 export interface DelaunayData {
