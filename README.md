@@ -23,10 +23,11 @@ uv sync
 npm install
 ```
 
-If you've only made changes to the frontend, you can rebuild the site with:
+The build is split into two steps: `contributor-network build` generates the CSVs and `config.json` into `public/data/`, and `npm run build` runs Vite to produce the final static site in `dist/`.
 
 ```sh
-uv run contributor-network build
+uv run contributor-network build    # generate data
+npm run build                       # build the static site
 ```
 
 If you've changed the config and need to re-fetch data from the Github API, run this (warning, this takes a while):
@@ -66,10 +67,13 @@ uv run contributor-network discover --min-contributors 2
 # 4. Fetch data from GitHub
 uv run contributor-network fetch
 
-# 5. Build the site
+# 5. Generate data files
 uv run contributor-network build
 
-# 6. Preview locally
+# 6. Build the static site
+npm run build
+
+# 7. Preview locally
 npm run preview
 ```
 
