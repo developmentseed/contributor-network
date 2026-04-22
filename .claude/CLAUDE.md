@@ -346,3 +346,29 @@ uv run pytest -v
 ---
 
 **Last Updated**: March 2026
+
+---
+
+## Releasing
+
+Both packages (`open-source-contributor-network` on PyPI, `@developmentseed/open-source-contributor-network` on npm) are published together on git tags matching `v*`.
+
+### One-time setup
+
+1. **PyPI trusted publishing** — at https://pypi.org/manage/account/publishing/ add a pending publisher:
+   - PyPI Project Name: `open-source-contributor-network`
+   - Owner: `developmentseed`
+   - Repository: `contributor-network`
+   - Workflow name: `release.yml`
+   - Environment name: `release`
+2. **npm token** — generate an automation token at https://www.npmjs.com/settings/<your-user>/tokens and add it as a repo Actions secret named `NPM_TOKEN`.
+3. **GitHub environment** — create a `release` environment in repo Settings → Environments. Optionally require manual approval.
+
+### Cutting a release
+
+1. Align the version in `pyproject.toml` and `package.json` to the target version (both must match).
+2. Commit the version bump.
+3. Tag and push: `git tag v1.2.3 && git push origin v1.2.3`.
+4. The `release.yml` workflow publishes both packages. If either job fails, fix and re-tag at the next version (`v1.2.4`) — republishing the same version is not allowed on either registry.
+
+Pre-release versions (e.g. `v0.1.0-rc1`) are supported for test runs.
