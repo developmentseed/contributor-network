@@ -30,7 +30,6 @@ jobs:
           git checkout -b build-data
           uv run contributor-network fetch
           uv run contributor-network build
-          npm run build
           git add .
           git commit -m "chore: update data"
           git push -u origin build-data

@@ -1,39 +1,14 @@
 [project]
-name = "open-source-contributor-network"
+name = "contributor-network"
 version = "0.1.0"
 description = "A visualization of contributors to projects"
 readme = "README.md"
 requires-python = ">=3.13"
-license = "MPL-2.0"
-license-files = ["LICENSE"]
-authors = [
-    { name = "Development Seed", email = "info@developmentseed.org" },
-]
-keywords = [
-    "github",
-    "contributors",
-    "visualization",
-    "d3",
-    "open-source",
-    "network",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Version Control :: Git",
-]
 dependencies = [
     "click>=8.2.1",
     "pydantic>=2.11.9",
     "pygithub>=2.8.1",
 ]
-
-[project.urls]
-Homepage = "https://developmentseed.org/contributor-network"
-Repository = "https://github.com/developmentseed/contributor-network"
 
 [project.scripts]
 contributor-network = "contributor_network.cli:main"
