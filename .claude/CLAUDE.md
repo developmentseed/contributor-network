@@ -42,9 +42,9 @@ npm run dev
 ### Fetch Data & Build
 ```bash
 export GITHUB_TOKEN="your_token_here"
-uv run contributor-network data       # Fetch from GitHub
-uv run contributor-network csvs       # Generate CSVs
-uv run contributor-network build      # Build static site (runs Vite)
+uv run contributor-network fetch      # Fetch from GitHub
+uv run contributor-network build      # Generate CSVs and config.json
+npm run build                         # Build static site to dist/ (Vite)
 ```
 
 ---
@@ -54,9 +54,8 @@ uv run contributor-network build      # Build static site (runs Vite)
 ### Development
 ```bash
 # Run CLI commands
-uv run contributor-network data             # Fetch contribution data from GitHub
-uv run contributor-network csvs             # Generate CSVs from JSON
-uv run contributor-network build            # Build static site to dist/ (runs Vite)
+uv run contributor-network fetch            # Fetch contribution data from GitHub
+uv run contributor-network build            # Generate CSVs and config.json
 uv run contributor-network discover         # Find new repositories to track
 uv run contributor-network list-contributors # Display all configured contributors
 
@@ -256,9 +255,9 @@ Configured in `src/config/theme.ts`.
 
 ### Add a New Repository to Track
 1. Edit `config.toml` - add repo to `[repositories]` section
-2. Run `uv run contributor-network data` to fetch GitHub data
-3. Run `uv run contributor-network csvs` to generate CSVs
-4. Run `uv run contributor-network build` to rebuild site
+2. Run `uv run contributor-network fetch` to fetch GitHub data
+3. Run `uv run contributor-network build` to generate CSVs and `config.json`
+4. Run `npm run build` to rebuild the static site
 
 ### Add a New Contributor
 1. Edit `config.toml` - add to `[contributors.devseed]` or `[contributors.alumni]`
