@@ -30,12 +30,10 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
       - run: npm ci
-      - name: Generate data
+      - name: Build
         env:
           PLAUSIBLE_ID: ${{ vars.PLAUSIBLE_ID }}
         run: uv run contributor-network build
-      - name: Build frontend
-        run: npm run build
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: "dist"
