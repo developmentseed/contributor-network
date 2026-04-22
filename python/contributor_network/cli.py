@@ -1,6 +1,5 @@
 import json
 import os
-import subprocess
 from collections import defaultdict
 from csv import DictWriter
 from pathlib import Path
@@ -19,12 +18,6 @@ directory = click.option(
     type=click.Path(path_type=Path),
     default=ROOT / "public" / "data",
     help="The data directory",
-)
-destination = click.option(
-    "--destination",
-    type=click.Path(path_type=Path),
-    default=ROOT / "dist",
-    help="The destination for the HTML page assets",
 )
 config = click.option(
     "-c",
@@ -105,18 +98,17 @@ def fetch(
 @main.command()
 @directory
 @config
-@destination
 @all_contributors
-def build(
-    directory: Path, config_path: str | None, destination: Path, all_contributors: bool
-) -> None:
-    """Build the HTML site."""
+def build(directory: Path, config_path: str | None, all_contributors: bool) -> None:
+    """Generate CSVs and config.json for the contributor network site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
         config.all_contributors if all_contributors else config.core_contributors
     )
     authors = list(contributors.values())
     print(f"Writing CSVs for {len(authors)} contributors")
+
+    directory.mkdir(parents=True, exist_ok=True)
 
     (directory / "top_contributors.csv").write_text(
         "\n".join(["author_name"] + authors)
@@ -142,9 +134,6 @@ def build(
         writer.writeheader()
         writer.writerows(links)
 
-    data_dest = directory
-    data_dest.mkdir(parents=True, exist_ok=True)
-
     config_json = {
         "title": config.title,
         "description": config.description,
@@ -159,14 +148,10 @@ def build(
         },
         "plausible_id": os.environ.get("PLAUSIBLE_ID", ""),
     }
-    (data_dest / "config.json").write_text(
+    (directory / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
     )
-    print(f"Generated config.json in {data_dest}")
-
-    print("Running Vite build...")
-    subprocess.run(["npm", "run", "build"], cwd=ROOT, check=True)
-    print(f"Vite build complete, output in {destination}")
+    print(f"Generated config.json in {directory}")
 
 
 @main.command()
