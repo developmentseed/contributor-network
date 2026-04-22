@@ -28,8 +28,10 @@ jobs:
       - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
       - name: Install
         run: npm ci
-      - name: Build
+      - name: Generate data
         run: uv run contributor-network build
+      - name: Build frontend
+        run: npm run build
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           path: ${{ env.DIST_DIRECTORY }}
