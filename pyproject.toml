@@ -1,5 +1,5 @@
 [project]
-name = "contributor-network"
+name = "open-source-contributor-network"
 version = "0.1.0"
 description = "A visualization of contributors to projects"
 readme = "README.md"
