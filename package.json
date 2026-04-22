@@ -1,8 +1,17 @@
 {
-  "name": "contributor-network-frontend",
-  "version": "2.0.0",
+  "name": "@developmentseed/open-source-contributor-network",
+  "version": "0.1.0",
   "description": "Frontend visualization for the Contributor Network",
   "type": "module",
+  "files": [
+    "dist",
+    "!dist/data",
+    "public/css",
+    "public/img"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
