@@ -5,6 +5,7 @@
   "type": "module",
   "files": [
     "dist",
+    "!dist/data",
     "public/css",
     "public/img"
   ],
