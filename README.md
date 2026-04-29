@@ -6,6 +6,20 @@ The code behind <https://developmentseed.org/contributor-network>.
 
 This visual is derived from the excellent [ORCA top-contributor-network](https://github.com/nbremer/ORCA/tree/main/top-contributor-network) by Nadieh Bremer.
 
+## Install the CLI
+
+The `contributor-network` Python CLI can be installed directly from this repository:
+
+```sh
+uv tool install git+https://github.com/developmentseed/contributor-network
+```
+
+Or with `pip`:
+
+```sh
+pip install git+https://github.com/developmentseed/contributor-network
+```
+
 ## Usage
 
 To view the site locally with hot module replacement:
