@@ -6,6 +6,20 @@ The code behind <https://developmentseed.org/contributor-network>.
 
 This visual is derived from the excellent [ORCA top-contributor-network](https://github.com/nbremer/ORCA/tree/main/top-contributor-network) by Nadieh Bremer.
 
+## Install the CLI
+
+The `contributor-network` Python CLI can be installed directly from this repository:
+
+```sh
+uv tool install git+https://github.com/developmentseed/contributor-network
+```
+
+Or with `pip`:
+
+```sh
+pip install git+https://github.com/developmentseed/contributor-network
+```
+
 ## Usage
 
 To view the site locally with hot module replacement:
@@ -23,10 +37,11 @@ uv sync
 npm install
 ```
 
-If you've only made changes to the frontend, you can rebuild the site with:
+The build is split into two steps: `contributor-network build` generates the CSVs and `config.json` into `public/data/`, and `npm run build` runs Vite to produce the final static site in `dist/`.
 
 ```sh
-uv run contributor-network build
+uv run contributor-network build    # generate data
+npm run build                       # build the static site
 ```
 
 If you've changed the config and need to re-fetch data from the Github API, run this (warning, this takes a while):
@@ -66,10 +81,13 @@ uv run contributor-network discover --min-contributors 2
 # 4. Fetch data from GitHub
 uv run contributor-network fetch
 
-# 5. Build the site
+# 5. Generate data files
 uv run contributor-network build
 
-# 6. Preview locally
+# 6. Build the static site
+npm run build
+
+# 7. Preview locally
 npm run preview
 ```
 

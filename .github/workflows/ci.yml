@@ -29,5 +29,7 @@ jobs:
         run: npm run typecheck
       - name: Test (TypeScript)
         run: npm test
-      - name: Build
+      - name: Generate data
         run: uv run contributor-network build
+      - name: Build frontend
+        run: npm run build
