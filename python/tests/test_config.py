@@ -10,7 +10,10 @@ def test_config() -> None:
 def test_config_meta_fields_have_defaults():
     config = Config.from_toml(Path(__file__).parents[2] / "config.toml")
     assert config.og_url == "https://developmentseed.org/contributor-network/"
-    assert config.og_image == "https://developmentseed.org/contributor-network/site-image.jpg"
+    assert (
+        config.og_image
+        == "https://developmentseed.org/contributor-network/site-image.jpg"
+    )
     assert config.theme_color == "#CF3F02"
 
 
