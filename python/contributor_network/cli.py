@@ -6,10 +6,13 @@ from pathlib import Path
 
 import click
 from github import Auth, Github
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .client import Client
 from .config import Config
 from .models import Link, Repository
+
+TEMPLATES_DIR = Path(__file__).absolute().parent / "templates"
 
 ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
@@ -147,14 +150,26 @@ def build(directory: Path, config_path: str | None, all_contributors: bool) -> N
             "text_color": config.branding.text_color,
         },
         "plausible_id": os.environ.get("PLAUSIBLE_ID", ""),
-        "og_url": config.og_url,
-        "og_image": config.og_image,
-        "theme_color": config.resolved_theme_color,
     }
     (directory / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
     )
     print(f"Generated config.json in {directory}")
+
+    env = Environment(
+        loader=FileSystemLoader(TEMPLATES_DIR),
+        autoescape=select_autoescape(["html", "j2"]),
+    )
+    template = env.get_template("index.html.j2")
+    rendered = template.render(
+        organization_name=config.organization_name,
+        description=config.description,
+        og_url=config.og_url,
+        og_image=config.og_image,
+        theme_color=config.resolved_theme_color,
+    )
+    (ROOT / "index.html").write_text(rendered)
+    print(f"Generated index.html at {ROOT / 'index.html'}")
 
 
 @main.command()

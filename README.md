@@ -127,7 +127,7 @@ The following `config.toml` fields populate `<meta>` tags in `index.html` at bui
 - `og_image` — the URL to the social-share image (used in `og:image`)
 - `theme_color` — the browser theme color (used in `<meta name="theme-color">`); defaults to `branding.primary_color` if unset
 
-Forks of this repo can override these without modifying `index.html`.
+`index.html` is rendered from [`python/contributor_network/templates/index.html.j2`](./python/contributor_network/templates/index.html.j2) by `contributor-network build` and is gitignored. To change page structure, edit the template (not the generated file). Forks can override the meta-tag values without modifying the template.
 
 ## Branding
 

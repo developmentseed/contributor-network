@@ -1,5 +1,4 @@
 import { defineConfig } from "vite";
-import { templateHtml } from "./vite.plugin-template-html";
 
 export default defineConfig({
   root: ".",
@@ -13,5 +12,4 @@ export default defineConfig({
   server: {
     port: 8000,
   },
-  plugins: [templateHtml()],
 });
