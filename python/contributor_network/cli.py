@@ -147,6 +147,9 @@ def build(directory: Path, config_path: str | None, all_contributors: bool) -> N
             "text_color": config.branding.text_color,
         },
         "plausible_id": os.environ.get("PLAUSIBLE_ID", ""),
+        "og_url": config.og_url,
+        "og_image": config.og_image,
+        "theme_color": config.resolved_theme_color,
     }
     (directory / "config.json").write_text(
         json.dumps(config_json, indent=2, ensure_ascii=False)
