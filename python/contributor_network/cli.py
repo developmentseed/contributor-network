@@ -6,13 +6,31 @@ from pathlib import Path
 
 import click
 from github import Auth, Github
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from .client import Client
 from .config import Config
 from .models import Link, Repository
 
 TEMPLATES_DIR = Path(__file__).absolute().parent / "templates"
+
+
+def render_index_html(config: Config) -> str:
+    """Render the index.html template from a Config."""
+    env = Environment(
+        loader=FileSystemLoader(TEMPLATES_DIR),
+        autoescape=True,
+        undefined=StrictUndefined,
+    )
+    template = env.get_template("index.html.j2")
+    return template.render(
+        organization_name=config.organization_name,
+        description=config.description,
+        og_url=config.og_url,
+        og_image=config.og_image,
+        theme_color=config.resolved_theme_color,
+    )
+
 
 ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
@@ -156,19 +174,7 @@ def build(directory: Path, config_path: str | None, all_contributors: bool) -> N
     )
     print(f"Generated config.json in {directory}")
 
-    env = Environment(
-        loader=FileSystemLoader(TEMPLATES_DIR),
-        autoescape=select_autoescape(["html", "j2"]),
-    )
-    template = env.get_template("index.html.j2")
-    rendered = template.render(
-        organization_name=config.organization_name,
-        description=config.description,
-        og_url=config.og_url,
-        og_image=config.og_image,
-        theme_color=config.resolved_theme_color,
-    )
-    (ROOT / "index.html").write_text(rendered)
+    (ROOT / "index.html").write_text(render_index_html(config))
     print(f"Generated index.html at {ROOT / 'index.html'}")
 
 
