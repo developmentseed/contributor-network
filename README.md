@@ -129,7 +129,7 @@ The following `config.toml` fields populate `<meta>` tags in `index.html` at bui
 
 `index.html` is rendered from [`python/contributor_network/templates/index.html.j2`](./python/contributor_network/templates/index.html.j2) by `contributor-network build` and is gitignored. To change page structure, edit the template (not the generated file). Forks can override the meta-tag values without modifying the template.
 
-By default `contributor-network build` writes `index.html` and `public/data/` relative to the current working directory; pass `--html-output <path>` and `--directory <path>` to override. This lets downstream consumers (e.g. site forks) install the package and run the build from any working tree.
+`contributor-network build` writes `index.html` and `public/data/` relative to the current working directory (pass `--directory <path>` to relocate the data files). This lets downstream consumers (e.g. site forks) install the package and run the build from any working tree.
 
 ## Branding
 
