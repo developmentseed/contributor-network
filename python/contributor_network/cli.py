@@ -37,13 +37,13 @@ directory = click.option(
     "--directory",
     type=click.Path(path_type=Path),
     default=Path("public") / "data",
-    help="The data directory (relative paths are resolved against the current working directory)",
+    help="The data directory (resolved against cwd if relative)",
 )
 html_output = click.option(
     "--html-output",
     type=click.Path(path_type=Path),
     default=Path("index.html"),
-    help="Where to write the rendered index.html (relative paths are resolved against the current working directory)",
+    help="Where to write the rendered index.html (resolved against cwd if relative)",
 )
 config = click.option(
     "-c",
