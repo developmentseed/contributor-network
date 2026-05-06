@@ -119,6 +119,16 @@ Edit `config.toml` to configure:
 - **contributors.devseed**: Current DevSeed employees (format: `github_username = "Display Name"`)
 - **contributors.alumni**: Friends and alumni (commented out by default)
 
+### SEO / meta tags
+
+The following `config.toml` fields populate `<meta>` tags in `index.html` at build time:
+
+- `og_url` — the canonical URL for the deployed site (used in `og:url`)
+- `og_image` — the URL to the social-share image (used in `og:image`)
+- `theme_color` — the browser theme color (used in `<meta name="theme-color">`); defaults to `branding.primary_color` if unset
+
+`index.html` is rendered from [`python/contributor_network/templates/index.html.j2`](./python/contributor_network/templates/index.html.j2) by `contributor-network build` and is gitignored. To change page structure, edit the template (not the generated file). Forks can override the meta-tag values without modifying the template.
+
 ## Branding
 
 This visualization uses the Development Seed brand colors:

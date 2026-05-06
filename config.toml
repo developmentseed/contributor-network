@@ -3,6 +3,9 @@ title = "The Development Seed Contributor Network"
 description = "An interactive visualization of contributors to Development Seed code and their connections to other repositories"
 organization_name = "Development Seed"
 organization_nickname = "DevSeed"
+og_url = "https://developmentseed.org/contributor-network/"
+og_image = "https://developmentseed.org/contributor-network/site-image.jpg"
+theme_color = "#CF3F02"
 
 # Repositories
 repositories = [

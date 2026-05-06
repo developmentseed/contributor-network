@@ -47,6 +47,14 @@ class Config(BaseModel):
     contributors: dict[str, dict[str, str]]  # Nested: {"core": {...}, "alumni": {...}}
     contributor_padding: int = 40
     branding: BrandingConfig = BrandingConfig()
+    og_url: str = ""
+    og_image: str = ""
+    theme_color: str = ""
+
+    @property
+    def resolved_theme_color(self) -> str:
+        """Theme color falls back to branding.primary_color when unset."""
+        return self.theme_color or self.branding.primary_color
 
     @property
     def core_contributors(self) -> dict[str, str]:
