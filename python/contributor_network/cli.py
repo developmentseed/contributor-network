@@ -32,13 +32,18 @@ def render_index_html(config: Config) -> str:
     )
 
 
-ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
 directory = click.option(
     "--directory",
     type=click.Path(path_type=Path),
-    default=ROOT / "public" / "data",
-    help="The data directory",
+    default=Path("public") / "data",
+    help="The data directory (relative paths are resolved against the current working directory)",
+)
+html_output = click.option(
+    "--html-output",
+    type=click.Path(path_type=Path),
+    default=Path("index.html"),
+    help="Where to write the rendered index.html (relative paths are resolved against the current working directory)",
 )
 config = click.option(
     "-c",
@@ -118,9 +123,15 @@ def fetch(
 
 @main.command()
 @directory
+@html_output
 @config
 @all_contributors
-def build(directory: Path, config_path: str | None, all_contributors: bool) -> None:
+def build(
+    directory: Path,
+    html_output: Path,
+    config_path: str | None,
+    all_contributors: bool,
+) -> None:
     """Generate CSVs and config.json for the contributor network site."""
     config = Config.from_toml(config_path or DEFAULT_CONFIG_PATH)
     contributors = (
@@ -174,8 +185,9 @@ def build(directory: Path, config_path: str | None, all_contributors: bool) -> N
     )
     print(f"Generated config.json in {directory}")
 
-    (ROOT / "index.html").write_text(render_index_html(config))
-    print(f"Generated index.html at {ROOT / 'index.html'}")
+    html_output.parent.mkdir(parents=True, exist_ok=True)
+    html_output.write_text(render_index_html(config))
+    print(f"Generated index.html at {html_output}")
 
 
 @main.command()
