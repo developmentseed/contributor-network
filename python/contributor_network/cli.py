@@ -32,13 +32,12 @@ def render_index_html(config: Config) -> str:
     )
 
 
-ROOT = Path(__file__).absolute().parents[2]
 DEFAULT_CONFIG_PATH = "config.toml"
 directory = click.option(
     "--directory",
     type=click.Path(path_type=Path),
-    default=ROOT / "public" / "data",
-    help="The data directory",
+    default=Path("public") / "data",
+    help="The data directory (resolved against cwd if relative)",
 )
 config = click.option(
     "-c",
@@ -174,8 +173,9 @@ def build(directory: Path, config_path: str | None, all_contributors: bool) -> N
     )
     print(f"Generated config.json in {directory}")
 
-    (ROOT / "index.html").write_text(render_index_html(config))
-    print(f"Generated index.html at {ROOT / 'index.html'}")
+    index_html = Path("index.html")
+    index_html.write_text(render_index_html(config))
+    print(f"Generated index.html at {index_html}")
 
 
 @main.command()
