@@ -33,7 +33,7 @@ Daniel da Silva,wri/project-zeno-next,61,1752051054,1757948910,68,False
 Lane Goodman,wri/project-zeno-next,289,1757951299,1773347021,178,True
 Vitor George,wri/project-zeno-next,98,1753186381,1757585569,50,False
 Daniel Wiesmann,wri/gnw-evals,57,1767701199,1779351965,134,True
-Sanjay Bhangar,wri/project-zeno-deploy,300,1744033221,1779880209,414,True
+Sanjay Bhangar,wri/project-zeno-deploy,302,1744033221,1780309202,419,True
 Soumya Ranjan Mohanty,wri/project-zeno-deploy,9,1737648197,1775044203,432,True
 Sajjad Anwar,wri/project-zeno-deploy,1,1752146774,1752146774,0,False
 Tarashish Mishra,wri/project-zeno-deploy,87,1730898390,1769605493,447,False
@@ -57,7 +57,7 @@ Wille Marcel,OSMCha/osmcha-frontend,428,1497643026,1747673939,2893,False
 Max Jones,pydata/xarray,4,1701152983,1775756461,863,True
 Chuck Daniels,pydata/xarray,1,1739927499,1739927499,0,False
 Julia Signell,pydata/xarray,19,1470952465,1757957411,0,False
-Davis Bennett,pydata/xarray,2,1734538780,1748573517,0,False
+Davis Bennett,pydata/xarray,4,1734538780,1779299653,518,True
 Wei Ji,pydata/xarray,2,1600753230,1669911502,800,False
 Chris Holden,pydata/xarray,1,1508878389,1508878389,0,False
 Jonas,pydata/xarray,2,1482167517,1517536906,409,False
@@ -77,6 +77,7 @@ Jonas Sølvsteen,EOPF-Explorer/narratives,3,1768847965,1776767722,91,True
 Emmanuel Mathot,EOPF-Explorer/narratives,27,1759347919,1773071472,158,True
 Loïc Houpert,EOPF-Explorer/narratives,4,1775055972,1775074667,0,True
 Max Jones,EOPF-Explorer/data-model,1,1771528424,1771528424,0,False
+Davis Bennett,EOPF-Explorer/data-model,150,1753689546,1778577373,288,True
 Emmanuel Mathot,EOPF-Explorer/data-model,87,1753302330,1778592195,292,True
 Loïc Houpert,EOPF-Explorer/data-model,23,1768320790,1778579902,118,True
 Jonas Sølvsteen,EOPF-Explorer/landing-page,12,1752572293,1777974598,294,True
@@ -257,10 +258,11 @@ Chuck Daniels,zarr-developers/VirtualiZarr,15,1737669610,1773087075,409,True
 Julia Signell,zarr-developers/VirtualiZarr,8,1715356253,1739305075,0,False
 Aimee Barciauskas,zarr-developers/VirtualiZarr,11,1711745143,1774646421,728,True
 Sean Harkins,zarr-developers/VirtualiZarr,10,1731977996,1756912873,288,False
+Davis Bennett,zarr-developers/pydantic-zarr,332,1685480114,1777491873,1064,True
 Max Jones,zarr-developers/zarr-python,51,1707319296,1778035588,818,True
 Chuck Daniels,zarr-developers/zarr-python,6,1778034029,1779827010,20,True
 Julia Signell,zarr-developers/zarr-python,1,1751903076,1751903076,0,False
-Davis Bennett,zarr-developers/zarr-python,116,1606170143,1759263762,0,False
+Davis Bennett,zarr-developers/zarr-python,197,1606170143,1779466058,2005,True
 Kyle Barron,zarr-developers/zarr-python,2,1742833832,1745236023,27,False
 Zac Deziel,sentinel-hub/titiler-openeo,9,1764028126,1770475153,74,False
 Vincent Sarago,sentinel-hub/titiler-openeo,102,1733137677,1775039853,484,True
