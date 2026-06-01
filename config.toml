@@ -36,6 +36,7 @@ repositories = [
     "geoarrow/geoarrow-rs",
     "geoarrow/deck.gl-layers",
     "geoarrow/geoarrow",
+    "zarr-developers/pydantic-zarr",
     "zarr-developers/VirtualiZarr",
     "zarr-developers/zarr-python",
     "pydata/xarray",
@@ -113,6 +114,7 @@ chuckwondo = "Chuck Daniels"
 ciaransweet = "Ciaran Sweet"
 danielfdsilva = "Daniel da Silva"
 dannybauman = "Danny Bauman"
+d-v-b = "Davis Bennett"
 dzole0311 = "Gjore Milevski"
 emmalu = "Emma Paz"
 emmanuelmathot = "Emmanuel Mathot"
