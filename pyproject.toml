@@ -17,7 +17,7 @@ contributor-network = "contributor_network.cli:main"
 [dependency-groups]
 dev = [
     "mypy>=1.18.1",
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
     "ruff>=0.13.0",
 ]
 
