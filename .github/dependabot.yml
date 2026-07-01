@@ -8,10 +8,33 @@ updates:
       interval: "weekly"
       day: "monday"
     groups:
-      minor-and-patch:
+      github-actions:
         applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      npm:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "uv"
+    directory: "/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      uv:
+        applies-to: version-updates
+        patterns:
+          - "*"
