@@ -4,12 +4,12 @@ import { createOrgDropdown } from '../ui/orgDropdown';
 
 describe('createOrgDropdown', () => {
   let container: HTMLDivElement;
-  let onFilterChange: ReturnType<typeof vi.fn>;
+  let onFilterChange: ReturnType<typeof vi.fn<(org: string, enabled: boolean) => void>>;
 
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    onFilterChange = vi.fn();
+    onFilterChange = vi.fn<(org: string, enabled: boolean) => void>();
   });
 
   afterEach(() => {
@@ -140,7 +140,7 @@ describe('destroy', () => {
     const dropdown = createOrgDropdown({
       container,
       organizations: ['alpha'],
-      onFilterChange: vi.fn(),
+      onFilterChange: vi.fn<(org: string, enabled: boolean) => void>(),
     });
     expect(container.querySelector('[aria-haspopup="listbox"]')).not.toBeNull();
     dropdown.destroy();
@@ -151,12 +151,12 @@ describe('destroy', () => {
 
 describe('keyboard navigation', () => {
   let container: HTMLDivElement;
-  let onFilterChange: ReturnType<typeof vi.fn>;
+  let onFilterChange: ReturnType<typeof vi.fn<(org: string, enabled: boolean) => void>>;
 
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    onFilterChange = vi.fn();
+    onFilterChange = vi.fn<(org: string, enabled: boolean) => void>();
     createOrgDropdown({
       container,
       organizations: ['alpha', 'beta', 'gamma'],
