@@ -110,19 +110,23 @@ activity_rows = []
 for link_file in links_dir.glob("*.json"):
     link = Link.model_validate_json(link_file.read_text())
     for month, count in link.commit_histogram.items():
-        activity_rows.append({
-            "author_name": link.author_name,
-            "repo": link.repo,
-            "month": month,
-            "commit_count": count,
-        })
+        activity_rows.append(
+            {
+                "author_name": link.author_name,
+                "repo": link.repo,
+                "month": month,
+                "commit_count": count,
+            }
+        )
 
 # Sort for readability
 activity_rows.sort(key=lambda r: (r["author_name"], r["repo"], r["month"]))
 
 # Write CSV
 with open(output_dir / "commit_activity.csv", "w", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=["author_name", "repo", "month", "commit_count"])
+    writer = csv.DictWriter(
+        f, fieldnames=["author_name", "repo", "month", "commit_count"]
+    )
     writer.writeheader()
     writer.writerows(activity_rows)
 ```

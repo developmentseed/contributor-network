@@ -71,16 +71,16 @@
 
 ```python
 # models.py - Repository additions
-repo_watchers: int              # repo.subscribers_count
-repo_open_issues: int           # repo.open_issues_count
-repo_license: str | None        # repo.license.spdx_id if repo.license else None
-repo_topics: str                # ",".join(repo.get_topics())
-repo_has_discussions: bool      # repo.has_discussions
-repo_archived: bool             # repo.archived
+repo_watchers: int  # repo.subscribers_count
+repo_open_issues: int  # repo.open_issues_count
+repo_license: str | None  # repo.license.spdx_id if repo.license else None
+repo_topics: str  # ",".join(repo.get_topics())
+repo_has_discussions: bool  # repo.has_discussions
+repo_archived: bool  # repo.archived
 
 # models.py - Link additions (computed)
-contribution_span_days: int     # (commit_sec_max - commit_sec_min) // 86400
-is_recent_contributor: bool     # commit_sec_max > (now - 90 days).timestamp()
+contribution_span_days: int  # (commit_sec_max - commit_sec_min) // 86400
+is_recent_contributor: bool  # commit_sec_max > (now - 90 days).timestamp()
 ```
 
 ---
@@ -114,7 +114,8 @@ is_recent_contributor: bool     # commit_sec_max > (now - 90 days).timestamp()
 repo_total_contributors: int
 repo_devseed_contributors: int
 repo_external_contributors: int
-repo_community_ratio: float     # external / total
+repo_community_ratio: float  # external / total
+
 
 # client.py - new method
 def get_contributor_stats(self, repo: Repo, devseed_usernames: set[str]) -> dict:
@@ -125,7 +126,7 @@ def get_contributor_stats(self, repo: Repo, devseed_usernames: set[str]) -> dict
         "total": total,
         "devseed": devseed,
         "external": total - devseed,
-        "ratio": (total - devseed) / total if total > 0 else 0
+        "ratio": (total - devseed) / total if total > 0 else 0,
     }
 ```
 
@@ -165,21 +166,24 @@ GitHub pre-computes repository statistics and caches them. First request may ret
 # Weekly commit activity (repo-level)
 weekly_commits: list[WeeklyCommit]  # stored as JSON string in CSV
 
+
 class WeeklyCommit(BaseModel):
-    week: int           # Unix timestamp (start of week)
-    total: int          # Total commits that week
-    days: list[int]     # Commits per day [Sun, Mon, ..., Sat]
+    week: int  # Unix timestamp (start of week)
+    total: int  # Total commits that week
+    days: list[int]  # Commits per day [Sun, Mon, ..., Sat]
+
 
 # Participation split (repo-level)
 class ParticipationStats(BaseModel):
     owner_total: int
     community_total: int
-    owner_weekly: list[int]     # 52 weeks
-    community_weekly: list[int] # 52 weeks
+    owner_weekly: list[int]  # 52 weeks
+    community_weekly: list[int]  # 52 weeks
+
 
 # Contributor timeline (link-level)
 class ContributorWeeklyStats(BaseModel):
-    week: int           # Unix timestamp
+    week: int  # Unix timestamp
     commits: int
     additions: int
     deletions: int
@@ -191,13 +195,14 @@ class ContributorWeeklyStats(BaseModel):
 # client.py - with retry logic for stats API
 import time
 
+
 def get_stats_with_retry(self, repo: Repo, stat_method: str, max_retries: int = 3):
     """GitHub stats API returns 202 while computing. Retry until ready."""
     for attempt in range(max_retries):
         result = getattr(repo, stat_method)()
         if result is not None:
             return result
-        time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+        time.sleep(2**attempt)  # Exponential backoff: 1s, 2s, 4s
     return None
 ```
 
@@ -239,9 +244,7 @@ def get_stats_with_retry(self, repo: Repo, stat_method: str, max_retries: int = 
 # Use search API for contributor PR/issue counts
 def get_contributor_activity(self, username: str, repo_full_name: str) -> dict:
     # PRs authored in this repo
-    prs = self.github.search_issues(
-        f"repo:{repo_full_name} author:{username} type:pr"
-    )
+    prs = self.github.search_issues(f"repo:{repo_full_name} author:{username} type:pr")
 
     # Issues authored in this repo
     issues = self.github.search_issues(
