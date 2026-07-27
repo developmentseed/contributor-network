@@ -18,7 +18,7 @@ contributor-network = "contributor_network.cli:main"
 dev = [
     "mypy>=2.2.0",
     "pytest>=9.1.1",
-    "ruff>=0.15.21",
+    "ruff>=0.16.0",
 ]
 
 [tool.mypy]
