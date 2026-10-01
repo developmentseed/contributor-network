@@ -81,7 +81,7 @@ repositories = [
     "stac-utils/rustac",
     "stac-utils/stac-fastapi",
     "stac-utils/stac-fastapi-pgstac",
-    "stac-utils/xpystac"
+    "stac-utils/xpystac",
     "virtual-zarr/obspec-utils",
     "wri/gnw-evals",
     "wri/gnw-stac",
