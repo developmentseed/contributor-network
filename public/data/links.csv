@@ -1,6 +1,6 @@
 author_name,repo,commit_count,commit_sec_min,commit_sec_max,contribution_span_days,is_recent_contributor
 Max Jones,EOPF-Explorer/data-model,1,1771528424,1771528424,0,False
-Emmanuel Mathot,EOPF-Explorer/data-model,96,1753302330,1790675143,432,True
+Emmanuel Mathot,EOPF-Explorer/data-model,98,1753302330,1790890012,435,True
 Loïc Houpert,EOPF-Explorer/data-model,28,1768320790,1790595001,257,True
 Davis Bennett,EOPF-Explorer/data-model,153,1753689546,1786446222,379,True
 Emmanuel Mathot,EOPF-Explorer/landing-page,44,1758807189,1773048483,164,False
@@ -14,7 +14,7 @@ Loïc Houpert,EOPF-Explorer/titiler-eopf,53,1774459229,1790759427,188,True
 Ciaran Sweet,EOPF-Explorer/titiler-eopf,4,1758209812,1764856772,76,False
 Vincent Sarago,EOPF-Explorer/titiler-eopf,163,1753801074,1788869469,405,True
 Emmanuel Mathot,EOPF-Explorer/data-pipeline,38,1762329424,1772469582,117,False
-Loïc Houpert,EOPF-Explorer/data-pipeline,103,1763745677,1790863279,313,True
+Loïc Houpert,EOPF-Explorer/data-pipeline,105,1763745677,1790930909,314,True
 Ciaran Sweet,EOPF-Explorer/data-pipeline,1,1763657226,1763657226,0,False
 Anthony Lukach,EOEPCA/eoepca-plus,21,1772225418,1778215720,69,False
 Emmanuel Mathot,EOEPCA/eoepca-plus,3,1748355200,1748359525,0,False
@@ -50,7 +50,7 @@ Julia Signell,NASA-IMPACT/veda-config,1,1690379299,1690379299,0,False
 Chris Holden,NASA-IMPACT/csda-client,4,1735940802,1784731636,564,True
 Camille Owens,NASA-IMPACT/csda-client,3,1775606726,1779292806,42,False
 Anthony Lukach,NASA-IMPACT/csda-client,28,1595868006,1646770752,589,False
-Jamison French,NASA-IMPACT/csda-client,1,1783360058,1783360058,0,True
+Jamison French,NASA-IMPACT/csda-client,1,1783360058,1783360058,0,False
 Pete Gadomski,NASA-IMPACT/csda-client,19,1748012046,1785938017,438,True
 Loïc Houpert,NASA-IMPACT/csda-client,1,1775146723,1775146723,0,False
 Emma Paz,NASA-IMPACT/csda-client,2,1755729576,1771423290,181,False
@@ -67,7 +67,7 @@ Gjore Milevski,NASA-IMPACT/veda-keycloak,5,1786637908,1789401654,31,True
 Alex I. Mandel,NASA-IMPACT/veda-keycloak,1,1743788679,1743788679,0,False
 Sandra Hoang,NASA-IMPACT/veda-data-airflow,12,1750882224,1790276509,455,True
 Jennifer Tran,NASA-IMPACT/veda-data-airflow,110,1711566495,1790013552,907,True
-Jamison French,NASA-IMPACT/veda-data-airflow,3,1697570219,1721158915,273,False
+Jamison French,NASA-IMPACT/veda-data-airflow,4,1697570219,1790889875,1080,True
 Saadiq Mohiuddin,NASA-IMPACT/veda-data-airflow,157,1678389224,1781543681,1193,False
 Pete Gadomski,NASA-IMPACT/veda-data-airflow,1,1696881846,1696881846,0,False
 Ali Z,NASA-IMPACT/veda-data-airflow,22,1754682851,1784136821,340,True
@@ -156,7 +156,7 @@ Pete Gadomski,stac-utils/pystac,239,1615497591,1785876455,1971,True
 Kyle Barron,stac-utils/pystac,7,1610151341,1613761072,41,False
 Vincent Sarago,stac-utils/pystac,2,1628972729,1689184958,696,False
 Alex I. Mandel,stac-utils/pystac,1,1686229285,1686229285,0,False
-Julia Signell,stac-utils/pystac,100,1673540508,1775245650,1177,False
+Julia Signell,stac-utils/pystac,101,1673540508,1790891467,1358,True
 Brendan McAndrew,stac-utils/pystac,5,1697718500,1744729382,544,False
 Henry Rodman,stac-utils/rustac,3,1763493312,1782402824,218,False
 Pete Gadomski,stac-utils/rustac,1045,1635861187,1790687478,1791,True
@@ -198,7 +198,7 @@ Emmanuel Mathot,eopf-toolkit/eopf-101,8,1747939515,1775737251,321,False
 Loïc Houpert,eopf-toolkit/eopf-101,6,1764085986,1774522759,120,False
 Ciaran Sweet,eopf-toolkit/eopf-101,49,1748965625,1778149455,337,False
 xıʃǝɟ,eopf-toolkit/eopf-101,18,1747127956,1775845333,332,False
-Emmanuel Mathot,sentinel-hub/titiler-openeo,335,1730291637,1788515279,673,True
+Emmanuel Mathot,sentinel-hub/titiler-openeo,337,1730291637,1790939637,701,True
 Loïc Houpert,sentinel-hub/titiler-openeo,2,1768424467,1774519135,70,False
 Zac Deziel,sentinel-hub/titiler-openeo,9,1764028126,1770475153,74,False
 Vincent Sarago,sentinel-hub/titiler-openeo,102,1733137677,1775039853,484,False
@@ -259,7 +259,7 @@ Zac Deziel,MAAP-Project/maap-documentation,5,1733945016,1734714130,8,False
 Alex I. Mandel,MAAP-Project/maap-documentation,67,1604012166,1765906071,1873,False
 Henry Rodman,MAAP-Project/maap-eoapi,49,1725547779,1790698640,754,True
 Jamison French,MAAP-Project/maap-eoapi,55,1692618197,1788899057,1114,True
-Anthony Lukach,source-cooperative/source.coop,507,1743794422,1790836864,544,True
+Anthony Lukach,source-cooperative/source.coop,535,1743794422,1791041137,546,True
 Chris Holmes,opengeospatial/geoparquet,38,1627926627,1752522610,0,False
 Matthias Mohr,opengeospatial/geoparquet,10,1670261363,1724597606,0,False
 Kyle Barron,opengeospatial/geoparquet,13,1650344789,1717227830,774,False
@@ -343,7 +343,7 @@ Aimee Barciauskas,developmentseed/titiler-cmr,207,1705427308,1770999745,758,Fals
 Isayah Vidito,developmentseed/titiler-cmr,2,1764026104,1764032487,0,False
 Vincent Sarago,developmentseed/titiler-cmr,67,1705495578,1711118618,65,False
 Sanjay Bhangar,developmentseed/stac-auth-proxy,2,1744962679,1779890600,404,False
-Anthony Lukach,developmentseed/stac-auth-proxy,258,1732818735,1784676256,600,True
+Anthony Lukach,developmentseed/stac-auth-proxy,260,1732818735,1790998521,673,True
 Pete Gadomski,developmentseed/stac-auth-proxy,1,1753389655,1753389655,0,False
 Loïc Houpert,developmentseed/stac-auth-proxy,5,1776977477,1790786234,159,True
 Vincent Sarago,developmentseed/stac-auth-proxy,7,1782762106,1790060566,84,True
@@ -352,7 +352,7 @@ Max Jones,developmentseed/geotiff-test-data,1,1772727555,1772727555,0,False
 Pete Gadomski,developmentseed/geotiff-test-data,3,1770135754,1772030069,21,False
 Wei Ji,developmentseed/geotiff-test-data,1,1771965306,1771965306,0,False
 Loïc Houpert,developmentseed/geotiff-test-data,1,1775228963,1775228963,0,False
-Kyle Barron,developmentseed/geotiff-test-data,27,1769139485,1790357092,245,True
+Kyle Barron,developmentseed/geotiff-test-data,29,1769139485,1790893936,251,True
 Vincent Sarago,developmentseed/geotiff-test-data,7,1772121615,1772312862,2,False
 Henry Rodman,developmentseed/morecantile,1,1758815692,1758815692,0,False
 Jeff Albrecht,developmentseed/morecantile,7,1589066053,1589775178,0,False
@@ -406,7 +406,7 @@ Loïc Houpert,developmentseed/lonboard,1,1775263950,1775263950,0,False
 Aimee Barciauskas,developmentseed/lonboard,5,1695751913,1700690513,57,False
 Emma Paz,developmentseed/lonboard,4,1704982856,1708978921,46,False
 Vitor George,developmentseed/lonboard,15,1697555970,1765456518,785,False
-Kyle Barron,developmentseed/lonboard,493,1693518811,1790794965,1125,True
+Kyle Barron,developmentseed/lonboard,497,1693518811,1790948922,1127,True
 Wille Marcel,developmentseed/lonboard,2,1714083457,1730901566,194,False
 Vincent Sarago,developmentseed/lonboard,1,1697573619,1697573619,0,False
 Martha Morrissey,developmentseed/pixelverse,39,1760647546,1772133970,132,False
@@ -436,7 +436,7 @@ Sanjay Bhangar,wri/project-zeno-deploy,319,1744033221,1788501760,514,True
 Tarashish Mishra,wri/project-zeno-deploy,87,1730898390,1769605493,447,False
 Sajjad Anwar,wri/project-zeno-deploy,1,1752146774,1752146774,0,False
 Soumya Ranjan Mohanty,wri/project-zeno-deploy,9,1737648197,1775044203,432,False
-Daniel Wiesmann,wri/project-zeno-deploy,222,1732809231,1790863261,671,True
+Daniel Wiesmann,wri/project-zeno-deploy,225,1732809231,1790935016,672,True
 Daniel Wiesmann,wri/gnw-evals,85,1767701199,1785348871,204,True
 Sanjay Bhangar,wri/project-zeno-next,9,1755774325,1780659127,288,False
 Tarashish Mishra,wri/project-zeno-next,3,1754284778,1758280250,46,False
@@ -456,14 +456,14 @@ Tarashish Mishra,wri/project-zeno,70,1732519462,1777282765,518,False
 Sajjad Anwar,wri/project-zeno,20,1752062504,1755174278,36,False
 Wille Marcel,wri/project-zeno,17,1753351198,1754642539,14,False
 Soumya Ranjan Mohanty,wri/project-zeno,154,1730967389,1784025587,614,True
-Daniel Wiesmann,wri/project-zeno,1054,1731514111,1790863144,686,True
+Daniel Wiesmann,wri/project-zeno,1055,1731514111,1790934852,687,True
 Daniel Wiesmann,wri/gnw-stac,5,1768558266,1768560014,0,False
 Jonas Sølvsteen,ecmwf/qubed,4,1762531179,1762762832,2,False
 Chuck Daniels,zarr-developers/zarr-python,7,1778034029,1781172374,36,False
 Max Jones,zarr-developers/zarr-python,61,1707319296,1790317278,960,True
 Loïc Houpert,zarr-developers/zarr-python,1,1780392772,1780392772,0,False
 Kyle Barron,zarr-developers/zarr-python,2,1742833832,1745236023,27,False
-Davis Bennett,zarr-developers/zarr-python,341,1606170143,1790870492,2137,True
+Davis Bennett,zarr-developers/zarr-python,346,1606170143,1791053169,2139,True
 Julia Signell,zarr-developers/zarr-python,1,1751903076,1751903076,0,False
 Davis Bennett,zarr-developers/pydantic-zarr,348,1685480114,1785914781,1162,True
 Chuck Daniels,zarr-developers/VirtualiZarr,15,1737669610,1773087075,409,False
