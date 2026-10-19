@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "click>=8.5.0",
     "jinja2>=3.1.4",
-    "pydantic>=2.13.5",
+    "pydantic>=2.14.1",
     "pygithub>=2.10.0",
 ]
 
@@ -16,9 +16,9 @@ contributor-network = "contributor_network.cli:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=2.3.1",
+    "mypy>=2.4.0",
     "pytest>=9.1.1",
-    "ruff>=0.16.9",
+    "ruff>=0.17.0",
 ]
 
 [tool.mypy]
