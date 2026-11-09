@@ -9,7 +9,7 @@ Alexandra Kirk,NASA-IMPACT/veda-data-airflow,71,1710956091,1782938248,833,False
 Isayah Vidito,NASA-IMPACT/veda-data-airflow,130,1677267607,1791316520,1320,True
 Pete Gadomski,NASA-IMPACT/veda-data-airflow,1,1696881846,1696881846,0,False
 Saadiq Mohiuddin,NASA-IMPACT/veda-data-airflow,157,1678389224,1781543681,1193,False
-Ali Z,NASA-IMPACT/veda-data-airflow,22,1754682851,1784136821,340,False
+Ali Z,NASA-IMPACT/veda-data-airflow,23,1754682851,1793901874,453,True
 Jamison French,NASA-IMPACT/veda-data-airflow,10,1697570219,1793080800,1105,True
 Sandra Hoang,NASA-IMPACT/veda-data-airflow,23,1750882224,1792503976,481,True
 Jennifer Tran,NASA-IMPACT/veda-data-airflow,116,1711566495,1791573501,926,True
@@ -20,17 +20,19 @@ Ciaran Sweet,NASA-IMPACT/veda-deploy,10,1723047258,1725986722,34,False
 Aimee Barciauskas,NASA-IMPACT/veda-deploy,6,1747793094,1748104064,3,False
 Saadiq Mohiuddin,NASA-IMPACT/veda-deploy,43,1700178391,1765556812,756,False
 Ali Z,NASA-IMPACT/veda-deploy,3,1773686242,1775218751,17,False
+Jamison French,NASA-IMPACT/veda-deploy,15,1786818595,1793905053,82,True
 Sandra Hoang,NASA-IMPACT/veda-deploy,9,1778508451,1791215715,147,True
 Jennifer Tran,NASA-IMPACT/veda-deploy,37,1717441419,1785178809,783,False
 Camille Owens,NASA-IMPACT/csda-client,3,1775606726,1779292806,42,False
 Anthony Lukach,NASA-IMPACT/csda-client,28,1595868006,1646770752,589,False
-Pete Gadomski,NASA-IMPACT/csda-client,19,1748012046,1785938017,438,True
+Pete Gadomski,NASA-IMPACT/csda-client,20,1748012046,1793812273,530,True
 Emma Paz,NASA-IMPACT/csda-client,2,1755729576,1771423290,181,False
 Loïc Houpert,NASA-IMPACT/csda-client,1,1775146723,1775146723,0,False
 Chris Holden,NASA-IMPACT/csda-client,4,1735940802,1784731636,564,False
 Jamison French,NASA-IMPACT/csda-client,1,1783360058,1783360058,0,False
-Aimee Barciauskas,NASA-IMPACT/veda-odd,20,1737487348,1792534097,637,True
-Max Jones,NASA-IMPACT/veda-odd,34,1737481888,1791918944,630,True
+Aimee Barciauskas,NASA-IMPACT/veda-odd,21,1737487348,1793649563,650,True
+Max Jones,NASA-IMPACT/veda-odd,35,1737481888,1793662031,650,True
+Julia Signell,NASA-IMPACT/veda-odd,1,1793649406,1793649406,0,True
 Henry Rodman,NASA-IMPACT/veda-ui,1,1742865617,1742865617,0,False
 Anthony Boyd,NASA-IMPACT/veda-ui,9,1715358533,1743009763,320,False
 Alice Rühl,NASA-IMPACT/veda-ui,212,1729501975,1763737676,396,False
@@ -90,7 +92,7 @@ Simi Damani,NASA-IMPACT/veda-config,1,1765815240,1765815240,0,False
 Jennifer Tran,NASA-IMPACT/veda-config,2,1739914590,1739917036,0,False
 Ricardo Duplos,NASA-IMPACT/veda-config,1,1677761269,1677761269,0,False
 Wille Marcel,Mozambique-IEP/moz-proenergia-backend,133,1764711026,1780408802,181,False
-Lane Goodman,Mozambique-IEP/moz-proenergia-backend,10,1772805690,1786117576,154,True
+Lane Goodman,Mozambique-IEP/moz-proenergia-backend,10,1772805690,1786117576,154,False
 Sanjay Bhangar,Mozambique-IEP/moz-proenergia-backend,123,1765441644,1790589597,291,True
 Henry Rodman,MAAP-Project/maap-eoapi,49,1725547779,1790698640,754,True
 Jamison French,MAAP-Project/maap-eoapi,55,1692618197,1788899057,1114,True
@@ -127,7 +129,7 @@ Wille Marcel,wri/project-zeno-next,2,1756245650,1756255296,0,False
 Lane Goodman,wri/project-zeno-next,289,1757951299,1773347021,178,False
 Sanjay Bhangar,wri/project-zeno-next,9,1755774325,1780659127,288,False
 Lilly Thomas,wri/project-zeno,14,1747185075,1748539755,15,False
-Daniel Wiesmann,wri/project-zeno,1065,1731514111,1792153192,701,True
+Daniel Wiesmann,wri/project-zeno,1066,1731514111,1793968328,722,True
 Leo Thomas,wri/project-zeno,161,1731626471,1757427179,298,False
 Tarashish Mishra,wri/project-zeno,70,1732519462,1777282765,518,False
 Sajjad Anwar,wri/project-zeno,20,1752062504,1755174278,36,False
@@ -144,14 +146,14 @@ Daniel Wiesmann,wri/gnw-evals,85,1767701199,1785348871,204,False
 Daniel Wiesmann,wri/gnw-stac,5,1768558266,1768560014,0,False
 Chuck Daniels,zarr-developers/zarr-python,7,1778034029,1781172374,36,False
 Loïc Houpert,zarr-developers/zarr-python,1,1780392772,1780392772,0,False
-Davis Bennett,zarr-developers/zarr-python,368,1606170143,1793571506,2168,True
+Davis Bennett,zarr-developers/zarr-python,378,1606170143,1794177717,2176,True
 Max Jones,zarr-developers/zarr-python,64,1707319296,1793380190,996,True
 Julia Signell,zarr-developers/zarr-python,1,1751903076,1751903076,0,False
 Kyle Barron,zarr-developers/zarr-python,2,1742833832,1745236023,27,False
-Sean Harkins,zarr-developers/VirtualiZarr,12,1731977996,1785955136,624,True
+Sean Harkins,zarr-developers/VirtualiZarr,12,1731977996,1785955136,624,False
 Chuck Daniels,zarr-developers/VirtualiZarr,15,1737669610,1773087075,409,False
 Aimee Barciauskas,zarr-developers/VirtualiZarr,11,1711745143,1774646421,728,False
-Davis Bennett,zarr-developers/VirtualiZarr,1,1785867047,1785867047,0,True
+Davis Bennett,zarr-developers/VirtualiZarr,1,1785867047,1785867047,0,False
 Max Jones,zarr-developers/VirtualiZarr,114,1718044084,1791915503,854,True
 Julia Signell,zarr-developers/VirtualiZarr,9,1715356253,1764361217,567,False
 Davis Bennett,zarr-developers/pydantic-zarr,365,1685480114,1793482276,1250,True
@@ -160,7 +162,7 @@ Matthias Mohr,opengeospatial/geoparquet,10,1670261363,1724597606,0,False
 Kyle Barron,opengeospatial/geoparquet,13,1650344789,1717227830,774,False
 Emmanuel Mathot,EOPF-Explorer/data-pipeline,38,1762329424,1772469582,117,False
 Ciaran Sweet,EOPF-Explorer/data-pipeline,1,1763657226,1763657226,0,False
-Loïc Houpert,EOPF-Explorer/data-pipeline,116,1763745677,1793195818,340,True
+Loïc Houpert,EOPF-Explorer/data-pipeline,119,1763745677,1793726226,346,True
 Emmanuel Mathot,EOPF-Explorer/landing-page,44,1758807189,1773048483,164,False
 Loïc Houpert,EOPF-Explorer/landing-page,4,1776769507,1789134645,143,True
 Jonas Sølvsteen,EOPF-Explorer/landing-page,12,1752572293,1777974598,294,False
@@ -171,7 +173,7 @@ Loïc Houpert,EOPF-Explorer/titiler-eopf,92,1774459229,1793019296,214,True
 Emmanuel Mathot,EOPF-Explorer/narratives,27,1759347919,1773071472,158,False
 Loïc Houpert,EOPF-Explorer/narratives,8,1775055972,1790774418,181,True
 Jonas Sølvsteen,EOPF-Explorer/narratives,3,1768847965,1776767722,91,False
-Emmanuel Mathot,EOPF-Explorer/data-model,98,1753302330,1790890012,435,True
+Emmanuel Mathot,EOPF-Explorer/data-model,99,1753302330,1793715330,467,True
 Loïc Houpert,EOPF-Explorer/data-model,31,1768320790,1793138760,287,True
 Davis Bennett,EOPF-Explorer/data-model,153,1753689546,1786446222,379,True
 Max Jones,EOPF-Explorer/data-model,1,1771528424,1771528424,0,False
@@ -195,7 +197,7 @@ Vincent Sarago,developmentseed/geotiff-test-data,7,1772121615,1772312862,2,False
 Loïc Houpert,developmentseed/geotiff-test-data,1,1775228963,1775228963,0,False
 Max Jones,developmentseed/geotiff-test-data,1,1772727555,1772727555,0,False
 Kyle Barron,developmentseed/geotiff-test-data,32,1769139485,1793032370,276,True
-Emmanuel Mathot,developmentseed/openeo-udp,20,1765539066,1785839541,234,True
+Emmanuel Mathot,developmentseed/openeo-udp,20,1765539066,1785839541,234,False
 Zac Deziel,developmentseed/openeo-udp,5,1768998307,1773417961,51,False
 Loïc Houpert,developmentseed/openeo-udp,5,1773828238,1776178020,27,False
 Olaf Veerman,developmentseed/openeo-udp,2,1763389980,1763390232,0,False
@@ -209,17 +211,17 @@ Wille Marcel,developmentseed/osm-teams,10,1673873332,1683295837,109,False
 Lane Goodman,developmentseed/osm-teams,230,1678973957,1686256611,84,False
 Anthony Lukach,developmentseed/cql2-rs,10,1740075456,1763135494,266,False
 Zac Deziel,developmentseed/cql2-rs,1,1741802915,1741802915,0,False
-Pete Gadomski,developmentseed/cql2-rs,107,1721837058,1785860874,741,True
+Pete Gadomski,developmentseed/cql2-rs,107,1721837058,1785860874,741,False
 David Bitner,developmentseed/cql2-rs,57,1721053190,1786572033,758,True
 Loïc Houpert,developmentseed/cql2-rs,1,1775222315,1775222315,0,False
 Kyle Barron,developmentseed/cql2-rs,4,1721753493,1721755471,0,False
 Wei Ji,developmentseed/pixelverse,7,1768166650,1778627452,121,False
 Loïc Houpert,developmentseed/pixelverse,2,1776819185,1776819627,0,False
 Martha Morrissey,developmentseed/pixelverse,39,1760647546,1772133970,132,False
-Anthony Lukach,developmentseed/stac-auth-proxy,266,1732818735,1792983293,696,True
+Anthony Lukach,developmentseed/stac-auth-proxy,268,1732818735,1793855982,706,True
 Pete Gadomski,developmentseed/stac-auth-proxy,1,1753389655,1753389655,0,False
 Vincent Sarago,developmentseed/stac-auth-proxy,7,1782762106,1790060566,84,True
-Loïc Houpert,developmentseed/stac-auth-proxy,5,1776977477,1790786234,159,True
+Loïc Houpert,developmentseed/stac-auth-proxy,8,1776977477,1793871238,195,True
 xıʃǝɟ,developmentseed/stac-auth-proxy,18,1732809717,1789902878,660,True
 Sanjay Bhangar,developmentseed/stac-auth-proxy,2,1744962679,1779890600,404,False
 Loïc Houpert,developmentseed/obspec-utils,2,1775225985,1775226004,0,False
@@ -228,8 +230,8 @@ Emmanuel Mathot,developmentseed/eoapi-k8s,26,1744211651,1765365371,244,False
 Isayah Vidito,developmentseed/eoapi-k8s,14,1718821284,1743535953,286,False
 Ciaran Sweet,developmentseed/eoapi-k8s,12,1727267183,1759747660,375,False
 Vincent Sarago,developmentseed/eoapi-k8s,3,1705582688,1728309029,263,False
-Loïc Houpert,developmentseed/eoapi-k8s,6,1775737463,1791543314,182,True
-xıʃǝɟ,developmentseed/eoapi-k8s,153,1730387754,1791477115,707,True
+Loïc Houpert,developmentseed/eoapi-k8s,7,1775737463,1793623205,207,True
+xıʃǝɟ,developmentseed/eoapi-k8s,154,1730387754,1793983808,736,True
 Tarashish Mishra,developmentseed/eoapi-k8s,8,1690216150,1763074531,843,False
 Jonas,developmentseed/eoapi-k8s,7,1728314655,1736527513,95,False
 Sanjay Bhangar,developmentseed/eoapi-k8s,1,1745921051,1745921051,0,False
@@ -239,13 +241,13 @@ Anthony Boyd,developmentseed/async-tiff,2,1772654449,1772661633,0,False
 Max Jones,developmentseed/async-tiff,2,1741974835,1761231624,222,False
 Kyle Barron,developmentseed/async-tiff,166,1723748465,1793032497,801,True
 Henry Rodman,developmentseed/lazycogs,65,1776109791,1783009010,79,False
-Anthony Lukach,developmentseed/deck.gl-raster,1,1777057482,1777057482,0,False
+Anthony Lukach,developmentseed/deck.gl-raster,2,1777057482,1793893998,194,True
 Anthony Boyd,developmentseed/deck.gl-raster,2,1773854868,1777065880,37,False
 Pete Gadomski,developmentseed/deck.gl-raster,8,1769183270,1772296400,36,False
 Aimee Barciauskas,developmentseed/deck.gl-raster,1,1781543231,1781543231,0,False
 Loïc Houpert,developmentseed/deck.gl-raster,1,1775164281,1775164281,0,False
 Max Jones,developmentseed/deck.gl-raster,1,1773845120,1773845120,0,False
-Kyle Barron,developmentseed/deck.gl-raster,380,1764879824,1793391831,330,True
+Kyle Barron,developmentseed/deck.gl-raster,408,1764879824,1793987661,336,True
 Anthony Lukach,developmentseed/eoAPI,3,1710532434,1746205978,412,False
 Henry Rodman,developmentseed/eoAPI,6,1684244308,1791921971,1246,True
 Zac Deziel,developmentseed/eoAPI,32,1686696101,1703179085,190,False
@@ -268,7 +270,7 @@ Loïc Houpert,developmentseed/lonboard,1,1775263950,1775263950,0,False
 Vitor George,developmentseed/lonboard,15,1697555970,1765456518,785,False
 Chris Holden,developmentseed/lonboard,1,1738778383,1738778383,0,False
 Wille Marcel,developmentseed/lonboard,2,1714083457,1730901566,194,False
-Kyle Barron,developmentseed/lonboard,497,1693518811,1790948922,1127,True
+Kyle Barron,developmentseed/lonboard,498,1693518811,1793826835,1160,True
 Anthony Lukach,developmentseed/titiler,1,1792917151,1792917151,0,True
 Henry Rodman,developmentseed/titiler,13,1727097138,1789742772,725,True
 Emmanuel Mathot,developmentseed/titiler,7,1610679501,1678367960,783,False
@@ -292,8 +294,8 @@ Henry Rodman,developmentseed/rio-stac,2,1683132742,1683133093,0,False
 Daniel Wiesmann,developmentseed/rio-stac,1,1756306256,1756306256,0,False
 Vincent Sarago,developmentseed/rio-stac,164,1588959271,1775122090,2154,False
 Loïc Houpert,developmentseed/rio-stac,2,1775118859,1775118867,0,False
-Henry Rodman,developmentseed/titiler-cmr,77,1728919558,1790619196,714,True
-Chuck Daniels,developmentseed/titiler-cmr,67,1765399326,1793360062,323,True
+Henry Rodman,developmentseed/titiler-cmr,78,1728919558,1794069953,754,True
+Chuck Daniels,developmentseed/titiler-cmr,71,1765399326,1794005862,331,True
 Isayah Vidito,developmentseed/titiler-cmr,2,1764026104,1764032487,0,False
 Aimee Barciauskas,developmentseed/titiler-cmr,207,1705427308,1770999745,758,False
 Vincent Sarago,developmentseed/titiler-cmr,67,1705495578,1711118618,65,False
@@ -307,13 +309,13 @@ Daniel Wiesmann,developmentseed/geojson-pydantic,2,1646256005,1657902792,134,Fal
 Jeff Albrecht,developmentseed/geojson-pydantic,3,1628915326,1645383397,0,False
 Vincent Sarago,developmentseed/geojson-pydantic,232,1603813451,1789987943,2154,True
 Loïc Houpert,developmentseed/geojson-pydantic,2,1775085507,1775085517,0,False
-Emmanuel Mathot,developmentseed/openeo-studio,94,1765798729,1792762055,312,True
+Emmanuel Mathot,developmentseed/openeo-studio,86,1765798729,1793712469,323,True
 Alice Rühl,developmentseed/openeo-studio,135,1763451155,1771856676,97,False
-Loïc Houpert,developmentseed/openeo-studio,8,1790246790,1790602623,4,True
-xıʃǝɟ,developmentseed/openeo-studio,6,1784223946,1792141990,91,True
-Daniel da Silva,developmentseed/openeo-studio,98,1762949825,1792601059,343,True
+Loïc Houpert,developmentseed/openeo-studio,11,1790246790,1793140367,33,True
+xıʃǝɟ,developmentseed/openeo-studio,5,1784223946,1792596122,96,True
+Daniel da Silva,developmentseed/openeo-studio,100,1762949825,1793800641,357,True
 Jonas Sølvsteen,developmentseed/openeo-studio,6,1770107108,1776285986,71,False
-Olaf Veerman,developmentseed/openeo-studio,5,1785409118,1785842114,5,True
+Olaf Veerman,developmentseed/openeo-studio,5,1785409118,1785842114,5,False
 Ricardo Duplos,developmentseed/openeo-studio,2,1786967569,1789466302,28,True
 Henry Rodman,developmentseed/morecantile,1,1758815692,1758815692,0,False
 Daniel Wiesmann,developmentseed/morecantile,1,1683559414,1683559414,0,False
@@ -336,13 +338,13 @@ Vincent Sarago,developmentseed/obstore,1,1738082190,1738082190,0,False
 Loïc Houpert,developmentseed/obstore,3,1775143273,1780343864,60,False
 Max Jones,developmentseed/obstore,1,1771956267,1771956267,0,False
 Wille Marcel,developmentseed/obstore,1,1730470183,1730470183,0,False
-Kyle Barron,developmentseed/obstore,386,1729194394,1793139714,740,True
+Kyle Barron,developmentseed/obstore,387,1729194394,1793828296,748,True
 Henry Rodman,developmentseed/tipg,4,1700621160,1704974391,50,False
 Zac Deziel,developmentseed/tipg,2,1694197989,1694198593,0,False
 Ciaran Sweet,developmentseed/tipg,1,1759493236,1759493236,0,False
 David Bitner,developmentseed/tipg,94,1651079287,1702393462,593,False
-Vincent Sarago,developmentseed/tipg,630,1651066571,1793094880,1643,True
-Loïc Houpert,developmentseed/tipg,1,1775085812,1775085812,0,False
+Vincent Sarago,developmentseed/tipg,634,1651066571,1793712583,1650,True
+Loïc Houpert,developmentseed/tipg,10,1775085812,1793876088,217,True
 xıʃǝɟ,developmentseed/tipg,4,1762778608,1784800784,254,False
 Brendan McAndrew,developmentseed/tipg,1,1726500617,1726500617,0,False
 Tarashish Mishra,OSMCha/osmcha-frontend,2,1699508578,1707718447,95,False
@@ -357,12 +359,12 @@ Kyle Barron,geoarrow/deck.gl-layers,100,1691436871,1774391338,960,True
 Wei Ji,geoarrow/geoarrow-rs,1,1707150354,1707150354,0,False
 Pete Gadomski,geoarrow/geoarrow-rs,18,1716371124,1782830611,769,False
 Loïc Houpert,geoarrow/geoarrow-rs,1,1775156051,1775156051,0,False
-Kyle Barron,geoarrow/geoarrow-rs,854,1688163503,1789126811,1168,True
+Kyle Barron,geoarrow/geoarrow-rs,855,1688163503,1793927136,1224,True
 Loïc Houpert,geoarrow/deck.gl-geoarrow,1,1775154905,1775154905,0,False
 Kyle Barron,geoarrow/deck.gl-geoarrow,116,1691436871,1788316609,1121,True
 Julia Signell,holoviz/hvplot,76,1538678946,1714677378,2037,False
 Henry Rodman,stac-utils/rustac,3,1763493312,1782402824,218,False
-Pete Gadomski,stac-utils/rustac,1049,1635861187,1793030978,1819,True
+Pete Gadomski,stac-utils/rustac,1051,1635861187,1793834738,1828,True
 David Bitner,stac-utils/rustac,3,1764020708,1784655779,238,False
 Kyle Barron,stac-utils/rustac,1,1745265722,1745265722,0,False
 Anthony Lukach,stac-utils/stac-fastapi-pgstac,9,1644958397,1764690687,1385,False
@@ -371,8 +373,8 @@ Daniel Wiesmann,stac-utils/stac-fastapi-pgstac,2,1641522863,1657726810,187,False
 Jeff Albrecht,stac-utils/stac-fastapi-pgstac,43,1592367245,1677535995,0,False
 Pete Gadomski,stac-utils/stac-fastapi-pgstac,41,1668699025,1793022656,1438,True
 David Bitner,stac-utils/stac-fastapi-pgstac,18,1614708814,1791309783,2043,True
-Vincent Sarago,stac-utils/stac-fastapi-pgstac,111,1612750031,1789541893,2046,True
-Loïc Houpert,stac-utils/stac-fastapi-pgstac,1,1776774012,1776774012,0,False
+Vincent Sarago,stac-utils/stac-fastapi-pgstac,113,1612750031,1793642183,2093,True
+Loïc Houpert,stac-utils/stac-fastapi-pgstac,4,1776774012,1793883636,198,True
 xıʃǝɟ,stac-utils/stac-fastapi-pgstac,2,1762946193,1789136028,303,True
 Matthias Mohr,stac-utils/stac-fastapi-pgstac,1,1722523738,1722523738,0,False
 Brendan McAndrew,stac-utils/stac-fastapi-pgstac,1,1671738949,1671738949,0,False
@@ -386,7 +388,7 @@ Tarashish Mishra,stac-utils/pystac,1,1651275347,1651275347,0,False
 Matthias Mohr,stac-utils/pystac,5,1654625637,1690920119,0,False
 Brendan McAndrew,stac-utils/pystac,6,1697718500,1793197951,1105,True
 Alex I. Mandel,stac-utils/pystac,1,1686229285,1686229285,0,False
-Julia Signell,stac-utils/pystac,106,1673540508,1793301929,1386,True
+Julia Signell,stac-utils/pystac,108,1673540508,1793634199,1389,True
 Kyle Barron,stac-utils/pystac,7,1610151341,1613761072,41,False
 Wei Ji,stac-utils/xpystac,1,1680094039,1680094039,0,False
 Julia Signell,stac-utils/xpystac,44,1674856260,1790712578,1340,True
@@ -406,7 +408,7 @@ Daniel Wiesmann,stac-utils/stac-fastapi,2,1641522863,1657726810,187,False
 Jeff Albrecht,stac-utils/stac-fastapi,105,1592367245,1714119127,0,False
 Pete Gadomski,stac-utils/stac-fastapi,29,1668699025,1694007382,292,False
 David Bitner,stac-utils/stac-fastapi,15,1614708814,1668698135,624,False
-Vincent Sarago,stac-utils/stac-fastapi,160,1597193820,1791482273,2248,True
+Vincent Sarago,stac-utils/stac-fastapi,162,1597193820,1793618069,2273,True
 Loïc Houpert,stac-utils/stac-fastapi,1,1775204747,1775204747,0,False
 xıʃǝɟ,stac-utils/stac-fastapi,1,1785157932,1785157932,0,False
 Matthias Mohr,stac-utils/stac-fastapi,3,1659235417,1712847211,0,False
@@ -420,7 +422,7 @@ Loïc Houpert,stac-utils/pystac-client,1,1775143868,1775143868,0,False
 xıʃǝɟ,stac-utils/pystac-client,1,1791213255,1791213255,0,True
 Matthew Hanson,stac-utils/pystac-client,339,1617420548,1650341067,0,False
 Brendan McAndrew,stac-utils/pystac-client,1,1707408264,1707408264,0,False
-Julia Signell,stac-utils/pystac-client,20,1681915703,1765896790,972,False
+Julia Signell,stac-utils/pystac-client,21,1681915703,1793648728,1293,True
 Alice Rühl,Disasters-Learning-Portal/veda-disasters,6,1738065931,1741253221,36,False
 Gjore Milevski,Disasters-Learning-Portal/veda-disasters,58,1729592762,1743158999,157,False
 Vitor George,Disasters-Learning-Portal/veda-disasters,15,1732019514,1759915145,322,False
@@ -430,7 +432,7 @@ Sandra Hoang,Disasters-Learning-Portal/veda-disasters,95,1720702650,1747062871,3
 Emmanuel Mathot,sentinel-hub/titiler-openeo,360,1730291637,1793224833,728,True
 Zac Deziel,sentinel-hub/titiler-openeo,9,1764028126,1770475153,74,False
 Vincent Sarago,sentinel-hub/titiler-openeo,102,1733137677,1775039853,484,False
-Loïc Houpert,sentinel-hub/titiler-openeo,4,1768424467,1793018648,284,True
+Loïc Houpert,sentinel-hub/titiler-openeo,7,1768424467,1793918349,295,True
 xıʃǝɟ,sentinel-hub/titiler-openeo,18,1738846309,1789126590,581,True
 Emmanuel Mathot,eopf-toolkit/eopf-101,8,1747939515,1775737251,321,False
 Ciaran Sweet,eopf-toolkit/eopf-101,49,1748965625,1778149455,337,False
@@ -455,7 +457,7 @@ Chris Holmes,radiantearth/stac-spec,931,1494615567,1647355248,0,False
 Matthew Hanson,radiantearth/stac-spec,483,1521747090,1695841172,0,False
 Matthias Mohr,radiantearth/stac-spec,865,1530625520,1726047304,0,False
 Kyle Barron,radiantearth/stac-spec,2,1611703082,1615916421,48,False
-Anthony Lukach,source-cooperative/source.coop,585,1743794422,1793378965,573,True
+Anthony Lukach,source-cooperative/source.coop,590,1743794422,1794184676,583,True
 Sajjad Anwar,osm-seed/osm-seed,53,1530022102,1645176311,1332,False
 Olaf Veerman,osm-seed/osm-seed,2,1529608142,1539094662,109,False
 Sanjay Bhangar,osm-seed/osm-seed,130,1525431369,1708093916,2114,False
@@ -477,4 +479,4 @@ Isayah Vidito,EOEPCA/eoepca-plus,13,1727209016,1733498946,72,False
 xıʃǝɟ,EOEPCA/eoepca-plus,192,1730459729,1793264604,726,True
 Jonas Sølvsteen,EOEPCA/eoepca-plus,18,1727077341,1752268219,291,False
 xıʃǝɟ,EOEPCA/resource-discovery,5,1782154209,1791542141,108,True
-Jonas Sølvsteen,EOEPCA/resource-discovery,28,1719300578,1768401906,568,False
+Jonas Sølvsteen,EOEPCA/resource-discovery,31,1719300578,1793867568,863,True
